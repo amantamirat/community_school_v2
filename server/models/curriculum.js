@@ -9,96 +9,66 @@ const SubjectSchema = new mongoose.Schema({
     },
     load: {
         type: Number,
-        required: true // Load in hours or credits
+        required: true // Load in hours or credits per week
+    },
+    elective: {
+        type: Boolean,
+        default: false,
+        required: true,
+    },
+    optional: {
+        type: Boolean,
+        default: false,
+        required: true,
     }
 });
 
 // Define the grade schema
 const GradeSchema = new mongoose.Schema({
+    stage: {
+        type: String,
+        enum: ['KG', 'PRM', 'MID', 'HS', 'PREP'],
+        required: true // Example: 'KG', 'PRMI', 'PRMII', 'HS', 'PREP'
+    },
     level: {
         type: Number,
         required: true // Example: 1, 2, 3, etc.
     },
-    branch: {
+    specialization: {
         type: String,
         enum: ['GEN', 'NAT', 'SOC'],
-        default:'GEN',
-        required: true // Branch type for preparatory stage
-    },
-    subjects: [SubjectSchema] // Array of subjects for this grade level
-});
-
-// Define the stage schema
-const StageSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        enum: ['KG', 'PRMI', 'PRMII', 'HS', 'PREP'],
-        required: true // Example: 'KG', 'PRMI', 'PRMII', 'HS', 'PREP'
-    },
-    
-    grades: {
-        type: [GradeSchema]
+        default: 'GEN',
+        required: true // Specialization type for preparatory stage
     }
 });
 
+
+
 // Define the curriculum schema
 const CurriculumSchema = new mongoose.Schema({
-    curriculumYear: {
+    title: {
         type: String,
-        required: true // Example: '2023-2024'
+        required: true // Short Title Example: 'Curriculum of Ministsrty of Education for Kids 2012'
     },
-    maxSemester: {
+    minimum_load: {
         type: Number,
         required: true
     },
-    admissionClassification: {
-        type: String,
-        required: true // Example: 'Regular', 'Transfer', etc.
+    maximum_load: {
+        type: Number,
+        required: true
     },
-    stages: [
-        {
-            name: 'KG',
-            grades: [
-                { level: 1 },
-                { level: 2 },
-                { level: 3 }
-            ]
+    minimum_pass_mark: {
+        type: Number,
+        required: true
+    },
+    grades: [{
+        grade: {
+            type: GradeSchema
         },
-        {
-            name: 'PRMI',
-            grades: [
-                { level: 1 },
-                { level: 2 },
-                { level: 3 },
-                { level: 4 }
-            ]
-        },
-        {
-            name: 'PRMII',
-            grades: [
-                { level: 5 },
-                { level: 6 },
-                { level: 7 },
-                { level: 8 }
-            ]
-        },
-        {
-            name: 'HS',
-            grades: [
-                { level: 9 },
-                { level: 10 }
-            ]
-        },
-        {
-            name: 'PREP',
-            grades: [
-                { level: 11, branch: 'NAT'},
-                { level: 11, branch: 'SOC'},
-                { level: 12, branch: 'NAT'},                
-                { level: 12, branch: 'SOC'}
-            ]
-        }
-    ]
+        subjects: [SubjectSchema]
+    }    ]
+
 });
 
 // Create the model
