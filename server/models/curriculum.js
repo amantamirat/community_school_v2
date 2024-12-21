@@ -19,17 +19,13 @@ const GradeSchema = new mongoose.Schema({
         type: Number,
         required: true // Example: 1, 2, 3, etc.
     },
-    subjects: [SubjectSchema] // Array of subjects for this grade level
-});
-
-// Define the preparatory branch schema
-const PreparatoryBranchSchema = new mongoose.Schema({
     branch: {
         type: String,
-        enum: ['NAT', 'SOC'],
+        enum: ['GEN', 'NAT', 'SOC'],
+        default:'GEN',
         required: true // Branch type for preparatory stage
     },
-    grades: [GradeSchema] // Array of grades within this branch
+    subjects: [SubjectSchema] // Array of subjects for this grade level
 });
 
 // Define the stage schema
@@ -39,24 +35,9 @@ const StageSchema = new mongoose.Schema({
         enum: ['KG', 'PRMI', 'PRMII', 'HS', 'PREP'],
         required: true // Example: 'KG', 'PRMI', 'PRMII', 'HS', 'PREP'
     },
-    isPreparatory: {
-        type: Boolean,
-        default: false, // Indicates if the stage is preparatory
-        validate: {
-            validator: function(value) {
-                // Only allow isPreparatory to be true if name is 'PREP'
-                return !(value === true && this.name !== 'PREP');
-            },
-            message: "isPreparatory can only be true if the stage name is 'PREP'."
-        }
-    },
-    preparatoryBranches: {
-        type: [PreparatoryBranchSchema],
-        default: undefined // Only applies if the stage is preparatory
-    },
+    
     grades: {
-        type: [GradeSchema],
-        default: undefined // General grades for non-preparatory stages
+        type: [GradeSchema]
     }
 });
 
@@ -110,22 +91,11 @@ const CurriculumSchema = new mongoose.Schema({
         },
         {
             name: 'PREP',
-            isPreparatory: true,
-            preparatoryBranches: [
-                {
-                    branch: 'NAT',
-                    grades: [
-                        { level: 11 },
-                        { level: 12 }
-                    ]
-                },
-                {
-                    branch: 'SOC',
-                    grades: [
-                        { level: 11 },
-                        { level: 12 }
-                    ]
-                }
+            grades: [
+                { level: 11, branch: 'NAT'},
+                { level: 11, branch: 'SOC'},
+                { level: 12, branch: 'NAT'},                
+                { level: 12, branch: 'SOC'}
             ]
         }
     ]
