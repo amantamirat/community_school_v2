@@ -27,8 +27,8 @@ const SubjectSchema = new mongoose.Schema({
 const GradeSchema = new mongoose.Schema({
     stage: {
         type: String,
-        enum: ['KG', 'PRM', 'MID', 'HS', 'PREP'],
-        required: true // Example: 'KG', 'PRMI', 'PRMII', 'HS', 'PREP'
+        enum: ['KG', 'PRM_MID', 'PREP'],
+        required: true // Example: 'KG (1-3)', 'PRMMID 1-10', 'PREP 11 NAT , PREP 12 SOC'
     },
     level: {
         type: Number,
@@ -67,8 +67,7 @@ const CurriculumSchema = new mongoose.Schema({
             type: GradeSchema
         },
         subjects: [SubjectSchema]
-    }    ]
-
+    }]
 });
 
 // Create the model

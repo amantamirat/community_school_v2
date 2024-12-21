@@ -1,14 +1,20 @@
 const mongoose = require('mongoose');
 // Define the academic session schema
-const AcademicSessionSchema = new mongoose.Schema({    
-    academicYear: {
+const AcademicSessionSchema = new mongoose.Schema({
+    academic_year: {
         type: String,
         required: true // Example: '2023-2024'
     },
-    academicSemester: {
+    academic_semester: {
         type: Number,
         required: true
-    }
+    },
+    curriculums: [{
+        curriculum: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Curriculum'
+        },
+    }]
 });
 
 // Create the model

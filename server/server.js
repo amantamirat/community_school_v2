@@ -11,3 +11,6 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
+
+const { getPreviousGrade } = require('./utils/utils'); // Import the function
+console.log(getPreviousGrade('PRM_MID', 4, 'GEN')); 
