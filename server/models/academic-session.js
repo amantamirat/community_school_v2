@@ -9,12 +9,30 @@ const AcademicSessionSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    curriculums: [{
-        curriculum: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Curriculum'
+    classifications: [{
+        classification: {
+            type: String,
+            required: true,
+            default: "R",
+            enum: ["R", "N", "D"]
         },
-    }]
+        curriculums: [{
+            curriculum: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Curriculum'
+            },
+        }],
+        grades: [{
+            grade: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Grade'
+            },
+            sections: {
+                type: Number
+            }
+        }]
+    }],
+
 });
 
 // Create the model
