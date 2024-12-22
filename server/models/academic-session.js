@@ -26,13 +26,9 @@ const AcademicSessionSchema = new mongoose.Schema({
             grade: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'Grade'
-            },
-            sections: {
-                type: Number
             }
         }]
     }],
-
 });
 
 // Create the model
