@@ -9,14 +9,9 @@ const SubjectSchema = new mongoose.Schema({
         type: Number,
         required: true // Load in hours or credits per week
     },
-    elective: {
-        type: Boolean,
-        default: false,
-        required: true,
-    },
     optional: {
         type: Boolean,
-        default: false,
+        default: false, //Optional Subjects can be more than one and selected by students
         required: true,
     }
 });
