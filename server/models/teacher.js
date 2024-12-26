@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 
 const TeacherSchema = new mongoose.Schema(
     {
+        department: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Department",
+        },
         first_name: {
             type: String,
             required: true

@@ -17,6 +17,6 @@ const GradeSchema = new mongoose.Schema({
         required: true // Specialization type for preparatory stage
     }
 });
-
+GradeSchema.index({ stage: 1, level: 1, specialization: 1 }, { unique: true });
 const Grade = mongoose.model('Grade', GradeSchema);
 module.exports = Grade;
