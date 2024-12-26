@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
 const GradeSectionSchema = new mongoose.Schema({
-    academic_session: {
+    academic_classification: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'AcademicSession',
+        ref: 'AdmissionClassification',
         required: true
     },
     grade: {
@@ -11,19 +11,16 @@ const GradeSectionSchema = new mongoose.Schema({
         ref: 'Grade',
         required: true
     },
-    sections: [{
-        section: {
-            type: Number,
-            required: true
-        },
-        classes: [{
-            section_class: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'SectionClass',
-                required: true
-            }
-        }]
+    section: {
+        type: Number,
+        required: true
+    },
+    subject_class: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'SubjectClass',
+        required: true
     }]
+
 });
 // Create the model
 const GradeSection = mongoose.model('GradeSection', GradeSectionSchema);

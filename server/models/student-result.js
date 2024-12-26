@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 const StudentResultSchema = new mongoose.Schema({
+    subject_class: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'SubjectClass',
+        required: true
+    },
     student: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Student',

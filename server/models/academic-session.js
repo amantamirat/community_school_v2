@@ -10,24 +10,10 @@ const AcademicSessionSchema = new mongoose.Schema({
         required: true
     },
     admission_classifications: [{
-        classification: {
-            type: String,
-            enum: ["R", "N", "D"], //Refers to Regular, Night and Distance
-            default: "R",
-            required: true
-        },
-        curriculum: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Curriculum',
-            required: true
-        },
-        grade_sections: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'GradeSection',
-        }]
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AdmissionClassification'
     }]
 });
-
 // Create the model
 const AcademicSession = mongoose.model('AcademicSession', AcademicSessionSchema);
 module.exports = AcademicSession;
