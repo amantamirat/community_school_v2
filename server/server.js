@@ -1,10 +1,13 @@
 const mongoose = require('mongoose');
 const express = require('express');
+const gradeController = require('./controllers/gradeController');
 const gradeRoutes = require('./routes/gradeRoutes');
-const gradeController = require('./controllers/gradeController')
+const departmentRoutes = require("./routes/departmentRoutes"); 
+
 const app = express();
 app.use(express.json());
 app.use('/api/grades', gradeRoutes);
+app.use("/api/departments", departmentRoutes);
 
 require('dotenv').config();
 mongoose.connect(process.env.MONGO_URL)
