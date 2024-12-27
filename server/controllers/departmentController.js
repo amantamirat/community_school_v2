@@ -25,35 +25,6 @@ const departmentController = {
         }
     },
 
-    // Add a teacher to a department
-    addTeacherToDepartment: async (req, res) => {
-        try {
-            const { departmentId, teacherId } = req.body;
-
-            // Verify teacher exists
-            const teacher = await Teacher.findById(teacherId);
-            if (!teacher) {
-                return res.status(404).json({ message: "Teacher not found" });
-            }
-
-            const department = await Department.findById(departmentId);
-            if (!department) {
-                return res.status(404).json({ message: "Department not found" });
-            }
-
-            // Check if teacher is already in the department
-            if (department.teachers.some(t => t.teacher.toString() === teacherId)) {
-                return res.status(400).json({ message: "Teacher already added to the department" });
-            }
-
-            department.teachers.push({ teacher: teacherId });
-            await department.save();
-            res.status(200).json(department);
-        } catch (error) {
-            res.status(500).json({ message: "Error adding teacher to department", error });
-        }
-    },
-
     // Update a department
     updateDepartment: async (req, res) => {
         try {

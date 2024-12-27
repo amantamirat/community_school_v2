@@ -5,7 +5,6 @@ const router = express.Router();
 // Routes
 router.post("/create", departmentController.createDepartment);
 router.get("/", departmentController.getAllDepartments);
-router.post("/add-teacher", departmentController.addTeacherToDepartment);
 router.put("/update/:id", departmentController.updateDepartment);
 router.delete("/:id", departmentController.deleteDepartment);
 

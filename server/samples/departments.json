@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Computer Science",
+    "teachers": []
+  },
+  {
+    "name": "Mathematics",
+    "teachers": []
+  },
+  {
+    "name": "Physics",
+    "teachers": []
+  },
+  {
+    "name": "Chemistry",
+    "teachers": []
+  },
+  {
+    "name": "Biology",
+    "teachers": []
+  },
+  {
+    "name": "Electrical Engineering",
+    "teachers": []
+  },
+  {
+    "name": "Mechanical Engineering",
+    "teachers": []
+  },
+  {
+    "name": "Civil Engineering",
+    "teachers": []
+  },
+  {
+    "name": "Business Administration",
+    "teachers": []
+  },
+  {
+    "name": "Economics",
+    "teachers": []
+  }
+]
