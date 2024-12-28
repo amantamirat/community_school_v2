@@ -12,6 +12,11 @@ yarn dev
 pnpm dev
 # or
 bun dev
+# and what about this 
+npm install primereact@latest primeicons@latest
+# above all (FIRST)
+npm install next react react-dom #or 
+npm install
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
