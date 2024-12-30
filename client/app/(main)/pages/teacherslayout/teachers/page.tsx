@@ -1,0 +1,138 @@
+'use client';
+import { Button } from 'primereact/button';
+import { Column } from 'primereact/column';
+import { DataTable } from 'primereact/datatable';
+import { Dialog } from 'primereact/dialog';
+import { InputText } from 'primereact/inputtext';
+import { Toast } from 'primereact/toast';
+import { Toolbar } from 'primereact/toolbar';
+import { classNames } from 'primereact/utils';
+import React, { useRef, useState } from 'react';
+
+type Sex = 'Male' | 'Female';
+type Teacher = {
+    _id?: string;
+    department?: string;
+    first_name: string;
+    last_name: string;
+    sex?: Sex;
+};
+
+const TeachersPage = () => {
+    let emptyTeacher: Teacher = {
+        _id: '',
+        first_name: '',
+        last_name: '',
+        sex: 'Male'
+    };
+    const [teachers, setTeachers] = useState(null);
+    //const [selectedTeacher, setSelectedTeacher] = useState(null);
+    const [teacher, setTeacher] = useState<Teacher>(emptyTeacher);
+    const [showSaveDialog, setShowSaveDialog] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const toast = useRef<Toast>(null);
+    const dt = useRef<DataTable<any>>(null);
+    const [globalFilter, setGlobalFilter] = useState('');
+
+
+    const openSaveDialog = () => {
+        setTeacher(emptyTeacher);
+        setSubmitted(false);
+        setShowSaveDialog(true);
+    };
+
+    const startToolbarTemplate = () => {
+        return (
+            <React.Fragment>
+                <div className="my-2">
+                    <Button label="New" icon="pi pi-plus" severity="success" className=" mr-2" onClick={openSaveDialog}/>
+                </div>
+            </React.Fragment>
+        );
+    };
+
+    const header = (
+        <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+            <h5 className="m-0">Manage Teachers</h5>
+            <span className="block mt-2 md:mt-0 p-input-icon-left">
+                <i className="pi pi-search" />
+                <InputText type="search" onInput={(e) => setGlobalFilter(e.currentTarget.value)} placeholder="Search..." />
+            </span>
+        </div>
+    );
+
+    const actionBodyTemplate = (rowData: Teacher) => {
+        return (
+            <>
+                <Button icon="pi pi-pencil" rounded severity="success" className="mr-2" />
+                <Button icon="pi pi-trash" rounded severity="warning" />
+            </>
+        );
+    };
+
+    const hideDialog = () => {
+        setSubmitted(false);
+        setShowSaveDialog(false);
+    };
+    const saveDialogFooter = (
+        <>
+            <Button label="Cancel" icon="pi pi-times" text onClick={hideDialog} />
+            <Button label="Save" icon="pi pi-check" text />
+        </>
+    );    
+
+
+    return (
+        <div className="grid">
+            <div className="col-12">
+                <div className="card">
+                    <Toast ref={toast} />
+                    <Toolbar className="mb-4" start={startToolbarTemplate} ></Toolbar>
+                    <DataTable
+                        ref={dt}
+                        value={teachers}
+                        selection={teacher}
+                        onSelectionChange={(e) => setTeacher(e.value as Teacher)}
+                        dataKey="id"
+                        paginator
+                        rows={10}
+                        rowsPerPageOptions={[5, 10, 25]}
+                        className="datatable-responsive"
+                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
+                        globalFilter={globalFilter}
+                        emptyMessage="No products found."
+                        header={header}
+                        responsiveLayout="scroll"
+                    >
+                        <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
+                        <Column field="first_name" header="First Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="last_name" header="Last Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
+                    </DataTable>
+
+                    <Dialog visible={showSaveDialog} style={{ width: '450px' }} header="Teacher Details" modal className="p-fluid" footer={saveDialogFooter} onHide={hideDialog}>
+                        <div className="field">
+                            <label htmlFor="name">First Name</label>
+                            <InputText
+                                id="first_name"
+                                value={teacher.first_name}
+                                onChange={(e) => setTeacher({ ...teacher, first_name: e.target.value })}
+                                required
+                                autoFocus
+                                className={classNames({
+                                    'p-invalid': submitted && !teacher.first_name
+                                })}
+                            />
+                            {submitted && !teacher.first_name && <small className="p-invalid">First Name is required.</small>}
+                        </div>
+
+                    </Dialog>
+
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default TeachersPage;

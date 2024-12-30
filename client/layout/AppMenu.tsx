@@ -16,6 +16,13 @@ const AppMenu = () => {
             items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' }]
         },
         {
+            label: 'Manage',
+            items: [
+                { label: 'Teachers', icon: 'pi pi-fw pi-home', to: '/pages/teacherslayout' },
+                { label: 'Curriculums', icon: 'pi pi-fw pi-home', to: '/pages/curriculums' }
+            ]
+        },
+        {
             label: 'UI Components',
             items: [
                 { label: 'Form Layout', icon: 'pi pi-fw pi-id-card', to: '/uikit/formlayout' },
