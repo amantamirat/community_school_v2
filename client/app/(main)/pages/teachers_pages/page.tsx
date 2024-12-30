@@ -18,7 +18,6 @@ const TeacherMainPage = () => {
                         </TabPanel>
                     </TabView>
                 </div>
-
             </div>
         </div>
     );

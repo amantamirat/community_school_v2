@@ -26,9 +26,10 @@ const TeachersPage = () => {
         sex: 'Male'
     };
     const [teachers, setTeachers] = useState(null);
-    //const [selectedTeacher, setSelectedTeacher] = useState(null);
-    const [teacher, setTeacher] = useState<Teacher>(emptyTeacher);
+    const [selectedTeacher, setSelectedTeacher] = useState<Teacher>(emptyTeacher);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
@@ -36,16 +37,49 @@ const TeachersPage = () => {
 
 
     const openSaveDialog = () => {
-        setTeacher(emptyTeacher);
+        setEditMode(false);
+        setSelectedTeacher(emptyTeacher);
         setSubmitted(false);
         setShowSaveDialog(true);
     };
+
+    const openEditDialog = (teacher: Teacher) => {
+        setEditMode(true);
+        setSelectedTeacher({ ...teacher });
+        setSubmitted(false);
+        setShowSaveDialog(true);
+    };
+
+    const hideSaveDialog = () => {
+        setSubmitted(false);
+        setShowSaveDialog(false);
+    };
+    const saveDialogFooter = (
+        <>
+            <Button label="Cancel" icon="pi pi-times" text onClick={hideSaveDialog} />
+            <Button label="Save" icon="pi pi-check" text />
+        </>
+    );
+    const confirmDeleteItem = (teacher: Teacher) => {
+        setSelectedTeacher(teacher);
+        setShowDeleteDialog(true);
+    };
+    const hideDeleteDialog = () => {
+        setShowDeleteDialog(false);
+    };
+
+    const deleteDialogFooter = (
+        <>
+            <Button label="Cancel" icon="pi pi-times" text onClick={hideDeleteDialog} />
+            <Button label="Delete" icon="pi pi-check" text />
+        </>
+    );
 
     const startToolbarTemplate = () => {
         return (
             <React.Fragment>
                 <div className="my-2">
-                    <Button label="New" icon="pi pi-plus" severity="success" className=" mr-2" onClick={openSaveDialog}/>
+                    <Button label="New" icon="pi pi-plus" severity="success" className=" mr-2" onClick={openSaveDialog} />
                 </div>
             </React.Fragment>
         );
@@ -64,23 +98,11 @@ const TeachersPage = () => {
     const actionBodyTemplate = (rowData: Teacher) => {
         return (
             <>
-                <Button icon="pi pi-pencil" rounded severity="success" className="mr-2" />
-                <Button icon="pi pi-trash" rounded severity="warning" />
+                <Button icon="pi pi-pencil" rounded severity="success" className="mr-2" onClick={() => openEditDialog(rowData)} />
+                <Button icon="pi pi-trash" rounded severity="warning" onClick={() => confirmDeleteItem(rowData)} />
             </>
         );
     };
-
-    const hideDialog = () => {
-        setSubmitted(false);
-        setShowSaveDialog(false);
-    };
-    const saveDialogFooter = (
-        <>
-            <Button label="Cancel" icon="pi pi-times" text onClick={hideDialog} />
-            <Button label="Save" icon="pi pi-check" text />
-        </>
-    );    
-
 
     return (
         <div className="grid">
@@ -91,8 +113,8 @@ const TeachersPage = () => {
                     <DataTable
                         ref={dt}
                         value={teachers}
-                        selection={teacher}
-                        onSelectionChange={(e) => setTeacher(e.value as Teacher)}
+                        selection={setSelectedTeacher}
+                        onSelectionChange={(e) => setSelectedTeacher(e.value as Teacher)}
                         dataKey="id"
                         paginator
                         rows={10}
@@ -101,7 +123,7 @@ const TeachersPage = () => {
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
                         globalFilter={globalFilter}
-                        emptyMessage="No products found."
+                        emptyMessage="No teachers found."
                         header={header}
                         responsiveLayout="scroll"
                     >
@@ -111,22 +133,32 @@ const TeachersPage = () => {
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
-                    <Dialog visible={showSaveDialog} style={{ width: '450px' }} header="Teacher Details" modal className="p-fluid" footer={saveDialogFooter} onHide={hideDialog}>
+                    <Dialog visible={showSaveDialog} style={{ width: '450px' }} header={editMode ? "Edit Teacher Details" : "New Teacher Details"} modal className="p-fluid" footer={saveDialogFooter} onHide={hideSaveDialog}>
                         <div className="field">
                             <label htmlFor="name">First Name</label>
                             <InputText
                                 id="first_name"
-                                value={teacher.first_name}
-                                onChange={(e) => setTeacher({ ...teacher, first_name: e.target.value })}
+                                value={selectedTeacher.first_name}
+                                onChange={(e) => setSelectedTeacher({ ...selectedTeacher, first_name: e.target.value })}
                                 required
                                 autoFocus
                                 className={classNames({
-                                    'p-invalid': submitted && !teacher.first_name
+                                    'p-invalid': submitted && !selectedTeacher.first_name
                                 })}
                             />
-                            {submitted && !teacher.first_name && <small className="p-invalid">First Name is required.</small>}
+                            {submitted && !selectedTeacher.first_name && <small className="p-invalid">First Name is required.</small>}
                         </div>
+                    </Dialog>
 
+                    <Dialog visible={showDeleteDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteDialogFooter} onHide={hideDeleteDialog}>
+                        <div className="flex align-items-center justify-content-center">
+                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
+                            {selectedTeacher && (
+                                <span>
+                                    Are you sure you want to delete <b>{selectedTeacher.first_name}</b>?
+                                </span>
+                            )}
+                        </div>
                     </Dialog>
 
                 </div>

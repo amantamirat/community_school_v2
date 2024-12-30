@@ -18,8 +18,8 @@ const AppMenu = () => {
         {
             label: 'Manage',
             items: [
-                { label: 'Teachers', icon: 'pi pi-fw pi-home', to: '/pages/teacherslayout' },
-                { label: 'Curriculums', icon: 'pi pi-fw pi-home', to: '/pages/curriculums' }
+                { label: 'Teachers', icon: 'pi pi-fw pi-home', to: '/pages/teachers_pages' },
+                { label: 'Curricula', icon: 'pi pi-fw pi-home', to: '/pages/curricula_pages' }
             ]
         },
         {
