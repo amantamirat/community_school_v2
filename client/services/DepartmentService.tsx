@@ -23,4 +23,45 @@ export const DepartmentService = {
             throw error;
         }
     },
+
+    // Create a new department
+    async createDepartment(department: Partial<Department>): Promise<Department> {
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.createDepartment}`;
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(department),
+        });
+        if (!response.ok) {
+            throw new Error("Failed to create department");
+        }
+        return response.json();
+    },
+
+    async updateDepartment(id: string, department: Partial<Department>): Promise<Department> {
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.updateDepartment}`;
+        const response = await fetch(`${url}/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(department),
+        });
+        if (!response.ok) {
+            throw new Error("Failed to update department");
+        }
+        return response.json();
+    },
+
+    async deleteDepartment(id: string): Promise<void> {
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.deleteDepartment}`;
+        const response = await fetch(`${url}/${id}`, {
+            method: "DELETE",
+        });
+        if (!response.ok) {
+            throw new Error("Failed to delete department");
+        }
+    },
 };

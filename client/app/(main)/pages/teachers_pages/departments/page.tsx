@@ -43,7 +43,6 @@ const DepartmentPage = () => {
             setDepartments(data); // Update state with fetched data
         } catch (err) {
             console.error('Failed to load departments:', err);
-            //setError('Failed to load departments.');
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to load departments',
@@ -68,6 +67,83 @@ const DepartmentPage = () => {
         setGlobalFilter(value);
     };
 
+
+    const saveDepartment = async () => {
+        setSubmitted(true);
+        let _departments = [...(departments as any)];
+        if (editMode) {
+            try {
+                let id = selectedDepartment._id || '';
+                const updatedDepartment = await DepartmentService.updateDepartment(id, selectedDepartment);
+                const index = findIndexById(id);
+                _departments[index] = updatedDepartment;
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: 'Department Updated',
+                    life: 3000
+                });
+            } catch (error) {
+                console.error(error);
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to update departments',
+                    detail: '' + error,
+                    life: 3000
+                });
+            }
+        } else {
+            try {
+                const newDepartment = await DepartmentService.createDepartment(selectedDepartment);
+                console.log("Created Department:", newDepartment);
+                _departments.push(newDepartment);
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: 'Department Created',
+                    life: 3000
+                });
+            } catch (error) {
+                console.error(error);
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to create departments',
+                    detail: '' + error,
+                    life: 3000
+                });
+            }
+        }
+        setDepartments(_departments as any);
+        setShowSaveDialog(false);
+        setEditMode(false);
+        setSelectedDepartment(emptyDepartment);
+    };
+
+
+    const findIndexById = (id: string) => {
+        let index = -1;
+        for (let i = 0; i < (departments as any)?.length; i++) {
+            if ((departments as any)[i]._id === id) {
+                index = i;
+                break;
+            }
+        }
+        return index;
+    };
+
+    const deleteDepartment = () => {        
+        let _departments = (departments as any)?.filter((val: any) => val._id !== selectedDepartment._id);
+        setDepartments(_departments);
+        setShowDeleteDialog(false);
+        setSelectedDepartment(emptyDepartment);
+        toast.current?.show({
+            severity: 'success',
+            summary: 'Successful',
+            detail: 'Department Deleted',
+            life: 3000
+        });
+    };
+
     const openSaveDialog = () => {
         setEditMode(false);
         setSelectedDepartment(emptyDepartment);
@@ -90,7 +166,7 @@ const DepartmentPage = () => {
     const saveDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideSaveDialog} />
-            <Button label="Save" icon="pi pi-check" text />
+            <Button label="Save" icon="pi pi-check" text onClick={saveDepartment} />
         </>
     );
 
@@ -106,7 +182,7 @@ const DepartmentPage = () => {
     const deleteDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideDeleteDialog} />
-            <Button label="Delete" icon="pi pi-check" text />
+            <Button label="Delete" icon="pi pi-check" text onClick={deleteDepartment} />
         </>
     );
 
