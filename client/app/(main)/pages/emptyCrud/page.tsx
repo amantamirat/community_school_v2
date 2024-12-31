@@ -1,5 +1,4 @@
 'use client';
-import { SubjectService } from '@/services/SubjectService';
 import { emptySubject, Subject } from '@/types/model';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
@@ -8,7 +7,6 @@ import { Column } from 'primereact/column';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { InputNumber, InputNumberValueChangeEvent } from 'primereact/inputnumber';
-import { InputSwitch } from 'primereact/inputswitch';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
@@ -32,114 +30,10 @@ const SubjectPage = () => {
 
     useEffect(() => {
         initFilters();
-        loadSubjects();
     }, []);
 
-    const loadSubjects = async () => {
-        try {
-            const data = await SubjectService.getSubjects();
-            setSubjects(data); // Update state with fetched data
-        } catch (err) {
-            console.error('Failed to load subjects:', err);
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load subjects',
-                detail: '' + err,
-                life: 3000
-            });
-        }
-    };
 
 
-
-    const saveSubject = async () => {
-        setSubmitted(true);
-        let _subjects = [...(subjects as any)];
-        if (editMode) {
-            try {
-                let id = selectedSubject._id || '';
-                const updatedSubject = await SubjectService.updateSubject(id, selectedSubject);
-                const index = findIndexById(id);
-                _subjects[index] = updatedSubject;
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Subject Updated',
-                    life: 3000
-                });
-            } catch (error) {
-                console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to update subject',
-                    detail: '' + error,
-                    life: 3000
-                });
-            }
-        } else {
-            try {
-                const newSubject = await SubjectService.createSubject(selectedSubject);
-                console.log("Created Subject:", newSubject);
-                _subjects.push(newSubject);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Subject Created',
-                    life: 3000
-                });
-            } catch (error) {
-                console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to create subjects',
-                    detail: '' + error,
-                    life: 3000
-                });
-            }
-        }
-        setSubjects(_subjects as any);
-        setShowSaveDialog(false);
-        setEditMode(false);
-        setSelectedSubject(emptySubject);
-    };
-
-
-    const findIndexById = (id: string) => {
-        let index = -1;
-        for (let i = 0; i < (subjects as any)?.length; i++) {
-            if ((subjects as any)[i]._id === id) {
-                index = i;
-                break;
-            }
-        }
-        return index;
-    };
-
-    const deleteSubject = async () => {
-        try {
-            const deleted = await SubjectService.deleteSubject(selectedSubject._id || "");
-            if (deleted) {
-                let _subjects = (subjects as any)?.filter((val: any) => val._id !== selectedSubject._id);
-                setSubjects(_subjects);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Subject Deleted',
-                    life: 3000
-                });
-            }
-        } catch (error) {
-            console.error(error);
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to delete subjects',
-                detail: '' + error,
-                life: 3000
-            });
-        }
-        setShowDeleteDialog(false);
-        setSelectedSubject(emptySubject);
-    };
     const openSaveDialog = () => {
         setEditMode(false);
         setSelectedSubject(emptySubject);
@@ -162,7 +56,7 @@ const SubjectPage = () => {
     const saveDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideSaveDialog} />
-            <Button label="Save" icon="pi pi-check" text onClick={saveSubject} />
+            <Button label="Save" icon="pi pi-check" text />
         </>
     );
 
@@ -178,7 +72,7 @@ const SubjectPage = () => {
     const deleteDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideDeleteDialog} />
-            <Button label="Delete" icon="pi pi-check" text onClick={deleteSubject} />
+            <Button label="Delete" icon="pi pi-check" text />
         </>
     );
 
@@ -186,7 +80,7 @@ const SubjectPage = () => {
         return (
             <React.Fragment>
                 <div className="my-2">
-                    <Button label="New Subject" icon="pi pi-plus" severity="success" className="mr-2" onClick={openSaveDialog} />
+                    <Button label="New" icon="pi pi-plus" severity="success" className="mr-2" onClick={openSaveDialog} />
                 </div>
             </React.Fragment>
         );
@@ -235,11 +129,9 @@ const SubjectPage = () => {
                     <DataTable
                         ref={dt}
                         value={subjects}
-                        dataKey="_id"
                         selection={selectedSubject}
                         onSelectionChange={(e) => setSelectedSubject(e.value as Subject)}
-                        scrollable
-                        style={{ tableLayout: 'fixed' }}
+                        dataKey="_id"
                         paginator
                         rows={10}
                         rowsPerPageOptions={[5, 10, 25]}
@@ -267,7 +159,7 @@ const SubjectPage = () => {
                         footer={saveDialogFooter}
                         onHide={hideSaveDialog}
                     >
-                        {selectedSubject ? <><div className="field">
+                        {selectedSubject ? (<><div className="field">
                             <label htmlFor="title">Subject Title</label>
                             <InputText
                                 id="title"
@@ -295,15 +187,13 @@ const SubjectPage = () => {
                                 {submitted && !selectedSubject.load && <small className="p-invalid">Subject Load is required.</small>}
                             </div>
                             <div className="field">
-                                <label htmlFor="optional">Optional</label>
-                                <div id="optional">
-                                    <InputSwitch
-                                        checked={selectedSubject.optional}
-                                        onChange={(e) => setSelectedSubject({ ...selectedSubject, optional: !selectedSubject.optional })}
-                                    />
-                                </div>
-
-                            </div></> : <></>}
+                                <label htmlFor="optional">Is Optional</label>
+                                <Checkbox
+                                    id="optional"
+                                    checked={selectedSubject.optional}
+                                    onChange={(e) => setSelectedSubject({ ...selectedSubject, optional: e.checked || false })}
+                                />
+                            </div></>) : (<></>)}
                     </Dialog>
 
                     <Dialog

@@ -1,6 +1,6 @@
 'use client';
 import { DepartmentService } from '@/services/DepartmentService';
-import { Department } from '@/types/model';
+import { Department, emptyDepartment } from '@/types/model';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -15,11 +15,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 
 const DepartmentPage = () => {
-    let emptyDepartment: Department = {
-        _id: '',
-        name: '',
-        teachers: [],
-    };
+
 
     const [departments, setDepartments] = useState<Department[] | null>(null);
     const [selectedDepartment, setSelectedDepartment] = useState<Department>(emptyDepartment);
@@ -52,20 +48,6 @@ const DepartmentPage = () => {
         }
     };
 
-    const initFilters = () => {
-        setFilters({
-            global: { value: null, matchMode: FilterMatchMode.CONTAINS }
-        });
-        setGlobalFilter('');
-    };
-
-    const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        let _filters = { ...filters };
-        (_filters['global'] as any).value = value;
-        setFilters(_filters);
-        setGlobalFilter(value);
-    };
 
 
     const saveDepartment = async () => {
@@ -157,6 +139,9 @@ const DepartmentPage = () => {
         setSelectedDepartment(emptyDepartment);
     };
 
+
+
+
     const openSaveDialog = () => {
         setEditMode(false);
         setSelectedDepartment(emptyDepartment);
@@ -204,10 +189,25 @@ const DepartmentPage = () => {
         return (
             <React.Fragment>
                 <div className="my-2">
-                    <Button label="New" icon="pi pi-plus" severity="success" className="mr-2" onClick={openSaveDialog} />
+                    <Button label="New Department" icon="pi pi-plus" severity="success" className="mr-2" onClick={openSaveDialog} />
                 </div>
             </React.Fragment>
         );
+    };
+
+    const initFilters = () => {
+        setFilters({
+            global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+        });
+        setGlobalFilter('');
+    };
+
+    const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        let _filters = { ...filters };
+        (_filters['global'] as any).value = value;
+        setFilters(_filters);
+        setGlobalFilter(value);
     };
 
     const header = (
@@ -215,7 +215,7 @@ const DepartmentPage = () => {
             <h5 className="m-0">Manage Departments</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
-                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search..." />
+                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search Dep't..." />
             </span>
         </div>
     );
@@ -229,7 +229,13 @@ const DepartmentPage = () => {
         );
     };
 
-
+    const sizeBodyTemplate = (rowData: Department) => {
+        return (
+            <>
+                {rowData.teachers?.length || 0}
+            </>
+        );
+    };
 
     return (
         <div className="grid">
@@ -254,6 +260,13 @@ const DepartmentPage = () => {
                         header={header}
                         scrollable
                         filters={filters}
+                        onRowDoubleClick={(e) => {
+                            const selected = e.data;  // The selected row data
+                            if (selected) {
+                                setSelectedDepartment(selected as Department);
+                                // Perform any further logic like opening a modal or navigating
+                            }
+                        }}
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column
@@ -262,6 +275,7 @@ const DepartmentPage = () => {
                             style={{ width: '50px' }}
                         />
                         <Column field="name" header="Department Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column header="Size" body={sizeBodyTemplate} sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
@@ -274,20 +288,22 @@ const DepartmentPage = () => {
                         footer={saveDialogFooter}
                         onHide={hideSaveDialog}
                     >
-                        <div className="field">
-                            <label htmlFor="name">Department Name</label>
-                            <InputText
-                                id="name"
-                                value={selectedDepartment.name}
-                                onChange={(e) => setSelectedDepartment({ ...selectedDepartment, name: e.target.value })}
-                                required
-                                autoFocus
-                                className={classNames({
-                                    'p-invalid': submitted && !selectedDepartment.name,
-                                })}
-                            />
-                            {submitted && !selectedDepartment.name && <small className="p-invalid">Department Name is required.</small>}
-                        </div>
+                        {selectedDepartment ? (<>
+                            <div className="field">
+                                <label htmlFor="name">Department Name</label>
+                                <InputText
+                                    id="name"
+                                    value={selectedDepartment.name}
+                                    onChange={(e) => setSelectedDepartment({ ...selectedDepartment, name: e.target.value })}
+                                    required
+                                    autoFocus
+                                    className={classNames({
+                                        'p-invalid': submitted && !selectedDepartment.name,
+                                    })}
+                                />
+                                {submitted && !selectedDepartment.name && <small className="p-invalid">Department Name is required.</small>}
+                            </div>
+                        </>) : (<></>)}
                     </Dialog>
 
                     <Dialog

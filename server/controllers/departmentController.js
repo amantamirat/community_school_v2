@@ -1,5 +1,4 @@
 const Department = require("../models/department"); 
-const Teacher = require("../models/teacher"); 
 
 // Controller functions
 const departmentController = {
@@ -18,7 +17,8 @@ const departmentController = {
     // Get all departments
     getAllDepartments: async (req, res) => {
         try {
-            const departments = await Department.find().populate("teachers.teacher");
+            //console.log("request for department");
+            const departments = await Department.find();
             res.status(200).json(departments);
         } catch (error) {
             res.status(500).json({ message: "Error fetching departments", error });

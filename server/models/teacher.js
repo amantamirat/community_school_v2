@@ -23,7 +23,10 @@ const TeacherSchema = new mongoose.Schema(
             required: true,
             default: 'Male',
             enum: ['Male', 'Female']
-        }
+        },
+    },
+    {
+        timestamps: true // Automatically adds `createdAt` and `updatedAt` fields
     }
 );
 

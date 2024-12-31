@@ -10,10 +10,43 @@ export type Department = {
     }[];
 };
 
+export let emptyDepartment: Department = {
+    _id: '',
+    name: '',
+    teachers: [],
+};
+
 export type Teacher = {
     _id?: string;
-    department?: string;
+    department: Department;
     first_name: string;
+    middle_name: string;
     last_name: string;
-    sex?: Sex;
+    sex: Sex;
+    createdAt?: Date;
+    updatedAt?: Date;
+};
+
+export let emptyTeacher: Teacher = {
+    _id: '',
+    first_name: '',
+    middle_name: '',
+    last_name: '',
+    sex: 'Male', // Default sex value
+    department: emptyDepartment, // Reference to department
+};
+
+
+export type Subject = {
+    _id?: string;
+    title: string;
+    load: number;
+    optional: boolean;
+};
+
+export let emptySubject: Subject = {
+    _id: '',
+    title: '',
+    load: 0,
+    optional: false
 };
