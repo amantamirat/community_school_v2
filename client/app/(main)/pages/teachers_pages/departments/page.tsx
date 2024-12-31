@@ -87,7 +87,7 @@ const DepartmentPage = () => {
                 console.error(error);
                 toast.current?.show({
                     severity: 'error',
-                    summary: 'Failed to update departments',
+                    summary: 'Failed to update department',
                     detail: '' + error,
                     life: 3000
                 });
@@ -131,17 +131,30 @@ const DepartmentPage = () => {
         return index;
     };
 
-    const deleteDepartment = () => {        
-        let _departments = (departments as any)?.filter((val: any) => val._id !== selectedDepartment._id);
-        setDepartments(_departments);
+    const deleteDepartment = async () => {
+        try {
+            const deleted = await DepartmentService.deleteDepartment(selectedDepartment._id || "");
+            if (deleted) {
+                let _departments = (departments as any)?.filter((val: any) => val._id !== selectedDepartment._id);
+                setDepartments(_departments);
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: 'Department Deleted',
+                    life: 3000
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to delete departments',
+                detail: '' + error,
+                life: 3000
+            });
+        }
         setShowDeleteDialog(false);
         setSelectedDepartment(emptyDepartment);
-        toast.current?.show({
-            severity: 'success',
-            summary: 'Successful',
-            detail: 'Department Deleted',
-            life: 3000
-        });
     };
 
     const openSaveDialog = () => {

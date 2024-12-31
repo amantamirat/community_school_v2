@@ -55,7 +55,7 @@ export const DepartmentService = {
         return response.json();
     },
 
-    async deleteDepartment(id: string): Promise<void> {
+    async deleteDepartment(id: string): Promise<boolean> {
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.deleteDepartment}`;
         const response = await fetch(`${url}/${id}`, {
             method: "DELETE",
@@ -63,5 +63,6 @@ export const DepartmentService = {
         if (!response.ok) {
             throw new Error("Failed to delete department");
         }
+        return response.status===200;
     },
 };
