@@ -1,21 +1,18 @@
 'use client';
+import { DepartmentService } from '@/services/DepartmentService';
+import { Department } from '@/types/model';
+import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
-import { DataTable } from 'primereact/datatable';
+import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-type Department = {
-    _id?: string;
-    name: string;
-    teachers?: {
-        teacher: string;
-    }[];
-};
+
 
 const DepartmentPage = () => {
     let emptyDepartment: Department = {
@@ -33,6 +30,43 @@ const DepartmentPage = () => {
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
     const [globalFilter, setGlobalFilter] = useState('');
+    const [filters, setFilters] = useState<DataTableFilterMeta>({});
+
+    useEffect(() => {
+        initFilters();
+        loadDepartments();
+    }, []);
+
+    const loadDepartments = async () => {
+        try {
+            const data = await DepartmentService.getDepartments();
+            setDepartments(data); // Update state with fetched data
+        } catch (err) {
+            console.error('Failed to load departments:', err);
+            //setError('Failed to load departments.');
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load departments',
+                detail: '' + err,
+                life: 3000
+            });
+        }
+    };
+
+    const initFilters = () => {
+        setFilters({
+            global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+        });
+        setGlobalFilter('');
+    };
+
+    const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        let _filters = { ...filters };
+        (_filters['global'] as any).value = value;
+        setFilters(_filters);
+        setGlobalFilter(value);
+    };
 
     const openSaveDialog = () => {
         setEditMode(false);
@@ -76,6 +110,7 @@ const DepartmentPage = () => {
         </>
     );
 
+
     const startToolbarTemplate = () => {
         return (
             <React.Fragment>
@@ -91,7 +126,7 @@ const DepartmentPage = () => {
             <h5 className="m-0">Manage Departments</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
-                <InputText type="search" onInput={(e) => setGlobalFilter(e.currentTarget.value)} placeholder="Search..." />
+                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search..." />
             </span>
         </div>
     );
@@ -104,6 +139,8 @@ const DepartmentPage = () => {
             </>
         );
     };
+
+
 
     return (
         <div className="grid">
@@ -126,9 +163,15 @@ const DepartmentPage = () => {
                         globalFilter={globalFilter}
                         emptyMessage="No departments found."
                         header={header}
-                        responsiveLayout="scroll"
+                        scrollable
+                        filters={filters}
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
+                        <Column
+                            header="#"
+                            body={(rowData, options) => options.rowIndex + 1}
+                            style={{ width: '50px' }}
+                        />
                         <Column field="name" header="Department Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>

@@ -1,4 +1,5 @@
 'use client';
+import { Teacher } from '@/types/model';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
@@ -9,14 +10,7 @@ import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useRef, useState } from 'react';
 
-type Sex = 'Male' | 'Female';
-type Teacher = {
-    _id?: string;
-    department?: string;
-    first_name: string;
-    last_name: string;
-    sex?: Sex;
-};
+
 
 const TeachersPage = () => {
     let emptyTeacher: Teacher = {
