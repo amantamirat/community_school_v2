@@ -16,22 +16,20 @@ const CurriculumSchema = new mongoose.Schema({
     },
     minimum_pass_mark: {
         type: Number,
-        required: true
+        required: true,
+        min: [0, "Pass mark must be at least 0"],
+        max: [100, "Pass mark cannot exceed 100"]
     },
-    grades: [{
-        grade: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Grade",
-        },
-        subjects: [{
-            subject: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Subject",
-            }
-        }
-        ]
+    grade_subjects: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "GradeSubject", // Reference to the GradeSubject collection
+        required: true
     }]
-});
+},
+    {
+        timestamps: true // Automatically adds `createdAt` and `updatedAt` fields
+    }
+);
 
 // Create the model
 const Curriculum = mongoose.model('Curriculum', CurriculumSchema);

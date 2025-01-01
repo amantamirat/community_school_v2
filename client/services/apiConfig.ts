@@ -13,5 +13,6 @@ export const API_CONFIG = {
         createSubject: '/api/subjects/create',
         updateSubject: '/api/subjects/update',
         deleteSubject: '/api/subjects/delete',
+        getGrades: '/api/grades/',
     },
 };

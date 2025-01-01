@@ -50,3 +50,29 @@ export let emptySubject: Subject = {
     load: 0,
     optional: false
 };
+
+
+export type Curriculum = {
+    _id?: string;
+    title: string;
+    minimum_load: number;
+    maximum_load: number;
+    minimum_pass_mark: number;
+};
+
+export let emptyCurriculum: Curriculum = {
+    _id: '',
+    title: '',
+    minimum_load: 0,
+    maximum_load: 0,
+    minimum_pass_mark: 0,
+};
+
+export type Grade = {
+    _id?: string;
+    stage: string;
+    level: number;
+    specialization: string;
+};
+
+
