@@ -1,5 +1,3 @@
-
-
 export type Sex = 'Male' | 'Female';
 
 export type Department = {
@@ -53,11 +51,17 @@ export let emptySubject: Subject = {
 
 
 export type Curriculum = {
-    _id?: string;
-    title: string;
+    _id?: string; 
+    title: string; 
     minimum_load: number;
     maximum_load: number;
-    minimum_pass_mark: number;
+    minimum_pass_mark: number; 
+    grades: {
+        grade: string;
+        subjects: string[];
+    }[];
+    createdAt?: string; 
+    updatedAt?: string;
 };
 
 export let emptyCurriculum: Curriculum = {
@@ -66,6 +70,7 @@ export let emptyCurriculum: Curriculum = {
     minimum_load: 0,
     maximum_load: 0,
     minimum_pass_mark: 0,
+    grades:[]
 };
 
 export type Grade = {

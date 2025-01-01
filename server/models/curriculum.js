@@ -20,10 +20,17 @@ const CurriculumSchema = new mongoose.Schema({
         min: [0, "Pass mark must be at least 0"],
         max: [100, "Pass mark cannot exceed 100"]
     },
-    grade_subjects: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "GradeSubject", // Reference to the GradeSubject collection
-        required: true
+    grades: [{
+        grade: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Grade",
+            required: true
+        },
+        subjects: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Subject",
+            required: true
+        }]
     }]
 },
     {

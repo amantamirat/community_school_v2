@@ -7,7 +7,9 @@ const SubjectSchema = new mongoose.Schema({
     },
     load: {
         type: Number,
-        required: true // Load in hours or credits per week
+        required: true,
+        min: 1, // Load in hours or credits per week
+        max: 7
     },
     optional: {
         type: Boolean,
