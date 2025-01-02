@@ -63,12 +63,12 @@ const CurriculumController = {
     addGrade: async (req, res) => {
         try {
             const { id } = req.params;
-            const { grade, subjects } = req.body;
+            const { grade} = req.body;
             const curriculum = await Curriculum.findById(id);
             if (!curriculum) {
                 return res.status(404).json({ message: 'Curriculum not found' });
             }
-            curriculum.grades.push({ grade, subjects });
+            curriculum.grades.push({grade});
             const updatedCurriculum = await curriculum.save();
             res.status(200).json(updatedCurriculum);
         } catch (error) {
@@ -85,7 +85,7 @@ const CurriculumController = {
             if (!curriculum) {
                 return res.status(404).json({ message: 'Curriculum not found' });
             }
-            curriculum.grades = curriculum.grades.filter(g => g.grade.toString() !== gradeId);
+            curriculum.grades = curriculum.grades.filter(g => g._id !== gradeId);
             const updatedCurriculum = await curriculum.save();
             res.status(200).json(updatedCurriculum);
         } catch (error) {

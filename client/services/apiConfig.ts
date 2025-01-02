@@ -17,6 +17,8 @@ export const API_CONFIG = {
         getCurricula: '/api/curricula/',
         createCurriculum: '/api/curricula/create',
         updateCurriculum: '/api/curricula/update',
-        deleteCurriculum: '/api/curricula/delete'        
+        deleteCurriculum: '/api/curricula/delete',
+        addGrade: '/api/curricula/add-grade',
+        removeGrade: '/api/curricula/remove-grade'          
     },
 };

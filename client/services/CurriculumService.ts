@@ -66,4 +66,34 @@ export const CurriculumService = {
         }
         return response.status === 200;
     },
+
+    async addGrade(curriculumId: string, grade: string): Promise<Curriculum> {
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.addGrade}`;
+        const response = await fetch(`${url}/${curriculumId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ grade }),
+        });
+        if (!response.ok) {
+            throw new Error("Failed to add grade");
+        }
+        const updatedCurriculum = await response.json();
+        return updatedCurriculum;
+    },
+
+    async removeGrade(curriculumId: string, gradeId: string): Promise<Curriculum> {
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.removeGrade}`;
+        const response = await fetch(`${url}/${curriculumId}`, {
+            method: "DELETE",
+            body: JSON.stringify({ gradeId }),
+        });
+        if (!response.ok) {
+            throw new Error("Failed to remove curriculum grade");
+        }
+        const updatedCurriculum = await response.json();
+        return updatedCurriculum;
+    },
+
 };

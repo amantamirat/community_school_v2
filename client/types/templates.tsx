@@ -6,6 +6,7 @@ export const departmentTemplate = (department: Department) => {
     );
 };
 
+
 export const gradeTemplate = (grade: Grade) => {
     let prefix = 'Grade ';
     if (grade.stage === 'KG') {

@@ -1,4 +1,5 @@
 'use client';
+import CurriculumGradeComponent from '@/app/(main)/components/curriculum_grades/page';
 import { CurriculumService } from '@/services/CurriculumService';
 import { GradeService } from '@/services/GradeService';
 import { emptyCurriculum, Curriculum, Grade } from '@/types/model';
@@ -7,8 +8,9 @@ import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Checkbox } from 'primereact/checkbox';
 import { Column } from 'primereact/column';
-import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
+import { DataTable, DataTableExpandedRows, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
+import { Dropdown } from 'primereact/dropdown';
 import { InputNumber, InputNumberValueChangeEvent } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { MultiSelect } from 'primereact/multiselect';
@@ -23,7 +25,7 @@ const CurriculumPage = () => {
 
     const [grades, setGrades] = useState<Grade[]>([]);
     const [selectedGrades, setSelectedGrades] = useState<Grade[] | null>(null);
-    const [curriculums, setCurriculums] = useState<Curriculum[] | null>(null);
+    const [curriculums, setCurriculums] = useState<Curriculum[]>([]);
     const [selectedCurriculum, setSelectedCurriculum] = useState<Curriculum>(emptyCurriculum);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [editMode, setEditMode] = useState(false);
@@ -33,6 +35,8 @@ const CurriculumPage = () => {
     const dt = useRef<DataTable<any>>(null);
     const [globalFilter, setGlobalFilter] = useState('');
     const [filters, setFilters] = useState<DataTableFilterMeta>({});
+    const [expandedGradeRows, setExpandedGradeRows] = useState<any[] | DataTableExpandedRows>([]);
+
 
     useEffect(() => {
         initFilters();
@@ -143,6 +147,32 @@ const CurriculumPage = () => {
         return index;
     };
 
+    const deleteCurriculum = async () => {
+        try {
+            const deleted = await CurriculumService.deleteCurriculum(selectedCurriculum._id || "");
+            if (deleted) {
+                let _curriculums = (curriculums as any)?.filter((val: any) => val._id !== selectedCurriculum._id);
+                setCurriculums(_curriculums);
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: 'Curriculum Deleted',
+                    life: 3000
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to delete curriculums',
+                detail: '' + error,
+                life: 3000
+            });
+        }
+        setShowDeleteDialog(false);
+        setSelectedCurriculum(emptyCurriculum);
+    };
+
 
     const openSaveDialog = () => {
         setEditMode(false);
@@ -183,7 +213,7 @@ const CurriculumPage = () => {
     const deleteDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideDeleteDialog} />
-            <Button label="Delete" icon="pi pi-check" text />
+            <Button label="Delete" icon="pi pi-check" text onClick={deleteCurriculum} />
         </>
     );
 
@@ -213,10 +243,10 @@ const CurriculumPage = () => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">Manage Curriculums</h5>
+            <h5 className="m-0">Manage Curricula</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
-                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search Curriculums..." />
+                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search ..." />
             </span>
         </div>
     );
@@ -230,6 +260,13 @@ const CurriculumPage = () => {
         );
     };
 
+    const handleUpdate = (updatedCurriculum: Curriculum) => {
+        setCurriculums((prevCurriculums) =>
+            prevCurriculums.map((curriculum) =>
+                curriculum._id === updatedCurriculum._id ? updatedCurriculum : curriculum
+            )
+        );
+    };
 
     return (
         <div className="grid">
@@ -253,8 +290,17 @@ const CurriculumPage = () => {
                         emptyMessage="No curriculums found."
                         header={header}
                         filters={filters}
+                        expandedRows={expandedGradeRows}
+                        onRowToggle={(e) => setExpandedGradeRows(e.data)}
+                        rowExpansionTemplate={(data) => (
+                            <CurriculumGradeComponent
+                                curriculum={data as Curriculum}
+                                grades={grades}
+                                updateCurriculum={handleUpdate}
+                            />
+                        )}
                     >
-                        <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
+                        <Column expander style={{ width: '3em' }} />
                         <Column field="title" header="Curriculum Title" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="minimum_load" header="Minimum Load" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="maximum_load" header="Maximum Load" sortable headerStyle={{ minWidth: '10rem' }}></Column>
@@ -336,11 +382,10 @@ const CurriculumPage = () => {
                             </>}
                         </>) : (<></>)}
                     </Dialog>
-
                     <Dialog
                         visible={showDeleteDialog}
                         style={{ width: '450px' }}
-                        header="Confirm"
+                        header="Confirm to Delete Curriculum"
                         modal
                         footer={deleteDialogFooter}
                         onHide={hideDeleteDialog}

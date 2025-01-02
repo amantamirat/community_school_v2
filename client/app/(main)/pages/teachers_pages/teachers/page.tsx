@@ -244,11 +244,7 @@ const TeacherPage = () => {
     };
     const departmentBodyTemplate = (rowData: Teacher) => {
         const department = findDepartmentById(rowData.department);
-        return (
-            <>
-                {department?.name}
-            </>
-        );
+        return departmentTemplate(department as Department);
     };
 
     return (
@@ -362,8 +358,11 @@ const TeacherPage = () => {
                                         ...selectedTeacher,
                                         department: e.value ? e.value._id : "",
                                     })
-                                } options={departments}
-                                optionLabel="name"
+                                }
+                                options={departments}
+                                optionLabel="_id"
+                                itemTemplate={departmentTemplate}
+                                valueTemplate={selectedTeacher.department ? departmentTemplate : ""}
                                 placeholder="Select Department"
                                 className={classNames({
                                     'p-invalid': submitted && !selectedTeacher.department,
