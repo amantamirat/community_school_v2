@@ -50,8 +50,6 @@ const SubjectPage = () => {
         }
     };
 
-
-
     const saveSubject = async () => {
         setSubmitted(true);
         let _subjects = [...(subjects as any)];

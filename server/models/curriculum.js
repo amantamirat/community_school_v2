@@ -38,6 +38,16 @@ const CurriculumSchema = new mongoose.Schema({
     }
 );
 
+CurriculumSchema.pre('save', function (next) {
+    const grades = this.grades;
+    const gradeIds = grades.map(grade => grade.grade.toString());
+    const uniqueGradeIds = [...new Set(gradeIds)];
+
+    if (gradeIds.length !== uniqueGradeIds.length) {
+        return next(new Error('Duplicate grades found'));
+    }
+    next();
+});
 // Create the model
 const Curriculum = mongoose.model('Curriculum', CurriculumSchema);
 module.exports = Curriculum;

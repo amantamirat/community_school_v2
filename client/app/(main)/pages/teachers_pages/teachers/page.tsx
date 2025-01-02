@@ -2,6 +2,7 @@
 import { DepartmentService } from '@/services/DepartmentService';
 import { TeacherService } from '@/services/TeacherService';
 import { Teacher, Department, emptyTeacher } from '@/types/model'; // Define Teacher type in types/model.ts
+import { departmentTemplate } from '@/types/templates';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -238,10 +239,14 @@ const TeacherPage = () => {
         );
     };
 
+    const findDepartmentById = (id: string): Department | undefined => {
+        return departments.find(department => department._id === id);
+    };
     const departmentBodyTemplate = (rowData: Teacher) => {
+        const department = findDepartmentById(rowData.department);
         return (
             <>
-                {rowData.department.name}
+                {department?.name}
             </>
         );
     };
@@ -351,9 +356,13 @@ const TeacherPage = () => {
                             <label htmlFor="department">Department</label>
                             <Dropdown
                                 id="department"
-                                value={selectedTeacher.department}
-                                onChange={(e) => setSelectedTeacher({ ...selectedTeacher, department: e.value })}
-                                options={departments}
+                                value={findDepartmentById(selectedTeacher.department) || null}
+                                onChange={(e) =>
+                                    setSelectedTeacher({
+                                        ...selectedTeacher,
+                                        department: e.value ? e.value._id : "",
+                                    })
+                                } options={departments}
                                 optionLabel="name"
                                 placeholder="Select Department"
                                 className={classNames({

@@ -29,9 +29,11 @@ const CurriculumController = {
     updateCurriculum: async (req, res) => {
         try {
             const { id } = req.params;
+            //extract except grades from req.body-to prevent grades being updated
+            const { grades, ...updateData } = req.body;
             const updatedCurriculum = await Curriculum.findByIdAndUpdate(
                 id,
-                req.body,
+                updateData,
                 { new: true, runValidators: true }
             );
             if (!updatedCurriculum) {

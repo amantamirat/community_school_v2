@@ -1,4 +1,4 @@
-const Department = require("../models/department"); 
+const Department = require("../models/department");
 
 // Controller functions
 const departmentController = {
@@ -46,15 +46,18 @@ const departmentController = {
     deleteDepartment: async (req, res) => {
         try {
             const { id } = req.params;
-
             const department = await Department.findById(id);
             if (!department) {
                 return res.status(404).json({ message: "Department not found" });
             }
 
-            // Check if there are teachers in the department
-            if (department.teachers.length > 0) {
-                return res.status(400).json({ message: "Cannot delete a department with existing teachers" });
+            // Check if any teacher is associated with the department
+            const teacherExists = await Teacher.findOne({ department: id });
+
+            if (teacherExists) {
+                return res.status(400).json({
+                    message: "Cannot delete the department. It is associated with one or more teachers.",
+                });
             }
 
             await Department.findByIdAndDelete(id);

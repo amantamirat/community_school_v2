@@ -24,51 +24,35 @@ export const TeacherService = {
 
     // Create a new teacher
     async createTeacher(teacher: Partial<Teacher>): Promise<Teacher> {
-        const departmentObject = typeof teacher.department === "object" ? teacher.department : null;
-        const teacherPayload = {
-            ...teacher,
-            department: departmentObject?._id || teacher.department,
-        };
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.createTeacher}`;
         const response = await fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(teacherPayload),
+            body: JSON.stringify(teacher),
         });
         if (!response.ok) {
             throw new Error("Failed to create teacher");
         }
         const createdTeacher = await response.json();
-        if (departmentObject) {
-            createdTeacher.department = departmentObject;
-        }
         return createdTeacher;
 
     },
 
     async updateTeacher(id: string, teacher: Partial<Teacher>): Promise<Teacher> {
-        const departmentObject = typeof teacher.department === "object" ? teacher.department : null;
-        const teacherPayload = {
-            ...teacher,
-            department: departmentObject?._id || teacher.department,
-        };
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.updateTeacher}`;
         const response = await fetch(`${url}/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(teacherPayload),
+            body: JSON.stringify(teacher),
         });
         if (!response.ok) {
             throw new Error("Failed to update teacher");
         }
         const updatedTeacher = await response.json();
-        if (departmentObject) {
-            updatedTeacher.department = departmentObject;
-        }
         return updatedTeacher;
     },
 

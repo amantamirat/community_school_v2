@@ -3,20 +3,15 @@ export type Sex = 'Male' | 'Female';
 export type Department = {
     _id?: string;
     name: string;
-    teachers?: {
-        teacher: string;
-    }[];
 };
 
 export let emptyDepartment: Department = {
-    _id: '',
-    name: '',
-    teachers: [],
+    name: ''
 };
 
 export type Teacher = {
     _id?: string;
-    department: Department;
+    department: string;
     first_name: string;
     middle_name: string;
     last_name: string;
@@ -26,12 +21,11 @@ export type Teacher = {
 };
 
 export let emptyTeacher: Teacher = {
-    _id: '',
     first_name: '',
     middle_name: '',
     last_name: '',
     sex: 'Male', // Default sex value
-    department: emptyDepartment, // Reference to department
+    department: '', // Reference to department
 };
 
 
@@ -43,7 +37,6 @@ export type Subject = {
 };
 
 export let emptySubject: Subject = {
-    _id: '',
     title: '',
     load: 0,
     optional: false
@@ -51,26 +44,27 @@ export let emptySubject: Subject = {
 
 
 export type Curriculum = {
-    _id?: string; 
-    title: string; 
+    _id?: string;
+    title: string;
     minimum_load: number;
     maximum_load: number;
-    minimum_pass_mark: number; 
+    minimum_pass_mark: number;
     grades: {
         grade: string;
-        subjects: string[];
+        subjects?: {
+            subject: string;
+        }[];
     }[];
-    createdAt?: string; 
+    createdAt?: string;
     updatedAt?: string;
 };
 
 export let emptyCurriculum: Curriculum = {
-    _id: '',
     title: '',
     minimum_load: 0,
     maximum_load: 0,
     minimum_pass_mark: 0,
-    grades:[]
+    grades: []
 };
 
 export type Grade = {

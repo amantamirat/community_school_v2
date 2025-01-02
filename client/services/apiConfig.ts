@@ -14,5 +14,9 @@ export const API_CONFIG = {
         updateSubject: '/api/subjects/update',
         deleteSubject: '/api/subjects/delete',
         getGrades: '/api/grades/',
+        getCurricula: '/api/curricula/',
+        createCurriculum: '/api/curricula/create',
+        updateCurriculum: '/api/curricula/update',
+        deleteCurriculum: '/api/curricula/delete'        
     },
 };

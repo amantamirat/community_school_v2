@@ -229,13 +229,6 @@ const DepartmentPage = () => {
         );
     };
 
-    const sizeBodyTemplate = (rowData: Department) => {
-        return (
-            <>
-                {rowData.teachers?.length || 0}
-            </>
-        );
-    };
 
     return (
         <div className="grid">
@@ -275,7 +268,6 @@ const DepartmentPage = () => {
                             style={{ width: '50px' }}
                         />
                         <Column field="name" header="Department Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column header="Size" body={sizeBodyTemplate} sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 

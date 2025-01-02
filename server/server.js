@@ -6,6 +6,7 @@ const gradeRoutes = require('./routes/gradeRoutes');
 const departmentRoutes = require("./routes/departmentRoutes");
 const teacherRoutes = require("./routes/teacherRoutes");
 const subjectRoutes = require("./routes/subjectRoutes");
+const curriculumRoutes = require("./routes/curriculumRoutes");
 
 const app = express();
 app.use(cors());
@@ -14,6 +15,7 @@ app.use('/api/grades', gradeRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/teachers", teacherRoutes);
 app.use("/api/subjects", subjectRoutes);
+app.use("/api/curricula", curriculumRoutes);
 
 require('dotenv').config();
 mongoose.connect(process.env.MONGO_URL)

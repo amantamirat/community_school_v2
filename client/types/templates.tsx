@@ -1,7 +1,12 @@
-import { Grade } from "./model";
+import { Department, Grade } from "./model";
+
+export const departmentTemplate = (department: Department) => {
+    return (
+        <>{department.name}</>
+    );
+};
 
 export const gradeTemplate = (grade: Grade) => {
-
     let prefix = 'Grade ';
     if (grade.stage === 'KG') {
         prefix = 'KG ';
@@ -13,7 +18,4 @@ export const gradeTemplate = (grade: Grade) => {
     return (
         <>{prefix + " - " + grade.level + " " + suffix}</>
     );
-
-
-
 };

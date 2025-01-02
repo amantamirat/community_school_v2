@@ -1,4 +1,5 @@
 'use client';
+import { CurriculumService } from '@/services/CurriculumService';
 import { GradeService } from '@/services/GradeService';
 import { emptyCurriculum, Curriculum, Grade } from '@/types/model';
 import { gradeTemplate } from '@/types/templates';
@@ -36,6 +37,7 @@ const CurriculumPage = () => {
     useEffect(() => {
         initFilters();
         loadGrades();
+        loadCurriculums();
     }, []);
 
     const loadGrades = async () => {
@@ -52,6 +54,95 @@ const CurriculumPage = () => {
             });
         }
     };
+
+    const loadCurriculums = async () => {
+        try {
+            const data = await CurriculumService.getCurriculums();
+            setCurriculums(data); // Update state with fetched data
+        } catch (err) {
+            console.error('Failed to load curricula:', err);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load curricula',
+                detail: '' + err,
+                life: 3000
+            });
+        }
+    };
+
+    const saveCurriculum = async () => {
+        setSubmitted(true);
+        let _curriculums = [...(curriculums as any)];
+        if (editMode) {
+            try {
+                let id = selectedCurriculum._id || '';
+                const updatedCurriculum = await CurriculumService.updateCurriculum(id, selectedCurriculum);
+                const index = findIndexById(id);
+                _curriculums[index] = updatedCurriculum;
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: 'Curriculum Updated',
+                    life: 3000
+                });
+            } catch (error) {
+                console.error(error);
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to update curriculum',
+                    detail: '' + error,
+                    life: 3000
+                });
+            }
+        } else {
+            try {
+                let processedGrades = selectedGrades?.map(grade => ({
+                    grade: grade._id,
+                    subjects: [],
+                }));
+
+                let preparedCurriculum = {
+                    ...selectedCurriculum,
+                    grades: processedGrades,
+                };
+
+                console.log(preparedCurriculum)
+                const newCurriculum = await CurriculumService.createCurriculum(preparedCurriculum as Curriculum);
+                console.log("Created Curriculum:", newCurriculum);
+                _curriculums.push(newCurriculum);
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: 'Curriculum Created',
+                    life: 3000
+                });
+            } catch (error) {
+                console.error(error);
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to create curriculums',
+                    detail: '' + error,
+                    life: 3000
+                });
+            }
+        }
+        setCurriculums(_curriculums as any);
+        setShowSaveDialog(false);
+        setEditMode(false);
+        setSelectedCurriculum(emptyCurriculum);
+    };
+
+    const findIndexById = (id: string) => {
+        let index = -1;
+        for (let i = 0; i < (curriculums as any)?.length; i++) {
+            if ((curriculums as any)[i]._id === id) {
+                index = i;
+                break;
+            }
+        }
+        return index;
+    };
+
 
     const openSaveDialog = () => {
         setEditMode(false);
@@ -76,7 +167,7 @@ const CurriculumPage = () => {
     const saveDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideSaveDialog} />
-            <Button label="Save" icon="pi pi-check" text />
+            <Button label="Save" icon="pi pi-check" text onClick={saveCurriculum} />
         </>
     );
 

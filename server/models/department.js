@@ -5,13 +5,7 @@ const DepartmentSchema = new mongoose.Schema({
         type: String,
         required: true,
         index: { unique: true }
-    },
-    teachers: [{
-        teacher: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Teacher",
-        }
-    }]
+    }
 });
 
 const Department = mongoose.model('Department', DepartmentSchema);
