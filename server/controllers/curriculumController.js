@@ -63,12 +63,12 @@ const CurriculumController = {
     addGrade: async (req, res) => {
         try {
             const { id } = req.params;
-            const { grade} = req.body;
+            const { grade } = req.body;
             const curriculum = await Curriculum.findById(id);
             if (!curriculum) {
                 return res.status(404).json({ message: 'Curriculum not found' });
             }
-            curriculum.grades.push({grade});
+            curriculum.grades.push({ grade });
             const updatedCurriculum = await curriculum.save();
             res.status(200).json(updatedCurriculum);
         } catch (error) {
@@ -78,21 +78,33 @@ const CurriculumController = {
 
     // Remove a grade from a curriculum
     removeGrade: async (req, res) => {
+        const { curriculumId, gradeId } = req.params;
+
         try {
-            const { id } = req.params;
-            const { gradeId } = req.body;
-            const curriculum = await Curriculum.findById(id);
+            // Find the curriculum by ID
+            const curriculum = await Curriculum.findById(curriculumId);
             if (!curriculum) {
                 return res.status(404).json({ message: 'Curriculum not found' });
             }
-            curriculum.grades = curriculum.grades.filter(g => g._id !== gradeId);
-            const updatedCurriculum = await curriculum.save();
-            res.status(200).json(updatedCurriculum);
+
+            // Find the grade in the grades array and remove it
+            const gradeIndex = curriculum.grades.findIndex(grade => grade._id.toString() === gradeId);
+            if (gradeIndex === -1) {
+                return res.status(404).json({ message: 'Grade not found in the curriculum' });
+            }
+
+            // Remove the grade from the array
+            curriculum.grades.splice(gradeIndex, 1);
+
+            // Save the updated curriculum
+            await curriculum.save();
+
+            return res.status(200).json(curriculum);
         } catch (error) {
-            res.status(400).json({ error: error.message });
+            console.error('Error removing grade:', error);
+            return res.status(500).json({ message: 'Internal server error', error: error.message });
         }
     },
-
     // Add a subject to a grade in a curriculum
     addSubject: async (req, res) => {
         try {

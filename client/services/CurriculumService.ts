@@ -83,16 +83,16 @@ export const CurriculumService = {
         return updatedCurriculum;
     },
 
-    async removeGrade(curriculumId: string, gradeId: string): Promise<Curriculum> {
+    async removeGrade(curriculumId: string, curriclumGradeId: string): Promise<Curriculum> {
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.removeGrade}`;
-        const response = await fetch(`${url}/${curriculumId}`, {
-            method: "DELETE",
-            body: JSON.stringify({ gradeId }),
+        const response = await fetch(`${url}/${curriculumId}/grades/${curriclumGradeId}`, {
+            method: "DELETE"
         });
         if (!response.ok) {
             throw new Error("Failed to remove curriculum grade");
         }
         const updatedCurriculum = await response.json();
+        console.log(updatedCurriculum)
         return updatedCurriculum;
     },
 

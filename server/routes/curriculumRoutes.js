@@ -8,5 +8,5 @@ router.post("/create", curriculumController.createCurriculum);
 router.put("/update/:id", curriculumController.updateCurriculum);
 router.delete("/delete/:id", curriculumController.deleteCurriculum);
 router.post("/add-grade/:id", curriculumController.addGrade);
-router.delete("/remove-grade/:id", curriculumController.removeGrade);
+router.delete("/remove-grade/:curriculumId/grades/:gradeId", curriculumController.removeGrade);
 module.exports = router;
