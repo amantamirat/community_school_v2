@@ -2,7 +2,7 @@
 import CurriculumGradeComponent from '@/app/(main)/components/curriculum_grades/page';
 import { CurriculumService } from '@/services/CurriculumService';
 import { GradeService } from '@/services/GradeService';
-import { emptyCurriculum, Curriculum, Grade } from '@/types/model';
+import {Curriculum, Grade } from '@/types/model';
 import { gradeTemplate } from '@/types/templates';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
@@ -22,6 +22,14 @@ import React, { useEffect, useRef, useState } from 'react';
 
 
 const CurriculumPage = () => {
+
+    let emptyCurriculum: Curriculum = {
+        title: '',
+        minimum_load: 0,
+        maximum_load: 0,
+        minimum_pass_mark: 0,
+        grades: []
+    };
 
     const [grades, setGrades] = useState<Grade[]>([]);
     const [selectedGrades, setSelectedGrades] = useState<Grade[] | null>(null);
@@ -295,7 +303,6 @@ const CurriculumPage = () => {
                         rowExpansionTemplate={(data) => (
                             <CurriculumGradeComponent
                                 curriculum={data as Curriculum}
-                                grades={grades}
                                 updateCurriculum={handleUpdate}
                             />
                         )}

@@ -85,14 +85,42 @@ export const CurriculumService = {
 
     async removeGrade(curriculumId: string, curriclumGradeId: string): Promise<Curriculum> {
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.removeGrade}`;
-        const response = await fetch(`${url}/${curriculumId}/grades/${curriclumGradeId}`, {
+        const response = await fetch(`${url}/${curriculumId}/${curriclumGradeId}`, {
             method: "DELETE"
         });
         if (!response.ok) {
             throw new Error("Failed to remove curriculum grade");
         }
         const updatedCurriculum = await response.json();
-        console.log(updatedCurriculum)
+        //console.log(updatedCurriculum)
+        return updatedCurriculum;
+    },
+
+    async addSubject(curriculumId: string, gradeId: string, subject: string): Promise<Curriculum> {
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.addSubject}`;
+        const response = await fetch(`${url}/${curriculumId}/${gradeId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ subject }),
+        });
+        if (!response.ok) {
+            throw new Error("Failed to add grade");
+        }
+        const updatedCurriculum = await response.json();
+        return updatedCurriculum;
+    },
+
+    async removeSubject(curriculumId: string, curriclumGradeId: string, gradeSubjectId: string): Promise<Curriculum> {
+        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.removeSubject}`;
+        const response = await fetch(`${url}/${curriculumId}/${curriclumGradeId}/${gradeSubjectId}`, {
+            method: "DELETE"
+        });
+        if (!response.ok) {
+            throw new Error("Failed to remove curriculum grade");
+        }
+        const updatedCurriculum = await response.json();
         return updatedCurriculum;
     },
 

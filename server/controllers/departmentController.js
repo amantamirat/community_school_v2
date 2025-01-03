@@ -1,4 +1,5 @@
 const Department = require("../models/department");
+const Teacher=require("../models/teacher");
 
 // Controller functions
 const departmentController = {
@@ -30,7 +31,6 @@ const departmentController = {
         try {
             const { id } = req.params;
             const { name } = req.body;
-
             const updatedDepartment = await Department.findByIdAndUpdate(id, { name }, { new: true });
             if (!updatedDepartment) {
                 return res.status(404).json({ message: "Department not found" });
@@ -46,23 +46,20 @@ const departmentController = {
     deleteDepartment: async (req, res) => {
         try {
             const { id } = req.params;
-            const department = await Department.findById(id);
-            if (!department) {
-                return res.status(404).json({ message: "Department not found" });
-            }
-
             // Check if any teacher is associated with the department
             const teacherExists = await Teacher.findOne({ department: id });
-
             if (teacherExists) {
                 return res.status(400).json({
                     message: "Cannot delete the department. It is associated with one or more teachers.",
                 });
             }
-
-            await Department.findByIdAndDelete(id);
+            const department = await Department.findByIdAndDelete(id);
+            if (!department) {
+                return res.status(404).json({ message: "Department not found" });
+            }
             res.status(200).json({ message: "Department deleted successfully" });
         } catch (error) {
+            
             res.status(500).json({ message: "Error deleting department", error });
         }
     }

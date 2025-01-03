@@ -5,10 +5,6 @@ export type Department = {
     name: string;
 };
 
-export let emptyDepartment: Department = {
-    name: ''
-};
-
 export type Teacher = {
     _id?: string;
     department: string;
@@ -20,26 +16,11 @@ export type Teacher = {
     updatedAt?: Date;
 };
 
-export let emptyTeacher: Teacher = {
-    first_name: '',
-    middle_name: '',
-    last_name: '',
-    sex: 'Male', // Default sex value
-    department: '', // Reference to department
-};
-
-
 export type Subject = {
     _id?: string;
     title: string;
     load: number;
     optional: boolean;
-};
-
-export let emptySubject: Subject = {
-    title: '',
-    load: 0,
-    optional: false
 };
 
 
@@ -50,21 +31,15 @@ export type Curriculum = {
     maximum_load: number;
     minimum_pass_mark: number;
     grades: {
+        _id?: string
         grade: string;
         subjects?: {
+            _id?: string
             subject: string;
         }[];
     }[];
     createdAt?: string;
     updatedAt?: string;
-};
-
-export let emptyCurriculum: Curriculum = {
-    title: '',
-    minimum_load: 0,
-    maximum_load: 0,
-    minimum_pass_mark: 0,
-    grades: []
 };
 
 export type Grade = {
@@ -73,5 +48,13 @@ export type Grade = {
     level: number;
     specialization: string;
 };
+
+export type CurriculumGrade = {
+    _id?: string;
+    grade: string;
+    subjects: {
+        subject: string;
+    }[];
+}
 
 

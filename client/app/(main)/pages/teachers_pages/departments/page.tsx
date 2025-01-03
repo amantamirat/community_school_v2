@@ -1,6 +1,6 @@
 'use client';
 import { DepartmentService } from '@/services/DepartmentService';
-import { Department, emptyDepartment } from '@/types/model';
+import { Department} from '@/types/model';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -15,8 +15,9 @@ import React, { useEffect, useRef, useState } from 'react';
 
 
 const DepartmentPage = () => {
-
-
+    let emptyDepartment: Department = {
+        name: ''
+    };
     const [departments, setDepartments] = useState<Department[] | null>(null);
     const [selectedDepartment, setSelectedDepartment] = useState<Department>(emptyDepartment);
     const [showSaveDialog, setShowSaveDialog] = useState(false);

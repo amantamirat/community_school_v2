@@ -78,27 +78,22 @@ const CurriculumController = {
 
     // Remove a grade from a curriculum
     removeGrade: async (req, res) => {
-        const { curriculumId, gradeId } = req.params;
-
         try {
+            const { curriculumId, gradeId } = req.params;
             // Find the curriculum by ID
             const curriculum = await Curriculum.findById(curriculumId);
             if (!curriculum) {
                 return res.status(404).json({ message: 'Curriculum not found' });
             }
-
             // Find the grade in the grades array and remove it
             const gradeIndex = curriculum.grades.findIndex(grade => grade._id.toString() === gradeId);
             if (gradeIndex === -1) {
                 return res.status(404).json({ message: 'Grade not found in the curriculum' });
             }
-
             // Remove the grade from the array
             curriculum.grades.splice(gradeIndex, 1);
-
             // Save the updated curriculum
             await curriculum.save();
-
             return res.status(200).json(curriculum);
         } catch (error) {
             console.error('Error removing grade:', error);
@@ -108,20 +103,21 @@ const CurriculumController = {
     // Add a subject to a grade in a curriculum
     addSubject: async (req, res) => {
         try {
-            const { id } = req.params;
-            const { gradeId, subject } = req.body;
-            const curriculum = await Curriculum.findById(id);
+            const { curriculumId, gradeId } = req.params;
+            const { subject } = req.body;
+            const curriculum = await Curriculum.findById(curriculumId);
             if (!curriculum) {
                 return res.status(404).json({ message: 'Curriculum not found' });
             }
-            const grade = curriculum.grades.find(g => g.grade.toString() === gradeId);
+            const grade = curriculum.grades.find(g => g._id.toString() === gradeId);
             if (!grade) {
                 return res.status(404).json({ message: 'Grade not found in curriculum' });
             }
-            grade.subjects.push(subject);
+            grade.subjects.push({subject});
             const updatedCurriculum = await curriculum.save();
             res.status(200).json(updatedCurriculum);
         } catch (error) {
+            console.log(error)
             res.status(400).json({ error: error.message });
         }
     },
@@ -129,17 +125,16 @@ const CurriculumController = {
     // Remove a subject from a grade in a curriculum
     removeSubject: async (req, res) => {
         try {
-            const { id } = req.params;
-            const { gradeId, subjectId } = req.body;
-            const curriculum = await Curriculum.findById(id);
+            const { curriculumId, gradeId, subjectId } = req.params;
+            const curriculum = await Curriculum.findById(curriculumId);
             if (!curriculum) {
                 return res.status(404).json({ message: 'Curriculum not found' });
             }
-            const grade = curriculum.grades.find(g => g.grade.toString() === gradeId);
+            const grade = curriculum.grades.find(g => g._id.toString() === gradeId);
             if (!grade) {
                 return res.status(404).json({ message: 'Grade not found in curriculum' });
             }
-            grade.subjects = grade.subjects.filter(s => s.toString() !== subjectId);
+            grade.subjects = grade.subjects.filter(s => s._id.toString() !== subjectId);
             const updatedCurriculum = await curriculum.save();
             res.status(200).json(updatedCurriculum);
         } catch (error) {

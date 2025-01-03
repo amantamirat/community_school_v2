@@ -1,6 +1,6 @@
 'use client';
 import { SubjectService } from '@/services/SubjectService';
-import { emptySubject, Subject } from '@/types/model';
+import { Subject } from '@/types/model';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Checkbox } from 'primereact/checkbox';
@@ -19,7 +19,13 @@ import React, { useEffect, useRef, useState } from 'react';
 
 const SubjectPage = () => {
 
-    const [subjects, setSubjects] = useState<Subject[] | null>(null);
+    let emptySubject: Subject = {
+        title: '',
+        load: 0,
+        optional: false
+    };
+
+    const [subjects, setSubjects] = useState<Subject[]>([]);
     const [selectedSubject, setSelectedSubject] = useState<Subject>(emptySubject);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [editMode, setEditMode] = useState(false);

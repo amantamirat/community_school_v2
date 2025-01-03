@@ -1,4 +1,5 @@
 const Subject = require("../models/subject");
+const Curriculum = require("../models/curriculum");
 
 // Controller functions
 const subjectController = {
@@ -29,13 +30,17 @@ const subjectController = {
     updateSubject: async (req, res) => {
         try {
             const { id } = req.params;
+            const isReferenced = await Curriculum.findOne({ 'grades.subjects.subject': id });
+            if (isReferenced) {
+                return res.status(400).json({
+                    message: "Cannot delete subject as it is referenced in a curriculum.",
+                });
+            }
             const { title, load, optional } = req.body;
-
             const updatedSubject = await Subject.findByIdAndUpdate(id, { title, load, optional }, { new: true });
             if (!updatedSubject) {
                 return res.status(404).json({ message: "Subject not found" });
             }
-
             res.status(200).json(updatedSubject);
         } catch (error) {
             res.status(500).json({ message: "Error updating subject", error });
@@ -46,14 +51,16 @@ const subjectController = {
     deleteSubject: async (req, res) => {
         try {
             const { id } = req.params;
-
-            const subject = await Subject.findById(id);
+            const isReferenced = await Curriculum.findOne({ 'grades.subjects.subject': id });
+            if (isReferenced) {
+                return res.status(400).json({
+                    message: "Cannot delete subject as it is referenced in a curriculum.",
+                });
+            }
+            const subject = await Subject.findByIdAndDelete(id);
             if (!subject) {
                 return res.status(404).json({ message: "Subject not found" });
             }
-            // Check if there are subjects in the grade subject          
-
-            await Subject.findByIdAndDelete(id);
             res.status(200).json({ message: "Subject deleted successfully" });
         } catch (error) {
             res.status(500).json({ message: "Error deleting subject", error });

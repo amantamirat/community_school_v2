@@ -7,7 +7,6 @@ const AcademicSessionSchema = new mongoose.Schema({
     },
     academic_semester: {
         type: Number,
-        required: true
     },
     admission_classifications: [{
         type: mongoose.Schema.Types.ObjectId,

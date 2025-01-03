@@ -51,10 +51,11 @@ export const DepartmentService = {
             body: JSON.stringify(department),
         });
         if (!response.ok) {
-            throw new Error("Failed to create department");
+            return response.json().then(data => {
+                throw new Error(data.message || 'Failed to delete department');
+            });
         }
         const createdDepartment = await response.json();
-
         // Update localStorage to include the newly created department
         const cachedData = localStorage.getItem(storageName);
         if (cachedData) {
@@ -76,7 +77,9 @@ export const DepartmentService = {
             body: JSON.stringify(department),
         });
         if (!response.ok) {
-            throw new Error("Failed to update department");
+            return response.json().then(data => {
+                throw new Error(data.message || 'Failed to update department');
+            });
         }
         const updatedData = await response.json();
 
@@ -100,7 +103,9 @@ export const DepartmentService = {
             method: "DELETE",
         });
         if (!response.ok) {
-            throw new Error("Failed to delete department");
+            return response.json().then(data => {
+                throw new Error(data.message || "Failed to delete department");
+            });
         }
 
         const cachedData = localStorage.getItem(storageName);

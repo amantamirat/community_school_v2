@@ -27,7 +27,9 @@ export const SubjectService = {
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to fetch subjects: ${response.statusText}`);
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Failed to fetch subjects');
+                });
             }
             const data = await response.json();
             localStorage.setItem(storageName, JSON.stringify(data));
@@ -39,7 +41,7 @@ export const SubjectService = {
         }
     },
 
-    
+
     async createSubject(subject: Partial<Subject>): Promise<Subject> {
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.createSubject}`;
         const response = await fetch(url, {
@@ -50,14 +52,16 @@ export const SubjectService = {
             body: JSON.stringify(subject),
         });
         if (!response.ok) {
-            throw new Error("Failed to create subject");
+            return response.json().then(data => {
+                throw new Error(data.message || "Failed to create subject");
+            });
         }
         const createdSubject = await response.json();
         // Update localStorage to include the newly created subject
         const cachedData = localStorage.getItem(storageName);
         if (cachedData) {
             const subjects = JSON.parse(cachedData) as Subject[];
-            subjects.push(createdSubject); 
+            subjects.push(createdSubject);
             localStorage.setItem(storageName, JSON.stringify(subjects));
         }
         return createdSubject;
@@ -73,10 +77,11 @@ export const SubjectService = {
             body: JSON.stringify(subject),
         });
         if (!response.ok) {
-            throw new Error("Failed to update subject");
+            return response.json().then(data => {
+                throw new Error(data.message || "Failed to update subject");
+            });
         }
         const updatedData = await response.json();
-
         // Update localStorage to reflect the changes
         const cachedData = localStorage.getItem(storageName);
         if (cachedData) {
@@ -95,7 +100,9 @@ export const SubjectService = {
             method: "DELETE",
         });
         if (!response.ok) {
-            throw new Error("Failed to delete subject");
+            return response.json().then(data => {
+                throw new Error(data.message || "Failed to delete subject");
+            });
         }
 
         const cachedData = localStorage.getItem(storageName);

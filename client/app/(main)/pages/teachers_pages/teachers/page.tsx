@@ -1,7 +1,7 @@
 'use client';
 import { DepartmentService } from '@/services/DepartmentService';
 import { TeacherService } from '@/services/TeacherService';
-import { Teacher, Department, emptyTeacher } from '@/types/model'; // Define Teacher type in types/model.ts
+import { Teacher, Department } from '@/types/model'; // Define Teacher type in types/model.ts
 import { departmentTemplate } from '@/types/templates';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
@@ -17,7 +17,13 @@ import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
 
 const TeacherPage = () => {
-
+    let emptyTeacher: Teacher = {
+        first_name: '',
+        middle_name: '',
+        last_name: '',
+        sex: 'Male', // Default sex value
+        department: '', // Reference to department
+    };
     const [departments, setDepartments] = useState<Department[]>([]);
     const [teachers, setTeachers] = useState<Teacher[] | null>(null);
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher>(emptyTeacher);
