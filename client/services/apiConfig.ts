@@ -21,6 +21,10 @@ export const API_CONFIG = {
         addGrade: '/api/curricula/add-grade',
         removeGrade: '/api/curricula/remove-grade',
         addSubject: '/api/curricula/add-subject',
-        removeSubject: '/api/curricula/remove-subject'
+        removeSubject: '/api/curricula/remove-subject',
+        getAcademicSessions: '/api/academic-sessions/',
+        createAcademicSession: '/api/academic-sessions/create',
+        updateAcademicSession: '/api/academic-sessions/update',
+        deleteAcademicSession: '/api/academic-sessions/delete',
     },
 };

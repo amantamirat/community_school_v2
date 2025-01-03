@@ -22,7 +22,32 @@ const StudentSchema = new mongoose.Schema(
         birth_date: {
             type: Date,
             required: true
-        }
+        },
+        enrollment_profile: [{
+            academic_session: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'AcademicSession',
+                required: false
+            },
+            year: {
+                type: Number,
+                required: false
+            },
+            grade: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Grade',
+                required: true
+            },
+            average_result: {
+                type: Number,
+                required: true
+            },
+            status: {
+                type: String,
+                required: true,
+                enum: ['PASSED', 'FAILED', 'INCOMPLETE', 'WITHDRAWN', 'ACTIVE']
+            },
+        }],
     }
 );
 

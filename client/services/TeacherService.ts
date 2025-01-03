@@ -12,7 +12,9 @@ export const TeacherService = {
                 },
             });
             if (!response.ok) {
-                throw new Error(`Failed to fetch teachers: ${response.statusText}`);
+                return response.json().then(data => {
+                    throw new Error(data.message || "Failed to fetch teachers");
+                });
             }
             const data = await response.json();
             return data as Teacher[];
@@ -33,7 +35,9 @@ export const TeacherService = {
             body: JSON.stringify(teacher),
         });
         if (!response.ok) {
-            throw new Error("Failed to create teacher");
+            return response.json().then(data => {
+                throw new Error(data.message || "Failed to create teacher");
+            });
         }
         const createdTeacher = await response.json();
         return createdTeacher;
@@ -50,7 +54,9 @@ export const TeacherService = {
             body: JSON.stringify(teacher),
         });
         if (!response.ok) {
-            throw new Error("Failed to update teacher");
+            return response.json().then(data => {
+                throw new Error(data.message || "Failed to update teacher");
+            });
         }
         const updatedTeacher = await response.json();
         return updatedTeacher;
@@ -62,7 +68,9 @@ export const TeacherService = {
             method: "DELETE",
         });
         if (!response.ok) {
-            throw new Error("Failed to delete teacher");
+            return response.json().then(data => {
+                throw new Error(data.message || "Failed to delete teacher");
+            });
         }
         return response.status === 200;
     },

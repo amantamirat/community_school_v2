@@ -19,7 +19,8 @@ const AppMenu = () => {
             label: 'Manage',
             items: [
                 { label: 'Teachers', icon: 'pi pi-fw pi-home', to: '/pages/teachers_pages' },
-                { label: 'Curricula', icon: 'pi pi-fw pi-home', to: '/pages/curricula_pages' }
+                { label: 'Curricula', icon: 'pi pi-fw pi-home', to: '/pages/curricula_pages' },
+                { label: 'Calendars', icon: 'pi pi-fw pi-home', to: '/pages/academic_session' },
             ]
         },
         {

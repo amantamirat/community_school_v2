@@ -57,4 +57,13 @@ export type CurriculumGrade = {
     }[];
 }
 
+export type AcademicSession = {
+    _id?: string;
+    academic_year: number; // Year of the session, e.g., 2023
+    start_date: Date | null;
+    end_date: Date | null; 
+    status: 'ACTIVE' | 'CLOSED' | 'PLANNED'; // Session status
+    admission_classifications?: string[]; // References to AdmissionClassification
+};
+
 

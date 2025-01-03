@@ -78,7 +78,7 @@ const DepartmentPage = () => {
         } else {
             try {
                 const newDepartment = await DepartmentService.createDepartment(selectedDepartment);
-                console.log("Created Department:", newDepartment);
+                //console.log("Created Department:", newDepartment);
                 _departments.push(newDepartment);
                 toast.current?.show({
                     severity: 'success',
@@ -87,7 +87,7 @@ const DepartmentPage = () => {
                     life: 3000
                 });
             } catch (error) {
-                console.error(error);
+                //console.error(error);
                 toast.current?.show({
                     severity: 'error',
                     summary: 'Failed to create departments',
