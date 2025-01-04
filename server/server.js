@@ -8,6 +8,7 @@ const teacherRoutes = require("./routes/teacherRoutes");
 const subjectRoutes = require("./routes/subjectRoutes");
 const curriculumRoutes = require("./routes/curriculumRoutes");
 const academicSessionRoutes = require("./routes/academicSessionRoutes");
+const admissionClassificationRoutes = require("./routes/admissionClassificationRoutes");
 
 const app = express();
 app.use(cors());
@@ -18,6 +19,7 @@ app.use("/api/teachers", teacherRoutes);
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/curricula", curriculumRoutes);
 app.use("/api/academic-sessions", academicSessionRoutes);
+app.use("/api/admission-classifications", admissionClassificationRoutes);
 
 require('dotenv').config();
 mongoose.connect(process.env.MONGO_URL)

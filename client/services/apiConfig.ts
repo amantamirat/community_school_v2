@@ -26,5 +26,9 @@ export const API_CONFIG = {
         createAcademicSession: '/api/academic-sessions/create',
         updateAcademicSession: '/api/academic-sessions/update',
         deleteAcademicSession: '/api/academic-sessions/delete',
+        getAdmissionClassifications: '/api/admission-classifications/',
+        createAdmissionClassification: '/api/admission-classifications/create',
+        updateAdmissionClassification: '/api/admission-classifications/update',
+        deleteAdmissionClassification: '/api/admission-classifications/delete',
     },
 };
