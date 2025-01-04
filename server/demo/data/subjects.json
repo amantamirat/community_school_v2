@@ -1,0 +1,42 @@
+[
+    {
+        "title": "Mathematics",
+        "load": 6,
+        "optional": false
+    },
+    {
+        "title": "Physics",
+        "load": 5,
+        "optional": false
+    },
+    {
+        "title": "Computer Science",
+        "load": 7,
+        "optional": true
+    },
+    {
+        "title": "History",
+        "load": 4,
+        "optional": true
+    },
+    {
+        "title": "Physical Education",
+        "load": 3,
+        "optional": true
+    },
+    {
+        "title": "Chemistry",
+        "load": 6,
+        "optional": false
+    },
+    {
+        "title": "Art and Design",
+        "load": 2,
+        "optional": true
+    },
+    {
+        "title": "Economics",
+        "load": 4,
+        "optional": false
+    }
+]

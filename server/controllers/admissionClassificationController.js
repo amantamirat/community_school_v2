@@ -1,4 +1,4 @@
-const AdmissionClassification = require("../models/academic-classification");
+const AdmissionClassification = require("../models/admission-classification");
 
 // Controller functions
 const AdmissionClassificationController = {

@@ -140,9 +140,6 @@ const DepartmentPage = () => {
         setSelectedDepartment(emptyDepartment);
     };
 
-
-
-
     const openSaveDialog = () => {
         setEditMode(false);
         setSelectedDepartment(emptyDepartment);

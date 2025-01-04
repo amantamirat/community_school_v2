@@ -5,7 +5,7 @@ import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Calendar } from 'primereact/calendar';
 import { Column } from 'primereact/column';
-import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
+import { DataTable, DataTableExpandedRows, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { InputNumber, InputNumberValueChangeEvent } from 'primereact/inputnumber';
 import { InputSwitch } from 'primereact/inputswitch';
@@ -14,13 +14,14 @@ import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
+import ClassificationComponent from '../../components/admission_classification/page';
 
 
 
 const AcademicSessionPage = () => {
 
     let emptyAcademicSession: AcademicSession = {
-        academic_year: 1970,
+        academic_year: '1970',
         start_date: null,
         end_date: null,
         status: 'PLANNED'
@@ -36,6 +37,8 @@ const AcademicSessionPage = () => {
     const dt = useRef<DataTable<any>>(null);
     const [globalFilter, setGlobalFilter] = useState('');
     const [filters, setFilters] = useState<DataTableFilterMeta>({});
+    const [expandedGradeRows, setExpandedGradeRows] = useState<any[] | DataTableExpandedRows>([]);
+
 
     useEffect(() => {
         initFilters();
@@ -189,7 +192,7 @@ const AcademicSessionPage = () => {
         return (
             <React.Fragment>
                 <div className="my-2">
-                    <Button label="New AcademicSession" icon="pi pi-plus" severity="success" className="mr-2" onClick={openSaveDialog} />
+                    <Button label="New Ac. Calendar" icon="pi pi-plus" severity="success" className="mr-2" onClick={openSaveDialog} />
                 </div>
             </React.Fragment>
         );
@@ -214,7 +217,7 @@ const AcademicSessionPage = () => {
             <h5 className="m-0">Manage Academic Sessions</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
-                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search AcademicSessions..." />
+                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search Calendars..." />
             </span>
         </div>
     );
@@ -253,8 +256,15 @@ const AcademicSessionPage = () => {
                         emptyMessage="No academicSessions found."
                         header={header}
                         filters={filters}
+                        expandedRows={expandedGradeRows}
+                        onRowToggle={(e) => setExpandedGradeRows(e.data)}
+                        rowExpansionTemplate={(data) => (
+                            <ClassificationComponent
+                                academic_session={data as AcademicSession}
+                            />
+                        )}
                     >
-                        <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
+                        <Column expander style={{ width: '3em' }} />
                         <Column field="academic_year" header="Academic Year" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="start_date" header="Start Date" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="end_date" header="End Date" sortable headerStyle={{ minWidth: '10rem' }}></Column>
@@ -273,10 +283,11 @@ const AcademicSessionPage = () => {
                     >
                         {selectedAcademicSession ? <><div className="field">
                             <label htmlFor="year">Session Year</label>
-                            <InputNumber
+                            <InputText
                                 id="year"
                                 value={selectedAcademicSession.academic_year}
-                                onChange={(e) => setSelectedAcademicSession({ ...selectedAcademicSession, academic_year: e.value || 0 })}
+                                onChange={(e) => setSelectedAcademicSession({ ...selectedAcademicSession, academic_year: e.target.value })}
+
                                 required
                                 autoFocus
                                 className={classNames({
@@ -287,7 +298,8 @@ const AcademicSessionPage = () => {
                         </div>
                             <div className="field">
                                 <label htmlFor="start_date">Start Date</label>
-                                <Calendar id="start_date" value={selectedAcademicSession.start_date}
+                                <Calendar id="start_date"
+                                    value={selectedAcademicSession.start_date ? new Date(selectedAcademicSession.start_date) : null}
                                     onChange={(e) => setSelectedAcademicSession({ ...selectedAcademicSession, start_date: e.value || null })}
                                     showIcon required className={classNames({
                                         'p-invalid': submitted && !selectedAcademicSession.start_date,
@@ -296,7 +308,7 @@ const AcademicSessionPage = () => {
                             </div>
                             <div className="field">
                                 <label htmlFor="end_date">End Date</label>
-                                <Calendar id="end_date" value={selectedAcademicSession.end_date}
+                                <Calendar id="end_date" value={selectedAcademicSession.end_date ? new Date(selectedAcademicSession.end_date) : null}
                                     onChange={(e) => setSelectedAcademicSession({ ...selectedAcademicSession, end_date: e.value || null })}
                                     showIcon required className={classNames({
                                         'p-invalid': submitted && !selectedAcademicSession.end_date,

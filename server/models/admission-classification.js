@@ -8,8 +8,8 @@ const AdmissionClassificationSchema = new mongoose.Schema({
     },
     classification: {
         type: String,
-        enum: ["R", "N", "D"], // Refers to Regular, Night, and Distance
-        default: "R",
+        enum: ["REGULAR", "EVENING", "DISTANCE"], // Refers to Regular, Night, and Distance
+        default: "REGULAR",
         required: true
     },
     number_of_terms: {

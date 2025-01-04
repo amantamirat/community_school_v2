@@ -1,9 +1,9 @@
 'use client';
 import { AdmissionClassificationService } from '@/services/AdmissionClassificationService';
-import { AdmissionClassification } from '@/types/model';
+import { CurriculumService } from '@/services/CurriculumService';
+import { AcademicSession, AdmissionClassification, Curriculum } from '@/types/model';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
-import { Calendar } from 'primereact/calendar';
 import { Column } from 'primereact/column';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
@@ -15,13 +15,16 @@ import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
 
+interface AdmissionClassificationProps {
+    academic_session: AcademicSession;
+}
 
 
-const AdmissionClassificationPage = () => {
+const ClassificationComponent = (props: AdmissionClassificationProps) => {
 
     let emptyAdmissionClassification: AdmissionClassification = {
         academic_session: '',
-        classification: 'R',
+        classification: "REGULAR",
         number_of_terms: 2,
         curriculum: ''
     };
@@ -34,13 +37,27 @@ const AdmissionClassificationPage = () => {
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
-    const [globalFilter, setGlobalFilter] = useState('');
-    const [filters, setFilters] = useState<DataTableFilterMeta>({});
+    const [curriculums, setCurriculums] = useState<Curriculum[]>([]);
 
     useEffect(() => {
-        initFilters();
+        loadCurriculums();
         loadAdmissionClassifications();
     }, []);
+
+    const loadCurriculums = async () => {
+        try {
+            const data = await CurriculumService.getCurriculums();
+            setCurriculums(data); // Update state with fetched data
+        } catch (err) {
+            console.error('Failed to load curricula:', err);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load curricula',
+                detail: '' + err,
+                life: 3000
+            });
+        }
+    };
 
     const loadAdmissionClassifications = async () => {
         try {
@@ -145,7 +162,7 @@ const AdmissionClassificationPage = () => {
     };
     const openSaveDialog = () => {
         setEditMode(false);
-        setSelectedAdmissionClassification(emptyAdmissionClassification);
+        setSelectedAdmissionClassification({ ...emptyAdmissionClassification, academic_session: props.academic_session._id || '' });
         setSubmitted(false);
         setShowSaveDialog(true);
     };
@@ -189,33 +206,17 @@ const AdmissionClassificationPage = () => {
         return (
             <React.Fragment>
                 <div className="my-2">
-                    <Button label="New AdmissionClassification" icon="pi pi-plus" severity="success" className="mr-2" onClick={openSaveDialog} />
+                    <Button label="Add Classification" icon="pi pi-plus" severity="success" className="mr-2" onClick={openSaveDialog} />
                 </div>
             </React.Fragment>
         );
     };
 
-    const initFilters = () => {
-        setFilters({
-            global: { value: null, matchMode: FilterMatchMode.CONTAINS }
-        });
-        setGlobalFilter('');
-    };
-    const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        let _filters = { ...filters };
-        (_filters['global'] as any).value = value;
-        setFilters(_filters);
-        setGlobalFilter(value);
-    };
+
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">Manage Academic Sessions</h5>
-            <span className="block mt-2 md:mt-0 p-input-icon-left">
-                <i className="pi pi-search" />
-                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search AdmissionClassifications..." />
-            </span>
+            <h5 className="m-0">Admission Classfications</h5>
         </div>
     );
 
@@ -249,13 +250,10 @@ const AdmissionClassificationPage = () => {
                         className="datatable-responsive"
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} admissionClassifications"
-                        globalFilter={globalFilter}
-                        emptyMessage="No admissionClassifications found."
+                        emptyMessage="No Classifications found."
                         header={header}
-                        filters={filters}
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
-                        <Column field="academic_session" header="Academic Year" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="classification" header="Classification" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="number_of_terms" header="Terms" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="curriculum" header="Curriculum" sortable headerStyle={{ minWidth: '10rem' }}></Column>
@@ -283,7 +281,7 @@ const AdmissionClassificationPage = () => {
                                             classification: e.value,
                                         })
                                     }
-                                    options={['R', 'N', 'D']}
+                                    options={["REGULAR", "EVENING", "DISTANCE"]}
 
                                     placeholder="Select a Classification"
                                     className={classNames({
@@ -305,6 +303,26 @@ const AdmissionClassificationPage = () => {
                                     })}
                                 />
                                 {submitted && !selectedAdmissionClassification.number_of_terms && <small className="p-invalid">Terms is required.</small>}
+                            </div>
+                            <div className="field">
+                                <label htmlFor="curriculum">Curriculum</label>
+                                <Dropdown
+                                    id="curriculum"
+                                    value={curriculums.find(curriculum => curriculum._id === selectedAdmissionClassification.curriculum) || null}
+                                    onChange={(e) =>
+                                        setSelectedAdmissionClassification({
+                                            ...selectedAdmissionClassification,
+                                            curriculum: e.value ? e.value._id : "",
+                                        })
+                                    }
+                                    options={curriculums}
+                                    optionLabel="_id"
+                                    placeholder="Select Curriculum"
+                                    className={classNames({
+                                        'p-invalid': submitted && !selectedAdmissionClassification.curriculum,
+                                    })}
+                                />
+                                {submitted && !selectedAdmissionClassification.curriculum && <small className="p-invalid">Last Name is required.</small>}
                             </div>
                         </> : <></>}
                     </Dialog>
@@ -332,4 +350,4 @@ const AdmissionClassificationPage = () => {
     );
 };
 
-export default AdmissionClassificationPage;
+export default ClassificationComponent;

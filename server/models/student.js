@@ -23,29 +23,47 @@ const StudentSchema = new mongoose.Schema(
             type: Date,
             required: true
         },
-        enrollment_profile: [{
-            academic_session: {
+        enrollment: [{
+            admission_classification: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: 'AcademicSession',
-                required: false
-            },
-            year: {
-                type: Number,
-                required: false
+                ref: 'AdmissionClassification',
+                required: true
             },
             grade: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'Grade',
                 required: true
             },
-            average_result: {
-                type: Number,
+            status: {
+                type: String,
+                required: true,
+                enum: ['ACTIVE', 'PASSED', 'FAILED', 'INCOMPLETE', 'WITHDRAWN']
+            },
+        }],
+        previous_profile: [{
+            school_information: {
+                type: String,
+                required: true
+            },
+            year: {
+                type: String,
+                required: true
+            },
+            classification: {
+                type: String,
+                enum: ["REGULAR", "EVENING", "DISTANCE"], // Refers to Regular, Night, and Distance
+                default: "REGULAR",
+                required: true
+            },
+            grade: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Grade',
                 required: true
             },
             status: {
                 type: String,
                 required: true,
-                enum: ['PASSED', 'FAILED', 'INCOMPLETE', 'WITHDRAWN', 'ACTIVE']
+                enum: ['ACTIVE', 'PASSED', 'FAILED', 'INCOMPLETE', 'WITHDRAWN']
             },
         }],
     }

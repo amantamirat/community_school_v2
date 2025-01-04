@@ -1,42 +1,32 @@
 [
   {
-    "name": "Computer Science",
-    "teachers": []
+    "name": "Computer Science"
   },
   {
-    "name": "Mathematics",
-    "teachers": []
+    "name": "Mathematics"
   },
   {
-    "name": "Physics",
-    "teachers": []
+    "name": "Physics"
   },
   {
-    "name": "Chemistry",
-    "teachers": []
+    "name": "Chemistry"
   },
   {
-    "name": "Biology",
-    "teachers": []
+    "name": "Biology"
   },
   {
-    "name": "Electrical Engineering",
-    "teachers": []
+    "name": "Electrical Engineering"
   },
   {
-    "name": "Mechanical Engineering",
-    "teachers": []
+    "name": "Mechanical Engineering"
   },
   {
-    "name": "Civil Engineering",
-    "teachers": []
+    "name": "Civil Engineering"
   },
   {
-    "name": "Business Administration",
-    "teachers": []
+    "name": "Business Administration"
   },
   {
-    "name": "Economics",
-    "teachers": []
+    "name": "Economics"
   }
 ]

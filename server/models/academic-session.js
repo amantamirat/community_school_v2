@@ -2,10 +2,8 @@ const mongoose = require('mongoose');
 // Define the academic session schema
 const AcademicSessionSchema = new mongoose.Schema({
     academic_year: {
-        type: Number,
+        type: String,
         required: true,
-        min: 1970,
-        max: 9999,
         index: { unique: true }// Example: '2023'
     },
     start_date: {
