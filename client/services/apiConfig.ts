@@ -30,5 +30,6 @@ export const API_CONFIG = {
         createAdmissionClassification: '/api/admission-classifications/create',
         updateAdmissionClassification: '/api/admission-classifications/update',
         deleteAdmissionClassification: '/api/admission-classifications/delete',
+        getAcademicSessionClassifications:'/api/admission-classifications/findByAcademicSession'
     },
 };

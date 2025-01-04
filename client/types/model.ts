@@ -63,7 +63,6 @@ export type AcademicSession = {
     start_date: Date | null;
     end_date: Date | null;
     status: 'ACTIVE' | 'CLOSED' | 'PLANNED'; // Session status
-    admission_classifications?: string[]; // References to AdmissionClassification
 };
 
 export type AdmissionClassification = {

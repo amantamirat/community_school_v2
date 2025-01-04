@@ -56,15 +56,15 @@ export const SubjectService = {
                 throw new Error(data.message || "Failed to create subject");
             });
         }
-        const createdSubject = await response.json();
+        const createdData = await response.json();
         // Update localStorage to include the newly created subject
         const cachedData = localStorage.getItem(storageName);
         if (cachedData) {
-            const subjects = JSON.parse(cachedData) as Subject[];
-            subjects.push(createdSubject);
-            localStorage.setItem(storageName, JSON.stringify(subjects));
+            const localData = JSON.parse(cachedData) as Subject[];
+            localData.push(createdData);
+            localStorage.setItem(storageName, JSON.stringify(localData));
         }
-        return createdSubject;
+        return createdData;
     },
 
     async updateSubject(id: string, subject: Partial<Subject>): Promise<Subject> {
@@ -85,11 +85,11 @@ export const SubjectService = {
         // Update localStorage to reflect the changes
         const cachedData = localStorage.getItem(storageName);
         if (cachedData) {
-            let subjects = JSON.parse(cachedData) as Subject[];
-            subjects = subjects.map(subject =>
-                subject._id === updatedData._id ? updatedData : subject
+            let localData = JSON.parse(cachedData) as Subject[];
+            localData = localData.map(data =>
+                data._id === updatedData._id ? updatedData : data
             );
-            localStorage.setItem(storageName, JSON.stringify(subjects));
+            localStorage.setItem(storageName, JSON.stringify(localData));
         }
         return updatedData;
     },
@@ -107,9 +107,9 @@ export const SubjectService = {
 
         const cachedData = localStorage.getItem(storageName);
         if (cachedData) {
-            let subjects = JSON.parse(cachedData) as Subject[];
-            subjects = subjects.filter(subject => subject._id !== id);
-            localStorage.setItem(storageName, JSON.stringify(subjects));
+            let localData = JSON.parse(cachedData) as Subject[];
+            localData = localData.filter(data => data._id !== id);
+            localStorage.setItem(storageName, JSON.stringify(localData));
         }
         return response.status === 200;
     },

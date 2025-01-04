@@ -6,5 +6,6 @@ router.post("/create", admissionClassificationController.createAdmissionClassifi
 router.get("/", admissionClassificationController.getAllAdmissionClassifications);
 router.put("/update/:id", admissionClassificationController.updateAdmissionClassification);
 router.delete("/delete/:id", admissionClassificationController.deleteAdmissionClassification);
+router.get("/findByAcademicSession/:id", admissionClassificationController.getAcademicSessionClassifications);
 
 module.exports = router;

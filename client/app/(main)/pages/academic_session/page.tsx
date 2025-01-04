@@ -281,7 +281,8 @@ const AcademicSessionPage = () => {
                         footer={saveDialogFooter}
                         onHide={hideSaveDialog}
                     >
-                        {selectedAcademicSession ? <><div className="field">
+                        {selectedAcademicSession ? <>
+                        <div className="field">
                             <label htmlFor="year">Session Year</label>
                             <InputText
                                 id="year"

@@ -1,4 +1,5 @@
 const AdmissionClassification = require("../models/admission-classification");
+const AcademicSession = require("../models/academic-session");
 
 // Controller functions
 const AdmissionClassificationController = {
@@ -6,7 +7,7 @@ const AdmissionClassificationController = {
     createAdmissionClassification: async (req, res) => {
         try {
             const { academic_session, classification, number_of_terms, curriculum } = req.body;
-            const newAdmissionClassification = new AdmissionClassification({ academic_session, classification, number_of_terms, curriculum});
+            const newAdmissionClassification = new AdmissionClassification({ academic_session, classification, number_of_terms, curriculum });
             await newAdmissionClassification.save();
             res.status(201).json(newAdmissionClassification);
         } catch (error) {
@@ -24,14 +25,28 @@ const AdmissionClassificationController = {
         }
     },
 
+    getAcademicSessionClassifications: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const academicSession = await AcademicSession.findById(id);
+            if (!academicSession) {
+                return res.status(404).json({ message: "Academic Session not found" });
+            }
+            const admissionClassifications = await AdmissionClassification.find({ academic_session: id });
+            res.status(200).json(admissionClassifications);
+        } catch (error) {
+            res.status(500).json({ message: error+"Error fetching admissionClassifications", error });
+        }
+    },
+
     // Update a admissionClassification
     updateAdmissionClassification: async (req, res) => {
         try {
             const { id } = req.params;
-            const {academic_session, classification, number_of_terms, curriculum } = req.body;
+            const { academic_session, classification, number_of_terms, curriculum } = req.body;
             const updatedAdmissionClassification = await AdmissionClassification.findByIdAndUpdate(id, { academic_session, classification, number_of_terms, curriculum }, { new: true });
             if (!updatedAdmissionClassification) {
-                return res.status(404).json({ message: "Academic Session not found" });
+                return res.status(404).json({ message: "Classification not found" });
             }
 
             res.status(200).json(updatedAdmissionClassification);

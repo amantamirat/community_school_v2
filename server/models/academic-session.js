@@ -19,11 +19,7 @@ const AcademicSessionSchema = new mongoose.Schema({
         enum: ['ACTIVE', 'CLOSED', 'PLANNED'],
         default: 'PLANNED',
         required: true
-    },
-    admission_classifications: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'AdmissionClassification'
-    }]
+    }
 });
 // Create the model
 const AcademicSession = mongoose.model('AcademicSession', AcademicSessionSchema);

@@ -37,7 +37,7 @@ const StudentSchema = new mongoose.Schema(
             status: {
                 type: String,
                 required: true,
-                enum: ['ACTIVE', 'PASSED', 'FAILED', 'INCOMPLETE', 'WITHDRAWN']
+                enum: ['ACTIVE', 'PASSED', 'FAILED', 'WITHDRAWN','INCOMPLETE']
             },
         }],
         previous_profile: [{
@@ -51,8 +51,8 @@ const StudentSchema = new mongoose.Schema(
             },
             classification: {
                 type: String,
-                enum: ["REGULAR", "EVENING", "DISTANCE"], // Refers to Regular, Night, and Distance
-                default: "REGULAR",
+                enum: ['REGULAR', 'EVENING', 'DISTANCE'], // Refers to Regular, Night, and Distance
+                default: 'REGULAR',
                 required: true
             },
             grade: {

@@ -61,12 +61,12 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
 
     const loadAdmissionClassifications = async () => {
         try {
-            const data = await AdmissionClassificationService.getAdmissionClassifications();
+            const data = await AdmissionClassificationService.getAcademicSessionClassifications(props.academic_session._id || '');
             setAdmissionClassifications(data); // Update state with fetched data
         } catch (err) {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed to load admissionClassifications',
+                summary: 'Failed to load admission Classifications',
                 detail: '' + err,
                 life: 3000
             });
@@ -263,7 +263,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
                     <Dialog
                         visible={showSaveDialog}
                         style={{ width: '450px' }}
-                        header={editMode ? 'Edit AdmissionClassification Details' : 'New AdmissionClassification Details'}
+                        header={editMode ? 'Edit Classification Details' : 'New Classification Details'}
                         modal
                         className="p-fluid"
                         footer={saveDialogFooter}
