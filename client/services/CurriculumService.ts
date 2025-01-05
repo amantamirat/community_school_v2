@@ -54,7 +54,6 @@ export const CurriculumService = {
             throw new Error("Failed to create curriculum");
         }
         const createdCurriculum = await response.json();
-
         // Update localStorage to include the newly created subject
         const cachedData = localStorage.getItem(storageName);
         if (cachedData) {

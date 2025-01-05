@@ -6,6 +6,12 @@ const CurriculumSchema = new mongoose.Schema({
         type: String,
         required: true // Short Title Example: 'Curriculum of Ministsrty of Education for Kids 2012'
     },
+    classification: {
+        type: String,
+        enum: ['REGULAR', 'EVENING', 'DISTANCE'], // Refers to Regular, Night, and Distance
+        default: 'REGULAR',
+        required: true
+    },
     minimum_load: {
         type: Number,
         required: true
@@ -39,17 +45,6 @@ const CurriculumSchema = new mongoose.Schema({
         timestamps: true // Automatically adds `createdAt` and `updatedAt` fields
     }
 );
-
-CurriculumSchema.pre('save', function (next) {
-    const grades = this.grades;
-    const gradeIds = grades.map(grade => grade.grade.toString());
-    const uniqueGradeIds = [...new Set(gradeIds)];
-
-    if (gradeIds.length !== uniqueGradeIds.length) {
-        return next(new Error('Duplicate grades found'));
-    }
-    next();
-});
 // Create the model
 const Curriculum = mongoose.model('Curriculum', CurriculumSchema);
 module.exports = Curriculum;

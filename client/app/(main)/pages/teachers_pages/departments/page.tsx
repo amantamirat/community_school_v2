@@ -1,6 +1,6 @@
 'use client';
 import { DepartmentService } from '@/services/DepartmentService';
-import { Department} from '@/types/model';
+import { Department } from '@/types/model';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -49,10 +49,21 @@ const DepartmentPage = () => {
         }
     };
 
-
+    const validateDepartment = (department: any) => {
+        const requiredFields = ['name'];
+        for (const field of requiredFields) {
+            if (!department[field] || department[field].trim() === '') {
+                return false;
+            }
+        }
+        return true;
+    };
 
     const saveDepartment = async () => {
         setSubmitted(true);
+        if (!validateDepartment(selectedDepartment)) {
+            return;
+        }
         let _departments = [...(departments as any)];
         if (editMode) {
             try {
@@ -100,6 +111,7 @@ const DepartmentPage = () => {
         setShowSaveDialog(false);
         setEditMode(false);
         setSelectedDepartment(emptyDepartment);
+
     };
 
 

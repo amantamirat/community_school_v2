@@ -1,4 +1,5 @@
 const Curriculum = require('../models/curriculum');
+const AdmissionClassification = require("../models/admission-classification");
 
 // Controller methods
 const CurriculumController = {
@@ -10,6 +11,7 @@ const CurriculumController = {
             res.status(201).json(savedCurriculum);
         } catch (error) {
             res.status(400).json({ error: error.message });
+            console.log(error);
         }
     },
 
@@ -22,8 +24,6 @@ const CurriculumController = {
             res.status(500).json({ error: error.message });
         }
     },
-
-
 
     // Update a curriculum by ID
     updateCurriculum: async (req, res) => {
@@ -49,6 +49,13 @@ const CurriculumController = {
     deleteCurriculum: async (req, res) => {
         try {
             const { id } = req.params;
+            // Check if any classification is associated with the currcilum
+            const classificationExists = await AdmissionClassification.findOne({ curriculum: id });
+            if (classificationExists) {
+                return res.status(400).json({
+                    message: "Cannot delete, classification Exists. It is associated with one or more classification.",
+                });
+            }
             const deletedCurriculum = await Curriculum.findByIdAndDelete(id);
             if (!deletedCurriculum) {
                 return res.status(404).json({ message: 'Curriculum not found' });
@@ -113,7 +120,7 @@ const CurriculumController = {
             if (!grade) {
                 return res.status(404).json({ message: 'Grade not found in curriculum' });
             }
-            grade.subjects.push({subject});
+            grade.subjects.push({ subject });
             const updatedCurriculum = await curriculum.save();
             res.status(200).json(updatedCurriculum);
         } catch (error) {

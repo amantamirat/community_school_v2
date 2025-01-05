@@ -21,7 +21,7 @@ import ClassificationComponent from '../../components/admission_classification/p
 const AcademicSessionPage = () => {
 
     let emptyAcademicSession: AcademicSession = {
-        academic_year: '1970',
+        academic_year: 1970,
         start_date: null,
         end_date: null,
         status: 'PLANNED'
@@ -59,8 +59,19 @@ const AcademicSessionPage = () => {
         }
     };
 
+    const validateAcademicSession = (session: AcademicSession) => {
+        if (isNaN(session.academic_year) || !session.start_date || !session.end_date) {
+            return false;
+        }
+        return true;
+    };
+
+
     const saveAcademicSession = async () => {
         setSubmitted(true);
+        if (!validateAcademicSession(selectedAcademicSession)) {
+            return
+        }
         let _academicSessions = [...(academicSessions as any)];
         if (editMode) {
             try {
@@ -282,21 +293,22 @@ const AcademicSessionPage = () => {
                         onHide={hideSaveDialog}
                     >
                         {selectedAcademicSession ? <>
-                        <div className="field">
-                            <label htmlFor="year">Session Year</label>
-                            <InputText
-                                id="year"
-                                value={selectedAcademicSession.academic_year}
-                                onChange={(e) => setSelectedAcademicSession({ ...selectedAcademicSession, academic_year: e.target.value })}
-
-                                required
-                                autoFocus
-                                className={classNames({
-                                    'p-invalid': submitted && !selectedAcademicSession.academic_year,
-                                })}
-                            />
-                            {submitted && !selectedAcademicSession.academic_year && <small className="p-invalid">Academic Session Year is required.</small>}
-                        </div>
+                            <div className="field">
+                                <label htmlFor="year">Session Year</label>
+                                <InputNumber
+                                    id="year"
+                                    value={selectedAcademicSession.academic_year}
+                                    onChange={(e) => setSelectedAcademicSession({ ...selectedAcademicSession, academic_year: e.value || 1990 })}
+                                    mode="decimal" // Basic number mode
+                                    useGrouping={false} // No thousand separator
+                                    required
+                                    autoFocus
+                                    className={classNames({
+                                        'p-invalid': submitted && !selectedAcademicSession.academic_year,
+                                    })}
+                                />
+                                {submitted && !selectedAcademicSession.academic_year && <small className="p-invalid">Academic Session Year is required.</small>}
+                            </div>
                             <div className="field">
                                 <label htmlFor="start_date">Start Date</label>
                                 <Calendar id="start_date"

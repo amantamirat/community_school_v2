@@ -21,7 +21,7 @@ const SubjectPage = () => {
 
     let emptySubject: Subject = {
         title: '',
-        load: 0,
+        load: 2,
         optional: false
     };
 
@@ -56,8 +56,21 @@ const SubjectPage = () => {
         }
     };
 
+    const validateSubject = (subject: any) => {
+        const requiredFields = ['title'];
+        for (const field of requiredFields) {
+            if (!subject[field] || subject[field].trim() === '') {
+                return false;
+            }
+        }
+        return true;
+    };
+
     const saveSubject = async () => {
         setSubmitted(true);
+        if (!validateSubject(selectedSubject)) {
+            return;
+        }
         let _subjects = [...(subjects as any)];
         if (editMode) {
             try {
@@ -291,6 +304,8 @@ const SubjectPage = () => {
                                     id="load"
                                     value={selectedSubject.load}
                                     onChange={(e) => setSelectedSubject({ ...selectedSubject, load: e.value || 0 })}
+                                    min={1}
+                                    max={8}
                                     required
                                     className={classNames({
                                         'p-invalid': submitted && !selectedSubject.load,

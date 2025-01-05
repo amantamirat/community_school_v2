@@ -39,16 +39,13 @@ export const AdmissionClassificationService = {
         const cacheTimestamp = localStorage.getItem(cacheTimeStampName);
         const currentTime = Date.now();
         let localData: AdmissionClassification[] = cachedData ? JSON.parse(cachedData) : [];
-        let expired = false;
+    
         if (cachedData && cacheTimestamp && currentTime - parseInt(cacheTimestamp) < CACHE_EXPIRATION_TIME) {
             const cachedItems = localData.filter(item => item.academic_session === academic_session_id);
             if (cachedItems.length > 0) {
                 return cachedItems;
             }
-        } else {
-            expired = true;
-        }
-
+        } 
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.getAcademicSessionClassifications}`;
         console.log(`${url}/${academic_session_id}`);
         try {

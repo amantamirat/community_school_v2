@@ -1,7 +1,9 @@
 'use client';
 import { AcademicSessionService } from '@/services/AcademicSessionService';
 import { AdmissionClassificationService } from '@/services/AdmissionClassificationService';
-import { AcademicSession, AdmissionClassification, Grade} from '@/types/model';
+import { CurriculumService } from '@/services/CurriculumService';
+import { GradeService } from '@/services/GradeService';
+import { AcademicSession, AdmissionClassification, Curriculum, Grade } from '@/types/model';
 import { Dropdown } from 'primereact/dropdown';
 import { TabPanel, TabView } from 'primereact/tabview';
 import { Toast } from 'primereact/toast';
@@ -9,22 +11,31 @@ import React, { useEffect, useRef, useState } from 'react';
 const RegistrationMainPage = () => {
     const toast = useRef<Toast>(null);
     const [academicSessions, setAcademicSessions] = useState<AcademicSession[]>([]);
-    const [selectedAcademicSession, setSelectedAcademicSession] = useState<AcademicSession|null>();
+    const [selectedAcademicSession, setSelectedAcademicSession] = useState<AcademicSession>();
     const [admissionClassifications, setAdmissionClassifications] = useState<AdmissionClassification[]>([]);
-    const [selectedAdmissionClassification, setSelectedAdmissionClassification] = useState<AdmissionClassification | null>();
-    const [selectedGrades, setSelectedGrades] = useState<Grade[]>([]);
-
-
+    const [selectedAdmissionClassification, setSelectedAdmissionClassification] = useState<AdmissionClassification>();
+    const [curriculums, setCurriculums] = useState<Curriculum[]>([]);
+    const [grades, setGrades] = useState<Grade[]>([]);
+    const [curriculumGrades, setCurriculumGrades] = useState<Grade[]>([]);
+    const [selectedGrade, setSelectedGrade] = useState<Grade>();
 
     useEffect(() => {
         loadAcademicSessions();
+        loadCurriculums();
+        loadGrades();
     }, []);
 
     useEffect(() => {
         if (selectedAcademicSession) {
             loadAdmissionClassifications();
         }
-    }, [selectedAcademicSession]); 
+    }, [selectedAcademicSession]);
+
+    useEffect(() => {
+        if (selectedAdmissionClassification) {
+            loadClassificationGrades();
+        }
+    }, [selectedAdmissionClassification]);
 
     const loadAcademicSessions = async () => {
         try {
@@ -34,6 +45,36 @@ const RegistrationMainPage = () => {
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to load academicSessions',
+                detail: '' + err,
+                life: 3000
+            });
+        }
+    };
+
+    const loadCurriculums = async () => {
+        try {
+            const data = await CurriculumService.getCurriculums();
+            setCurriculums(data); // Update state with fetched data
+        } catch (err) {
+            console.error('Failed to load curricula:', err);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load curricula',
+                detail: '' + err,
+                life: 3000
+            });
+        }
+    };
+
+    const loadGrades = async () => {
+        try {
+            const data = await GradeService.getGrades();
+            setGrades(data); // Update state with fetched data
+        } catch (err) {
+            console.error('Failed to load grades:', err);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load grades',
                 detail: '' + err,
                 life: 3000
             });
@@ -54,36 +95,25 @@ const RegistrationMainPage = () => {
         }
     };
 
-
     const loadClassificationGrades = async () => {
         try {
-            const data = await AdmissionClassificationService.getAcademicSessionClassifications(selectedAcademicSession?._id || '');
-            setAdmissionClassifications(data); // Update state with fetched data
+            const gradeStrings = curriculums
+                .find(curriculum => curriculum._id === selectedAdmissionClassification?.curriculum)
+                ?.grades.map(gradeObj => gradeObj.grade) || [];
+            const curriculumGrades = grades.filter(grade =>
+                gradeStrings.includes(grade._id as string));
+            setCurriculumGrades(curriculumGrades);
         } catch (err) {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed to load admission Classifications',
+                summary: 'Failed to load Grades of Classifications',
                 detail: '' + err,
                 life: 3000
             });
         }
     };
 
-    const onAcademicSessionChanged = (value: AcademicSession) => {
-        setSelectedAcademicSession(value);
-        if (selectedAcademicSession) {
-            //loadAdmissionClassifications(selectedAcademicSession);
-        }
-        setSelectedAdmissionClassification(null);
-    }
 
-    const onClassificationChanged = (value: AdmissionClassification) => {
-        setSelectedAdmissionClassification(value);
-        if (selectedAdmissionClassification) {
-            //loadAdmissionClassifications();
-        }
-        setSelectedAdmissionClassification(null);
-    }
 
     return (
         <div className="grid">
@@ -98,7 +128,7 @@ const RegistrationMainPage = () => {
                                     <Dropdown
                                         value={selectedAcademicSession || null}
                                         onChange={(e) =>
-                                            onAcademicSessionChanged(e.value)
+                                            setSelectedAcademicSession(e.value)
                                         }
                                         options={academicSessions}
                                         optionLabel="_id"
@@ -116,7 +146,7 @@ const RegistrationMainPage = () => {
                                         }
                                         options={admissionClassifications}
                                         optionLabel="_id"
-                                        placeholder="Select Class."
+                                        placeholder="Select Classfication"
                                     />
                                 </div>
                             </div>
@@ -124,13 +154,13 @@ const RegistrationMainPage = () => {
                                 <label htmlFor="grade">Grade</label>
                                 <div id="grade">
                                     <Dropdown
-                                        value={selectedAcademicSession || null}
+                                        value={selectedGrade || null}
                                         onChange={(e) =>
-                                            setSelectedAcademicSession(e.value)
+                                            setSelectedGrade(e.value)
                                         }
-                                        options={academicSessions}
+                                        options={curriculumGrades}
                                         optionLabel="_id"
-                                        placeholder="Select Ac. Year"
+                                        placeholder="Select Grade"
                                     />
                                 </div>
                             </div>

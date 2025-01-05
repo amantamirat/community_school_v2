@@ -1,14 +1,9 @@
 const mongoose = require('mongoose');
 
 const GradeSectionSchema = new mongoose.Schema({
-    academic_classification: {
+    classification_grade: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'AdmissionClassification',
-        required: true
-    },
-    grade: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Grade',
+        ref: 'ClassificationGrade',
         required: true
     },
     section: {
@@ -22,6 +17,7 @@ const GradeSectionSchema = new mongoose.Schema({
     }]
 
 });
-// Create the model
+
+GradeSectionSchema.index({ classification_grade: 1, section: 1 }, { unique: true });
 const GradeSection = mongoose.model('GradeSection', GradeSectionSchema);
 module.exports = GradeSection;

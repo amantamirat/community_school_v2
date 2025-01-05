@@ -11,17 +11,18 @@ import { Toast } from "primereact/toast";
 import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
 import GradeSubjectComponent from "../grade_subjects/page";
+import { CurriculumGradeService } from "@/services/CurriculumGradeService";
 
 interface CurriculumGradeProps {
     curriculum: Curriculum;
-    updateCurriculum: (updatedCurriculum: Curriculum) => void;
 }
 
 
 const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
     let emptyCurriculumGrade: CurriculumGrade = {
-        grade: '',
-        subjects: []
+        _id: '',
+        curriculum: props.curriculum._id,
+        grade: ''
     };
     const [grades, setGrades] = useState<Grade[]>([]);
     const [curriculumGrades, setCurriculumGrades] = useState<CurriculumGrade[]>([]);
@@ -34,7 +35,7 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
 
     useEffect(() => {
         loadGrades();
-        setCurriculumGrades(props.curriculum.grades as CurriculumGrade[]);
+        loadCurriculumGrades();
     }, []);
 
     const loadGrades = async () => {
@@ -52,12 +53,26 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
         }
     };
 
+    const loadCurriculumGrades = async () => {
+        try {
+            const data = await CurriculumGradeService.getCurriculumGradesByCurriculum(props.curriculum._id);
+            setCurriculumGrades(data);
+        } catch (err) {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load curr grades',
+                detail: '' + err,
+                life: 3000
+            });
+        }
+    };
+
     const saveCurriculumGrade = async () => {
         setSubmitted(true);
+        let _curriculumGrades = [...(curriculumGrades as any)];
         try {
-            const updatedCurriculum = await CurriculumService.addGrade(props.curriculum?._id || '', selectedCurriculumGrade.grade);
-            props.updateCurriculum(updatedCurriculum);
-            setCurriculumGrades(updatedCurriculum.grades as CurriculumGrade[]);
+            const newCurriculumGrade = await CurriculumGradeService.createCurriculumGrade(selectedCurriculumGrade);
+            _curriculumGrades.push(newCurriculumGrade);
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
@@ -68,25 +83,29 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
             console.error(error);
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed to add grades',
+                summary: 'Failed to add grade',
                 detail: '' + error,
                 life: 1500
             });
         }
+        setCurriculumGrades(_curriculumGrades);
         setShowAddDialog(false);
         setSelectedCurriculumGrade(emptyCurriculumGrade);
     }
     const deleteCurriculumGrade = async () => {
         try {
-            const updatedCurriculum = await CurriculumService.removeGrade(props.curriculum._id || "", selectedCurriculumGrade._id || "");
-            props.updateCurriculum(updatedCurriculum);
-            setCurriculumGrades(updatedCurriculum.grades as CurriculumGrade[]);
-            toast.current?.show({
-                severity: 'success',
-                summary: 'Successful',
-                detail: 'Grade Deleted',
-                life: 1500
-            });
+
+            const deleted = await CurriculumGradeService.deleteCurriculumGrade(selectedCurriculumGrade._id);
+            if (deleted) {
+                let _curriculumGrades = (curriculumGrades as any)?.filter((val: any) => val._id !== selectedCurriculumGrade._id);
+                setCurriculumGrades(_curriculumGrades);
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: 'Grade Deleted',
+                    life: 1500
+                });
+            }
         } catch (error) {
             //console.error(error);
             toast.current?.show({
@@ -179,10 +198,7 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
                         onRowToggle={(e) => setExpandedGradeRows(e.data)}
                         rowExpansionTemplate={(data) => (
                             <GradeSubjectComponent
-                                curriculum={props.curriculum}
                                 curriculumGrade={data as CurriculumGrade}
-                                updateCurriculum={props.updateCurriculum}
-                                updateCurriculumGrade={handleUpdate}
                             />
                         )}
                     >
@@ -207,7 +223,7 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
                                         value={grades.find(grade => grade._id === selectedCurriculumGrade.grade) || null}
                                         onChange={(e) => setSelectedCurriculumGrade({ ...selectedCurriculumGrade, grade: e.value ? e.value._id : "" })}
                                         options={grades.filter(grade =>
-                                            !props.curriculum?.grades.some(curriculumGrade => curriculumGrade.grade === grade._id)
+                                            !curriculumGrades.some(curriculumGrade => curriculumGrade.grade === grade._id)
                                         )}
                                         itemTemplate={gradeTemplate}
                                         valueTemplate={selectedCurriculumGrade.grade ? gradeTemplate : ""}

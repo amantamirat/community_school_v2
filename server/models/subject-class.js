@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
-
+//section_class or class or subject class or section_grade_subject
 const SubjectClassSchema = new mongoose.Schema({
     grade_section: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'GradeSection',
         required: true
     },
-    subject: {
+    grade_subject: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Subject',
+        ref: 'GradeSubject',
         required: true
     },
     teacher: {

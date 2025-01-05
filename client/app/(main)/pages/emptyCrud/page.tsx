@@ -1,5 +1,5 @@
 'use client';
-import { emptySubject, Subject } from '@/types/model';
+import { Subject } from '@/types/model';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Checkbox } from 'primereact/checkbox';
@@ -18,7 +18,7 @@ import React, { useEffect, useRef, useState } from 'react';
 const SubjectPage = () => {
 
     const [subjects, setSubjects] = useState<Subject[] | null>(null);
-    const [selectedSubject, setSelectedSubject] = useState<Subject>(emptySubject);
+    const [selectedSubject, setSelectedSubject] = useState<Subject>();
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -35,8 +35,7 @@ const SubjectPage = () => {
 
 
     const openSaveDialog = () => {
-        setEditMode(false);
-        setSelectedSubject(emptySubject);
+        setEditMode(false);        
         setSubmitted(false);
         setShowSaveDialog(true);
     };

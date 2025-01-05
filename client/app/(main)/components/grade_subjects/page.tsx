@@ -1,6 +1,6 @@
-import { CurriculumService } from "@/services/CurriculumService";
+import { GradeSubjectService } from "@/services/GradeSubject";
 import { SubjectService } from "@/services/SubjectService";
-import { Curriculum, CurriculumGrade, Subject } from "@/types/model";
+import { CurriculumGrade, GradeSubject, Subject } from "@/types/model";
 import { subjectTemplate } from "@/types/templates";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
@@ -12,19 +12,13 @@ import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
 
 interface GradeSubjectProps {
-    curriculum: Curriculum;
     curriculumGrade: CurriculumGrade;
-    updateCurriculum: (updatedCurriculum: Curriculum) => void;
-    updateCurriculumGrade: (updatedCurriculumGrade: CurriculumGrade) => void;
-}
-
-type GradeSubject = {
-    _id?: string;
-    subject: string;
 }
 
 const GradeSubjectComponent = (props: GradeSubjectProps) => {
     let emptyGradeSubject: GradeSubject = {
+        _id: '',
+        curriculum_grade: props.curriculumGrade._id,
         subject: '',
     };
     const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -37,7 +31,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
 
     useEffect(() => {
         loadSubjects();
-        setGradeSubjects(props.curriculumGrade.subjects || []);
+        loadGradeSubjects();
     }, []);
 
     const loadSubjects = async () => {
@@ -55,14 +49,26 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
         }
     };
 
+    const loadGradeSubjects = async () => {
+        try {
+            const data = await GradeSubjectService.getGradeSubjectsByCurriculumGrade(props.curriculumGrade._id);
+            setGradeSubjects(data);
+        } catch (err) {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load grade subjects',
+                detail: '' + err,
+                life: 3000
+            });
+        }
+    };
+
     const saveGradeSubject = async () => {
         setSubmitted(true);
+        let _gradeSubjects = [...(gradeSubjects as any)];
         try {
-            const updatedCurriculum = await CurriculumService.addSubject(props.curriculum._id || "", props.curriculumGrade?._id || "", selectedGradeSubject.subject);
-            props.updateCurriculum(updatedCurriculum);
-            const updatedCurriculumGrade = updatedCurriculum.grades.find(curriculumGrade => curriculumGrade._id === props.curriculumGrade._id);
-            props.updateCurriculumGrade(updatedCurriculumGrade as CurriculumGrade)
-            setGradeSubjects(updatedCurriculumGrade?.subjects || []);
+            const newGradeSubject = await GradeSubjectService.createGradeSubject(selectedGradeSubject);
+            _gradeSubjects.push(newGradeSubject);
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
@@ -78,16 +84,17 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                 life: 1500
             });
         }
+        setGradeSubjects(_gradeSubjects)
         setShowAddDialog(false);
         setSelectedGradeSubject(emptyGradeSubject);
     }
     const deleteGradeSubject = async () => {
         try {
-            const updatedCurriculum = await CurriculumService.removeSubject(props.curriculum._id || "", props.curriculumGrade._id || "", selectedGradeSubject._id || "");
-            props.updateCurriculum(updatedCurriculum);
-            const updatedCurriculumGrade = updatedCurriculum.grades.find(curriculumGrade => curriculumGrade._id === props.curriculumGrade._id);
-            props.updateCurriculumGrade(updatedCurriculumGrade as CurriculumGrade)
-            setGradeSubjects(updatedCurriculumGrade?.subjects || []);
+            const deleted = await GradeSubjectService.deleteGradeSubject(selectedGradeSubject._id);
+            if (deleted) {
+                let _gradeSubjects = (gradeSubjects as any)?.filter((val: any) => val._id !== selectedGradeSubject._id);
+                setGradeSubjects(_gradeSubjects);
+            }
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
@@ -186,7 +193,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                                         value={subjects.find(subject => subject._id === selectedGradeSubject.subject) || null}
                                         onChange={(e) => setSelectedGradeSubject({ ...selectedGradeSubject, subject: e.value ? e.value._id : "" })}
                                         options={subjects.filter(subject =>
-                                            !props.curriculumGrade.subjects.some(gradeSubject => gradeSubject.subject === subject._id)
+                                            !gradeSubjects.some(gradeSubject => gradeSubject.subject === subject._id)
                                         )}
                                         itemTemplate={subjectTemplate}
                                         valueTemplate={selectedGradeSubject.subject ? subjectTemplate : ""}

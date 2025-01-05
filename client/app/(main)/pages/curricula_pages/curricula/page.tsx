@@ -6,7 +6,6 @@ import {Curriculum, Grade } from '@/types/model';
 import { gradeTemplate } from '@/types/templates';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
-import { Checkbox } from 'primereact/checkbox';
 import { Column } from 'primereact/column';
 import { DataTable, DataTableExpandedRows, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
@@ -16,7 +15,6 @@ import { InputText } from 'primereact/inputtext';
 import { MultiSelect } from 'primereact/multiselect';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
-import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
 
 
@@ -25,10 +23,10 @@ const CurriculumPage = () => {
 
     let emptyCurriculum: Curriculum = {
         title: '',
+        classification:"REGULAR",
         minimum_load: 0,
         maximum_load: 0,
-        minimum_pass_mark: 0,
-        grades: []
+        minimum_pass_mark: 0
     };
 
     const [grades, setGrades] = useState<Grade[]>([]);
@@ -111,16 +109,8 @@ const CurriculumPage = () => {
                 let processedGrades = selectedGrades?.map(grade => ({
                     grade: grade._id,
                     subjects: [],
-                }));
-
-                let preparedCurriculum = {
-                    ...selectedCurriculum,
-                    grades: processedGrades,
-                };
-
-                console.log(preparedCurriculum)
-                const newCurriculum = await CurriculumService.createCurriculum(preparedCurriculum as Curriculum);
-                console.log("Created Curriculum:", newCurriculum);
+                }));               
+                const newCurriculum = await CurriculumService.createCurriculum(selectedCurriculum);                
                 _curriculums.push(newCurriculum);
                 toast.current?.show({
                     severity: 'success',
@@ -129,7 +119,7 @@ const CurriculumPage = () => {
                     life: 3000
                 });
             } catch (error) {
-                console.error(error);
+                //console.error(error);
                 toast.current?.show({
                     severity: 'error',
                     summary: 'Failed to create curriculums',
@@ -268,14 +258,6 @@ const CurriculumPage = () => {
         );
     };
 
-    const handleUpdate = (updatedCurriculum: Curriculum) => {
-        setCurriculums((prevCurriculums) =>
-            prevCurriculums.map((curriculum) =>
-                curriculum._id === updatedCurriculum._id ? updatedCurriculum : curriculum
-            )
-        );
-    };
-
     return (
         <div className="grid">
             <div className="col-12">
@@ -302,8 +284,7 @@ const CurriculumPage = () => {
                         onRowToggle={(e) => setExpandedGradeRows(e.data)}
                         rowExpansionTemplate={(data) => (
                             <CurriculumGradeComponent
-                                curriculum={data as Curriculum}
-                                updateCurriculum={handleUpdate}
+                                curriculum={data as Curriculum}                                
                             />
                         )}
                     >

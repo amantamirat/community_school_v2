@@ -87,9 +87,23 @@ const TeacherPage = () => {
         setGlobalFilter(value);
     };
 
+    const validateTeacher = (teacher: any) => {
+        const requiredFields = ['first_name', 'middle_name', 'last_name', 'sex', 'department'];
+        for (const field of requiredFields) {
+            if (!teacher[field] || teacher[field].trim() === '') {
+                console.log(`Field ${field} is missing or empty.`);
+                return false;
+            }
+        }
+        return true; // All required fields are provided
+    };
+
     const saveTeacher = async () => {
         setSubmitted(true);
         let _teachers = [...(teachers as any)];
+        if (!validateTeacher(selectedTeacher)) {
+            return;
+        }
         if (editMode) {
             try {
                 let id = selectedTeacher._id || '';

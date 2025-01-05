@@ -1,5 +1,4 @@
 const AdmissionClassification = require("../models/admission-classification");
-const AcademicSession = require("../models/academic-session");
 
 // Controller functions
 const AdmissionClassificationController = {
@@ -27,11 +26,7 @@ const AdmissionClassificationController = {
 
     getAcademicSessionClassifications: async (req, res) => {
         try {
-            const { id } = req.params;
-            const academicSession = await AcademicSession.findById(id);
-            if (!academicSession) {
-                return res.status(404).json({ message: "Academic Session not found" });
-            }
+            const { id } = req.params;            
             const admissionClassifications = await AdmissionClassification.find({ academic_session: id });
             res.status(200).json(admissionClassifications);
         } catch (error) {

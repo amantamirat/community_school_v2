@@ -73,8 +73,19 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
         }
     };
 
+    const validateAdmissionClassification = (classification: AdmissionClassification) => {
+        if (classification.academic_session.trim() === '' || classification.curriculum.trim() === '') {
+            return false;
+        }
+        return true;
+    };
+
     const saveAdmissionClassification = async () => {
         setSubmitted(true);
+        if (!validateAdmissionClassification(selectedAdmissionClassification)) {
+            return
+        }
+        
         let _admissionClassifications = [...(admissionClassifications as any)];
         if (editMode) {
             try {
@@ -297,6 +308,8 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
                                     value={selectedAdmissionClassification.number_of_terms}
                                     onChange={(e) => setSelectedAdmissionClassification({ ...selectedAdmissionClassification, number_of_terms: e.value || 2 })}
                                     required
+                                    min={1}
+                                    max={5}
                                     autoFocus
                                     className={classNames({
                                         'p-invalid': submitted && !selectedAdmissionClassification.number_of_terms,
@@ -322,7 +335,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
                                         'p-invalid': submitted && !selectedAdmissionClassification.curriculum,
                                     })}
                                 />
-                                {submitted && !selectedAdmissionClassification.curriculum && <small className="p-invalid">Last Name is required.</small>}
+                                {submitted && !selectedAdmissionClassification.curriculum && <small className="p-invalid">Curriculum is required.</small>}
                             </div>
                         </> : <></>}
                     </Dialog>
