@@ -27,15 +27,15 @@ export const API_CONFIG = {
         createGradeSubject: '/api/grade-subject/create',
         deleteGradeSubject: '/api/grade-subject/delete',
         addSubject: '/api/curricula/add-subject',
-        removeSubject: '/api/curricula/remove-subject',
-        getAcademicSessions: '/api/academic-sessions/',
-        createAcademicSession: '/api/academic-sessions/create',
-        updateAcademicSession: '/api/academic-sessions/update',
-        deleteAcademicSession: '/api/academic-sessions/delete',
+        removeSubject: '/api/curricula/remove-subject',     
         getAdmissionClassifications: '/api/admission-classifications/',
         createAdmissionClassification: '/api/admission-classifications/create',
         updateAdmissionClassification: '/api/admission-classifications/update',
         deleteAdmissionClassification: '/api/admission-classifications/delete',
-        getAcademicSessionClassifications:'/api/admission-classifications/findByAcademicSession'
+        getAcademicSessionClassifications:'/api/admission-classifications/findByAcademicSession',
+        createClassificationGrade: '/api/classification-grades/create',
+        updateClassificationGrade: '/api/classification-grades/update',
+        deleteClassificationGrade: '/api/classification-grades/delete',
+        getClassificationGradesByClassification:'/api/classification-grades/admission_classification'
     },
 };

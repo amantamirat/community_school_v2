@@ -5,32 +5,15 @@ const CACHE_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
 const storageName = 'classifications';
 const cacheTimeStampName = 'classificationsCacheTimestamp'
 
-export const AdmissionClassificationService = {
+function sanitize(admission: Partial<AdmissionClassification>) {
+    return {
+        ...admission,
+        curriculum: (admission.curriculum && typeof admission.curriculum !== 'string') ? admission.curriculum._id : admission.curriculum,
+        academic_session: (admission.academic_session && typeof admission.academic_session !== 'string') ? admission.academic_session._id : admission.academic_session
+    };
+}
 
-    /*
-    async getAdmissionClassifications(): Promise<AdmissionClassification[]> {
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.getAdmissionClassifications}`;
-        try {
-            const response = await fetch(url, {
-                headers: {
-                    'Cache-Control': 'no-cache',
-                    'Content-Type': 'application/json',
-                },
-            });
-            if (!response.ok) {
-                return response.json().then(data => {
-                    throw new Error(data.message || "Failed to fetch admissionClassifications");
-                });
-            }
-            const data = await response.json();
-            return data as AdmissionClassification[];
-        } catch (error) {
-            console.error('Error fetching admissionClassification data:', error);
-            throw error;
-        }
-    },
-    
-    */
+export const AdmissionClassificationService = {   
 
 
     async getAcademicSessionClassifications(academic_session_id: string): Promise<AdmissionClassification[]> {
@@ -39,13 +22,13 @@ export const AdmissionClassificationService = {
         const cacheTimestamp = localStorage.getItem(cacheTimeStampName);
         const currentTime = Date.now();
         let localData: AdmissionClassification[] = cachedData ? JSON.parse(cachedData) : [];
-    
+
         if (cachedData && cacheTimestamp && currentTime - parseInt(cacheTimestamp) < CACHE_EXPIRATION_TIME) {
             const cachedItems = localData.filter(item => item.academic_session === academic_session_id);
             if (cachedItems.length > 0) {
                 return cachedItems;
             }
-        } 
+        }
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.getAcademicSessionClassifications}`;
         console.log(`${url}/${academic_session_id}`);
         try {
@@ -71,6 +54,8 @@ export const AdmissionClassificationService = {
         }
     },
 
+
+
     // Create a new admissionClassification
     async createAdmissionClassification(admissionClassification: Partial<AdmissionClassification>): Promise<AdmissionClassification> {
         const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.createAdmissionClassification}`;
@@ -79,7 +64,7 @@ export const AdmissionClassificationService = {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(admissionClassification),
+            body: JSON.stringify(sanitize(admissionClassification)),
         });
         if (!response.ok) {
             return response.json().then(data => {
@@ -105,7 +90,7 @@ export const AdmissionClassificationService = {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(admissionClassification),
+            body: JSON.stringify(sanitize(admissionClassification)),
         });
         if (!response.ok) {
             return response.json().then(data => {

@@ -21,6 +21,7 @@ import ClassificationComponent from '../../components/admission_classification/p
 const AcademicSessionPage = () => {
 
     let emptyAcademicSession: AcademicSession = {
+        _id: '',
         academic_year: 1970,
         start_date: null,
         end_date: null,
@@ -73,46 +74,30 @@ const AcademicSessionPage = () => {
             return
         }
         let _academicSessions = [...(academicSessions as any)];
-        if (editMode) {
-            try {
+        try {
+            if (editMode) {
                 let id = selectedAcademicSession._id || '';
                 const updatedAcademicSession = await AcademicSessionService.updateAcademicSession(id, selectedAcademicSession);
                 const index = findIndexById(id);
                 _academicSessions[index] = updatedAcademicSession;
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'AcademicSession Updated',
-                    life: 3000
-                });
-            } catch (error) {
-                console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to update academicSession',
-                    detail: '' + error,
-                    life: 3000
-                });
-            }
-        } else {
-            try {
+            } else {
                 const newAcademicSession = await AcademicSessionService.createAcademicSession(selectedAcademicSession);
                 _academicSessions.push(newAcademicSession);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'AcademicSession Created',
-                    life: 3000
-                });
-            } catch (error) {
-                console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to create academicSessions',
-                    detail: '' + error,
-                    life: 3000
-                });
             }
+            toast.current?.show({
+                severity: 'success',
+                summary: 'Successful',
+                detail: `AcademicSession ${editMode ? 'Updated' : 'Created'}`,
+                life: 3000
+            });
+
+        } catch (error) {
+            toast.current?.show({
+                severity: 'error',
+                summary: `Failed to ${editMode ? 'update' : 'create'} Academic Session`,
+                detail: '' + error,
+                life: 3000
+            });
         }
         setAcademicSessions(_academicSessions as any);
         setShowSaveDialog(false);

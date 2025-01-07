@@ -12,34 +12,20 @@ const CurriculumSchema = new mongoose.Schema({
         default: 'REGULAR',
         required: true
     },
-    minimum_load: {
+    number_of_terms: {
         type: Number,
+        default: 2,
         required: true
     },
-    maximum_load: {
+    maximum_point: {
         type: Number,
         required: true
     },
     minimum_pass_mark: {
         type: Number,
-        required: true,
-        min: [0, "Pass mark must be at least 0"],
-        max: [100, "Pass mark cannot exceed 100"]
+        required: true
     },
-    grades: [{
-        grade: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Grade",
-            required: true
-        },
-        subjects: [{
-            subject: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Subject",
-                required: true
-            }
-        }]
-    }]
+    
 },
     {
         timestamps: true // Automatically adds `createdAt` and `updatedAt` fields

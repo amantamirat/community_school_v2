@@ -1,4 +1,4 @@
-import { Department, Grade, Subject } from "./model";
+import { Curriculum, Department, Grade, Subject } from "./model";
 
 export const departmentTemplate = (department: Department) => {
     return (
@@ -23,5 +23,11 @@ export const gradeTemplate = (grade: Grade) => {
 export const subjectTemplate = (subject: Subject) => {
     return (
         <>{subject.title}-({subject.load})</>
+    );
+};
+
+export const curriculumTemplate = (curriculum: Curriculum) => {
+    return (
+        <>{curriculum.title}-({curriculum.number_of_terms} terms per session)</>
     );
 };

@@ -30,13 +30,12 @@ export type Subject = {
     optional: boolean;
 };
 
-
 export type Curriculum = {
     _id?: string;
     title: string;
     classification: 'REGULAR' | 'EVENING' | 'DISTANCE';
-    minimum_load: number;
-    maximum_load: number;
+    number_of_terms: number;
+    maximum_point: number;
     minimum_pass_mark: number;
     createdAt?: string;
     updatedAt?: string;
@@ -44,24 +43,25 @@ export type Curriculum = {
 
 export type CurriculumGrade = {
     _id: string;
-    curriculum:string;
+    curriculum: string;
     grade: string;
 }
 
 export type GradeSubject = {
     _id: string;
-    curriculum_grade:string;
+    curriculum_grade: string;
     subject: string;
 }
 
 export type SubjectWeight = {
     _id: string;
-    grade_subject:string;
-    weight: Number;
+    grade_subject: string;
+    assessment_type: 'Quiz' | 'Assignment' | 'Test' | 'Mid-Exam' | 'Final-Exam'
+    assessment_weight: number;
 }
 
 export type AcademicSession = {
-    _id?: string;
+    _id: string;
     academic_year: number; // Year of the session, e.g., 2023
     start_date: Date | null;
     end_date: Date | null;
@@ -69,11 +69,16 @@ export type AcademicSession = {
 };
 
 export type AdmissionClassification = {
-    _id?: string;
-    academic_session: string; // Year of the session
+    _id: string;
+    academic_session: AcademicSession | string;
     classification: 'REGULAR' | 'EVENING' | 'DISTANCE';
-    number_of_terms: number;
-    curriculum: string; // Session status
+    curriculum: Curriculum | string;
+};
+
+export type ClassificationGrade = {
+    _id?: string;
+    admission_classification: AdmissionClassification | string;
+    curriculum_grade: CurriculumGrade | string;
 };
 
 

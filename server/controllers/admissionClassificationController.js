@@ -5,8 +5,8 @@ const AdmissionClassificationController = {
     // Create a new admissionClassification
     createAdmissionClassification: async (req, res) => {
         try {
-            const { academic_session, classification, number_of_terms, curriculum } = req.body;
-            const newAdmissionClassification = new AdmissionClassification({ academic_session, classification, number_of_terms, curriculum });
+            const { academic_session, classification, curriculum } = req.body;
+            const newAdmissionClassification = new AdmissionClassification({ academic_session, classification, curriculum });
             await newAdmissionClassification.save();
             res.status(201).json(newAdmissionClassification);
         } catch (error) {
@@ -38,7 +38,7 @@ const AdmissionClassificationController = {
     updateAdmissionClassification: async (req, res) => {
         try {
             const { id } = req.params;
-            const { academic_session, classification, number_of_terms, curriculum } = req.body;
+            const { academic_session, classification, curriculum } = req.body;
             const updatedAdmissionClassification = await AdmissionClassification.findByIdAndUpdate(id, { academic_session, classification, number_of_terms, curriculum }, { new: true });
             if (!updatedAdmissionClassification) {
                 return res.status(404).json({ message: "Classification not found" });
@@ -54,7 +54,6 @@ const AdmissionClassificationController = {
     deleteAdmissionClassification: async (req, res) => {
         try {
             const { id } = req.params;
-            // Check if it is associated with the admissionClassification
             const exists = false;
             if (exists) {
                 return res.status(400).json({

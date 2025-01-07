@@ -3,7 +3,7 @@ import { API_CONFIG } from "./apiConfig";
 export const MyService = {
     async get(endPoint: string): Promise<any[]> {
         const url = `${API_CONFIG.baseURL}${endPoint}`;
-        console.log(url);
+        //console.log(url);
         try {
             const response = await fetch(url, {
                 headers: {
@@ -19,7 +19,6 @@ export const MyService = {
             const data = await response.json();
             return data;
         } catch (error) {
-            //console.error('Error fetching data:', error);
             throw error;
         }
     },
@@ -34,6 +33,7 @@ export const MyService = {
             },
             body: JSON.stringify(payload),
         });
+        //console.log(JSON.stringify(payload));
         if (!response.ok) {
             return response.json().then(data => {
                 throw new Error(data.message || "Failed to create data");

@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
-const WeightSchema = new mongoose.Schema({
-    subject_class: {
+const SubjectWeightSchema = new mongoose.Schema({
+    grade_subject: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'SubjectClass',
+        ref: 'GradeSubject',
         required: true
     },
     assessment_type: {
@@ -17,6 +17,5 @@ const WeightSchema = new mongoose.Schema({
         required: true
     }
 });
-
-const Weight = mongoose.model('Weight', WeightSchema);
-module.exports = Weight
+const SubjectWeight = mongoose.model('SubjectWeight', SubjectWeightSchema);
+module.exports = SubjectWeight

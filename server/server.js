@@ -11,6 +11,7 @@ const curriculumGradeRoutes = require("./routes/curriculumGradeRoutes ");
 const gradeSubjectRoutes = require("./routes/gradeSubjectRoutes");
 const academicSessionRoutes = require("./routes/academicSessionRoutes");
 const admissionClassificationRoutes = require("./routes/admissionClassificationRoutes");
+const classificationGradeRoutes = require("./routes/classificationGradeRoutes");
 
 const app = express();
 app.use(cors());
@@ -25,6 +26,7 @@ app.use("/api/grade-subject", gradeSubjectRoutes);
 
 app.use("/api/academic-sessions", academicSessionRoutes);
 app.use("/api/admission-classifications", admissionClassificationRoutes);
+app.use("/api/classification-grades", classificationGradeRoutes);
 
 require('dotenv').config();
 mongoose.connect(process.env.MONGO_URL)

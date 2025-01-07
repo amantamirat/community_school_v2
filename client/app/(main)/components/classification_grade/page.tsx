@@ -1,40 +1,41 @@
 import { GradeService } from "@/services/GradeService";
-import { Curriculum, CurriculumGrade, Grade } from "@/types/model";
+import { Curriculum, ClassificationGrade, Grade, AdmissionClassification, CurriculumGrade } from "@/types/model";
 import { gradeTemplate } from "@/types/templates";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
-import { DataTable, DataTableExpandedRows } from "primereact/datatable";
+import { DataTable } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
 import { Toast } from "primereact/toast";
 import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
-import GradeSubjectComponent from "../grade_subjects/page";
+import { ClassificationGradeService } from "@/services/ClassificationGradeService";
 import { CurriculumGradeService } from "@/services/CurriculumGradeService";
 
-interface CurriculumGradeProps {
-    curriculum: Curriculum;
+interface ClassificationGradeProps {
+    addmission_classification: AdmissionClassification;
 }
 
+const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
 
-const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
-    let emptyCurriculumGrade: CurriculumGrade = {
-        _id: '',
-        curriculum: props.curriculum._id ?? '',
-        grade: ''
+    let emptyClassificationGrade: ClassificationGrade = {
+        admission_classification: props.addmission_classification,
+        curriculum_grade: ''
     };
+
     const [grades, setGrades] = useState<Grade[]>([]);
     const [curriculumGrades, setCurriculumGrades] = useState<CurriculumGrade[]>([]);
-    const [selectedCurriculumGrade, setSelectedCurriculumGrade] = useState<CurriculumGrade>(emptyCurriculumGrade);
+    const [classificationGrades, setClassificationGrades] = useState<ClassificationGrade[]>([]);
+    const [selectedClassificationGrade, setSelectedClassificationGrade] = useState<ClassificationGrade>(emptyClassificationGrade);
     const [showAddDialog, setShowAddDialog] = useState(false);
     const [showRemoveDialog, setShowRemoveDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
-    const [expandedGradeRows, setExpandedGradeRows] = useState<any[] | DataTableExpandedRows>([]);
 
     useEffect(() => {
         loadGrades();
         loadCurriculumGrades();
+        loadClassificationGrades();
     }, []);
 
     const loadGrades = async () => {
@@ -42,7 +43,7 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
             const data = await GradeService.getGrades();
             setGrades(data); // Update state with fetched data
         } catch (err) {
-            console.error('Failed to load grades:', err);
+            //console.error('Failed to load grades:', err);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to load grades',
@@ -54,8 +55,28 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
 
     const loadCurriculumGrades = async () => {
         try {
-            const data = await CurriculumGradeService.getCurriculumGradesByCurriculum(props.curriculum._id ?? '');
-            setCurriculumGrades(data);
+            const curriculumId = typeof props.addmission_classification.curriculum === 'string'
+                ? props.addmission_classification.curriculum
+                : props.addmission_classification.curriculum?._id;
+            if (curriculumId) {
+                const data = await CurriculumGradeService.getCurriculumGradesByCurriculum(curriculumId);
+                setCurriculumGrades(data);
+            }
+        } catch (err) {
+            //console.error('Failed to load grades:', err);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load curriculum grades',
+                detail: '' + err,
+                life: 3000
+            });
+        }
+    };
+
+    const loadClassificationGrades = async () => {
+        try {
+            const data = await ClassificationGradeService.getClassificationGradesByClassification(props.addmission_classification._id ?? '');
+            setClassificationGrades(data);
         } catch (err) {
             toast.current?.show({
                 severity: 'error',
@@ -66,12 +87,22 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
         }
     };
 
-    const saveCurriculumGrade = async () => {
+    const validateClassificationGrade = (classGrade: ClassificationGrade) => {
+        if (!classGrade.admission_classification || !classGrade.curriculum_grade) {
+            return false;
+        }
+        return true;
+    };
+
+    const saveClassificationGrade = async () => {
         setSubmitted(true);
-        let _curriculumGrades = [...(curriculumGrades as any)];
+        if (!validateClassificationGrade(selectedClassificationGrade)) {
+            return
+        }
+        let _classificationGrades = [...(classificationGrades as any)];
         try {
-            const newCurriculumGrade = await CurriculumGradeService.createCurriculumGrade(selectedCurriculumGrade);
-            _curriculumGrades.push(newCurriculumGrade);
+            const newClassificationGrade = await ClassificationGradeService.createClassificationGrade(selectedClassificationGrade);
+            _classificationGrades.push(newClassificationGrade);
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
@@ -79,7 +110,7 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
                 life: 1500
             });
         } catch (error) {
-            console.error(error);
+            //console.error(error);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to add grade',
@@ -87,17 +118,16 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
                 life: 1500
             });
         }
-        setCurriculumGrades(_curriculumGrades);
+        setClassificationGrades(_classificationGrades);
         setShowAddDialog(false);
-        setSelectedCurriculumGrade(emptyCurriculumGrade);
+        setSelectedClassificationGrade(emptyClassificationGrade);
     }
-    const deleteCurriculumGrade = async () => {
+    const deleteClassificationGrade = async () => {
         try {
-
-            const deleted = await CurriculumGradeService.deleteCurriculumGrade(selectedCurriculumGrade._id);
+            const deleted = await ClassificationGradeService.deleteClassificationGrade(selectedClassificationGrade._id ?? '');
             if (deleted) {
-                let _curriculumGrades = (curriculumGrades as any)?.filter((val: any) => val._id !== selectedCurriculumGrade._id);
-                setCurriculumGrades(_curriculumGrades);
+                let _classificationGrades = (classificationGrades as any)?.filter((val: any) => val._id !== selectedClassificationGrade._id);
+                setClassificationGrades(_classificationGrades);
                 toast.current?.show({
                     severity: 'success',
                     summary: 'Successful',
@@ -115,11 +145,11 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
             });
         }
         setShowRemoveDialog(false);
-        setSelectedCurriculumGrade(emptyCurriculumGrade);
+        setSelectedClassificationGrade(emptyClassificationGrade);
     }
 
     const openAddDialog = () => {
-        setSelectedCurriculumGrade(emptyCurriculumGrade);
+        setSelectedClassificationGrade(emptyClassificationGrade);
         setSubmitted(false);
         setShowAddDialog(true);
     };
@@ -131,12 +161,12 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
     const addDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideAddDialog} />
-            <Button label="Add" icon="pi pi-check" text onClick={saveCurriculumGrade} />
+            <Button label="Add" icon="pi pi-check" text onClick={saveClassificationGrade} />
         </>
     );
 
-    const confirmRemoveCurriculumGrade = (curriculumGrade: CurriculumGrade) => {
-        setSelectedCurriculumGrade(curriculumGrade);
+    const confirmRemoveClassificationGrade = (classificationGrade: ClassificationGrade) => {
+        setSelectedClassificationGrade(classificationGrade);
         setShowRemoveDialog(true);
     };
 
@@ -147,7 +177,7 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
     const removeDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideRemoveDialog} />
-            <Button label="Delete" icon="pi pi-check" text onClick={deleteCurriculumGrade} />
+            <Button label="Delete" icon="pi pi-check" text onClick={deleteClassificationGrade} />
         </>
     );
     const header = () => {
@@ -158,13 +188,14 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
         );
     }
 
-    const actionBodyTemplate = (rowData: CurriculumGrade) => {
+    const actionBodyTemplate = (rowData: ClassificationGrade) => {
         return (
             <>
-                <Button icon="pi pi-trash" rounded severity="warning" onClick={() => confirmRemoveCurriculumGrade(rowData)} />
+                <Button icon="pi pi-trash" rounded severity="warning" onClick={() => confirmRemoveClassificationGrade(rowData)} />
             </>
         );
     };
+    //<Column field="grade" body={(rowData) => gradeTemplate(grades.find(grade => grade._id === rowData.grade) as Grade)} header='Grade'></Column>
 
     return (
         <div className="grid">
@@ -173,26 +204,19 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
                     <Toast ref={toast} />
                     <DataTable
                         header={header}
-                        value={curriculumGrades}
-                        selection={selectedCurriculumGrade}
-                        onSelectionChange={(e) => setSelectedCurriculumGrade(e.value)}
-                        dataKey="_id"
-                        emptyMessage={`No grade for ${props.curriculum.title} curriculum found.`}
+                        value={classificationGrades}
+                        selection={selectedClassificationGrade}
+                        onSelectionChange={(e) => setSelectedClassificationGrade(e.value)}
+                        dataKey="_id"                        
+                        emptyMessage={`No grade for ${props.addmission_classification.classification} classification found.`}
                         paginator
                         rows={5}
                         rowsPerPageOptions={[5, 10, 25]}
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} grades"
-                        expandedRows={expandedGradeRows}
-                        onRowToggle={(e) => setExpandedGradeRows(e.data)}
-                        rowExpansionTemplate={(data) => (
-                            <GradeSubjectComponent
-                                curriculumGrade={data as CurriculumGrade}
-                            />
-                        )}
                     >
-                        <Column expander style={{ width: '3em' }} />
-                        <Column field="grade" body={(rowData) => gradeTemplate(grades.find(grade => grade._id === rowData.grade) as Grade)} header='Grade'></Column>
+                        <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
+                        <Column field="curriculum_grade" header="Curriculum Grade" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
                     <Dialog
@@ -204,27 +228,25 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
                         footer={addDialogFooter}
                         onHide={hideAddDialog}
                     >
-                        {selectedCurriculumGrade ? <>
+                        {selectedClassificationGrade ? <>
                             <div className="field">
-                                <label htmlFor="grade">Grade</label>
+                                <label htmlFor="grade">Grade (Curriculum Grade)</label>
                                 <div id="grade">
                                     <Dropdown
-                                        value={grades.find(grade => grade._id === selectedCurriculumGrade.grade) || null}
-                                        onChange={(e) => setSelectedCurriculumGrade({ ...selectedCurriculumGrade, grade: e.value ? e.value._id : "" })}
-                                        options={grades.filter(grade =>
-                                            !curriculumGrades.some(curriculumGrade => curriculumGrade.grade === grade._id)
+                                        value={selectedClassificationGrade.curriculum_grade || null}
+                                        onChange={(e) => setSelectedClassificationGrade({ ...selectedClassificationGrade, curriculum_grade: e.value })}
+                                        options={curriculumGrades.filter(curr_grade =>
+                                            !classificationGrades.some(classificationGrade => classificationGrade.curriculum_grade === curr_grade._id)
                                         )}
-                                        itemTemplate={gradeTemplate}
-                                        valueTemplate={selectedCurriculumGrade.grade ? gradeTemplate : ""}
                                         placeholder="Select a Grade"
                                         optionLabel="_id"
                                         filter
                                         className={classNames({
-                                            'p-invalid': submitted && !selectedCurriculumGrade.grade,
+                                            'p-invalid': submitted && !selectedClassificationGrade.curriculum_grade,
                                         })}
                                     />
                                 </div>
-                                {submitted && !selectedCurriculumGrade.grade && <small className="p-invalid">Grade is required.</small>}
+                                {submitted && !selectedClassificationGrade.curriculum_grade && <small className="p-invalid">Grade is required.</small>}
                             </div>
                         </> : <></>}
                     </Dialog>
@@ -239,9 +261,9 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
                     >
                         <div className="flex align-items-center justify-content-center">
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {selectedCurriculumGrade && (
+                            {selectedClassificationGrade && (
                                 <span>
-                                    Are you sure you want to delete <b>{selectedCurriculumGrade.grade}</b>?
+                                    Are you sure you want to delete <b>{selectedClassificationGrade._id}</b>?
                                 </span>
                             )}
                         </div>
@@ -252,4 +274,4 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
     );
 };
 
-export default CurriculumGradeComponent;
+export default ClassificationGradeComponent;

@@ -2,7 +2,7 @@
 import CurriculumGradeComponent from '@/app/(main)/components/curriculum_grades/page';
 import { CurriculumService } from '@/services/CurriculumService';
 import { GradeService } from '@/services/GradeService';
-import {Curriculum, Grade } from '@/types/model';
+import { Curriculum, Grade } from '@/types/model';
 import { gradeTemplate } from '@/types/templates';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
@@ -23,10 +23,10 @@ const CurriculumPage = () => {
 
     let emptyCurriculum: Curriculum = {
         title: '',
-        classification:"REGULAR",
-        minimum_load: 0,
-        maximum_load: 0,
-        minimum_pass_mark: 0
+        classification: "REGULAR",
+        number_of_terms: 2,
+        maximum_point: 100,
+        minimum_pass_mark: 50
     };
 
     const [grades, setGrades] = useState<Grade[]>([]);
@@ -109,8 +109,8 @@ const CurriculumPage = () => {
                 let processedGrades = selectedGrades?.map(grade => ({
                     grade: grade._id,
                     subjects: [],
-                }));               
-                const newCurriculum = await CurriculumService.createCurriculum(selectedCurriculum);                
+                }));
+                const newCurriculum = await CurriculumService.createCurriculum(selectedCurriculum);
                 _curriculums.push(newCurriculum);
                 toast.current?.show({
                     severity: 'success',
@@ -284,15 +284,16 @@ const CurriculumPage = () => {
                         onRowToggle={(e) => setExpandedGradeRows(e.data)}
                         rowExpansionTemplate={(data) => (
                             <CurriculumGradeComponent
-                                curriculum={data as Curriculum}                                
+                                curriculum={data as Curriculum}
                             />
                         )}
                     >
                         <Column expander style={{ width: '3em' }} />
                         <Column field="title" header="Curriculum Title" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="minimum_load" header="Minimum Load" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="maximum_load" header="Maximum Load" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="minimum_pass_mark" header="Minimum Pass Mark" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="classification" header="Classification" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="number_of_terms" header="Semesters" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="maximum_point" header="Point" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="minimum_pass_mark" header="Pass Mark" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
@@ -305,38 +306,39 @@ const CurriculumPage = () => {
                         footer={saveDialogFooter}
                         onHide={hideSaveDialog}
                     >
-                        {selectedCurriculum ? (<><div className="field">
-                            <label htmlFor="title">Curriculum Title</label>
-                            <InputText
-                                id="title"
-                                value={selectedCurriculum.title}
-                                onChange={(e) => setSelectedCurriculum({ ...selectedCurriculum, title: e.target.value })}
-                                required
-                                autoFocus
-                            />
-                            {submitted && !selectedCurriculum.title && <small className="p-invalid">Curriculum Title is required.</small>}
-                        </div>
-
+                        {selectedCurriculum ? (<>
                             <div className="field">
-                                <label htmlFor="minimum_load">Minimum Load (hours/credits per week)</label>
-                                <InputNumber
-                                    id="minimum_load"
-                                    value={selectedCurriculum.minimum_load}
-                                    onValueChange={(e) => setSelectedCurriculum({ ...selectedCurriculum, minimum_load: e.value || 0 })}
+                                <label htmlFor="title">Curriculum Title</label>
+                                <InputText
+                                    id="title"
+                                    value={selectedCurriculum.title}
+                                    onChange={(e) => setSelectedCurriculum({ ...selectedCurriculum, title: e.target.value })}
                                     required
+                                    autoFocus
                                 />
-                                {submitted && selectedCurriculum.minimum_load <= 0 && <small className="p-invalid">Minimum Load must be greater than 0.</small>}
+                                {submitted && !selectedCurriculum.title && <small className="p-invalid">Curriculum Title is required.</small>}
                             </div>
 
                             <div className="field">
-                                <label htmlFor="maximum_load">Maximum Load (hours/credits per week)</label>
+                                <label htmlFor="number_of_terms">Number of Terms (Semesters)</label>
                                 <InputNumber
-                                    id="maximum_load"
-                                    value={selectedCurriculum.maximum_load}
-                                    onValueChange={(e) => setSelectedCurriculum({ ...selectedCurriculum, maximum_load: e.value || 0 })}
+                                    id="number_of_terms"
+                                    value={selectedCurriculum.number_of_terms}
+                                    onValueChange={(e) => setSelectedCurriculum({ ...selectedCurriculum, number_of_terms: e.value || 2 })}
                                     required
                                 />
-                                {submitted && selectedCurriculum.maximum_load <= 0 && <small className="p-invalid">Maximum Load must be greater than 0.</small>}
+                                {submitted && selectedCurriculum.number_of_terms <= 0 && <small className="p-invalid">Semesters must be greater than 0.</small>}
+                            </div>                            
+
+                            <div className="field">
+                                <label htmlFor="maximum_point">Maximum Point (Outof mark per term)</label>
+                                <InputNumber
+                                    id="maximum_point"
+                                    value={selectedCurriculum.maximum_point}
+                                    onValueChange={(e) => setSelectedCurriculum({ ...selectedCurriculum, maximum_point: e.value || 100 })}
+                                    required
+                                />
+                                {submitted && selectedCurriculum.maximum_point <= 0 && <small className="p-invalid">Maximum Point must be greater than 0.</small>}
                             </div>
 
                             <div className="field">

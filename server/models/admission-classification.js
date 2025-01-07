@@ -12,11 +12,6 @@ const AdmissionClassificationSchema = new mongoose.Schema({
         default: 'REGULAR',
         required: true
     },
-    number_of_terms: {
-        type: Number,
-        default: 2,
-        required: true
-    },
     curriculum: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Curriculum',

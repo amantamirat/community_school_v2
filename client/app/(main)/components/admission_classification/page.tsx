@@ -5,15 +5,15 @@ import { AcademicSession, AdmissionClassification, Curriculum } from '@/types/mo
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
-import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
+import { DataTable, DataTableExpandedRows, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
-import { InputNumber } from 'primereact/inputnumber';
-import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
+import ClassificationGradeComponent from '../classification_grade/page';
+import { curriculumTemplate } from '@/types/templates';
 
 interface AdmissionClassificationProps {
     academic_session: AcademicSession;
@@ -23,9 +23,9 @@ interface AdmissionClassificationProps {
 const ClassificationComponent = (props: AdmissionClassificationProps) => {
 
     let emptyAdmissionClassification: AdmissionClassification = {
-        academic_session: '',
+        _id: '',
+        academic_session: props.academic_session,
         classification: "REGULAR",
-        number_of_terms: 2,
         curriculum: ''
     };
 
@@ -38,6 +38,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
     const [curriculums, setCurriculums] = useState<Curriculum[]>([]);
+    const [expandedGradeRows, setExpandedGradeRows] = useState<any[] | DataTableExpandedRows>([]);
 
     useEffect(() => {
         loadCurriculums();
@@ -49,7 +50,6 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
             const data = await CurriculumService.getCurriculums();
             setCurriculums(data); // Update state with fetched data
         } catch (err) {
-            console.error('Failed to load curricula:', err);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to load curricula',
@@ -61,7 +61,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
 
     const loadAdmissionClassifications = async () => {
         try {
-            const data = await AdmissionClassificationService.getAcademicSessionClassifications(props.academic_session._id || '');
+            const data = await AdmissionClassificationService.getAcademicSessionClassifications(props.academic_session._id);
             setAdmissionClassifications(data); // Update state with fetched data
         } catch (err) {
             toast.current?.show({
@@ -74,7 +74,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
     };
 
     const validateAdmissionClassification = (classification: AdmissionClassification) => {
-        if (classification.academic_session.trim() === '' || classification.curriculum.trim() === '') {
+        if (!classification.academic_session || !classification.curriculum) {
             return false;
         }
         return true;
@@ -85,48 +85,31 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
         if (!validateAdmissionClassification(selectedAdmissionClassification)) {
             return
         }
-        
+        //if(selectedAdmissionClassification.classification!==){}
         let _admissionClassifications = [...(admissionClassifications as any)];
-        if (editMode) {
-            try {
+        try {
+            if (editMode) {
                 let id = selectedAdmissionClassification._id || '';
                 const updatedAdmissionClassification = await AdmissionClassificationService.updateAdmissionClassification(id, selectedAdmissionClassification);
                 const index = findIndexById(id);
                 _admissionClassifications[index] = updatedAdmissionClassification;
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'AdmissionClassification Updated',
-                    life: 3000
-                });
-            } catch (error) {
-                console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to update admissionClassification',
-                    detail: '' + error,
-                    life: 3000
-                });
-            }
-        } else {
-            try {
+            } else {
                 const newAdmissionClassification = await AdmissionClassificationService.createAdmissionClassification(selectedAdmissionClassification);
                 _admissionClassifications.push(newAdmissionClassification);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'AdmissionClassification Created',
-                    life: 3000
-                });
-            } catch (error) {
-                console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to create admissionClassifications',
-                    detail: '' + error,
-                    life: 3000
-                });
             }
+            toast.current?.show({
+                severity: 'success',
+                summary: 'Successful',
+                detail: `AdmissionClassification ${editMode ? 'Updated' : 'Created'}`,
+                life: 3000
+            });
+        } catch (error) {
+            toast.current?.show({
+                severity: 'error',
+                summary: `Failed to ${editMode ? 'update' : 'create'} Admission Classification`,
+                detail: '' + error,
+                life: 3000
+            });
         }
         setAdmissionClassifications(_admissionClassifications as any);
         setShowSaveDialog(false);
@@ -173,7 +156,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
     };
     const openSaveDialog = () => {
         setEditMode(false);
-        setSelectedAdmissionClassification({ ...emptyAdmissionClassification, academic_session: props.academic_session._id || '' });
+        setSelectedAdmissionClassification(emptyAdmissionClassification);
         setSubmitted(false);
         setShowSaveDialog(true);
     };
@@ -263,10 +246,16 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} admissionClassifications"
                         emptyMessage="No Classifications found."
                         header={header}
+                        expandedRows={expandedGradeRows}
+                        onRowToggle={(e) => setExpandedGradeRows(e.data)}
+                        rowExpansionTemplate={(data) => (
+                            <ClassificationGradeComponent
+                                addmission_classification={data as AdmissionClassification}
+                            />
+                        )}
                     >
-                        <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
+                        <Column expander style={{ width: '3em' }} />
                         <Column field="classification" header="Classification" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="number_of_terms" header="Terms" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="curriculum" header="Curriculum" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
@@ -293,7 +282,6 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
                                         })
                                     }
                                     options={["REGULAR", "EVENING", "DISTANCE"]}
-
                                     placeholder="Select a Classification"
                                     className={classNames({
                                         'p-invalid': submitted && !selectedAdmissionClassification.classification,
@@ -302,33 +290,19 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
                                 {submitted && !selectedAdmissionClassification.classification && <small className="p-invalid">Classificationis required.</small>}
                             </div>
                             <div className="field">
-                                <label htmlFor="number_of_terms">Terms</label>
-                                <InputNumber
-                                    id="number_of_terms"
-                                    value={selectedAdmissionClassification.number_of_terms}
-                                    onChange={(e) => setSelectedAdmissionClassification({ ...selectedAdmissionClassification, number_of_terms: e.value || 2 })}
-                                    required
-                                    min={1}
-                                    max={5}
-                                    autoFocus
-                                    className={classNames({
-                                        'p-invalid': submitted && !selectedAdmissionClassification.number_of_terms,
-                                    })}
-                                />
-                                {submitted && !selectedAdmissionClassification.number_of_terms && <small className="p-invalid">Terms is required.</small>}
-                            </div>
-                            <div className="field">
                                 <label htmlFor="curriculum">Curriculum</label>
                                 <Dropdown
                                     id="curriculum"
-                                    value={curriculums.find(curriculum => curriculum._id === selectedAdmissionClassification.curriculum) || null}
+                                    value={selectedAdmissionClassification.curriculum || null}
                                     onChange={(e) =>
                                         setSelectedAdmissionClassification({
                                             ...selectedAdmissionClassification,
-                                            curriculum: e.value ? e.value._id : "",
+                                            curriculum: e.value,
                                         })
                                     }
                                     options={curriculums}
+                                    itemTemplate={curriculumTemplate}
+                                    valueTemplate={selectedAdmissionClassification.curriculum ? curriculumTemplate : ""}
                                     optionLabel="_id"
                                     placeholder="Select Curriculum"
                                     className={classNames({

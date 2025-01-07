@@ -4,12 +4,13 @@ import { CurriculumGrade, GradeSubject, Subject } from "@/types/model";
 import { subjectTemplate } from "@/types/templates";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
-import { DataTable } from "primereact/datatable";
+import { DataTable, DataTableExpandedRows } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
 import { Toast } from "primereact/toast";
 import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
+import SubjectWeightComponent from "../subject_weight/page";
 
 interface GradeSubjectProps {
     curriculumGrade: CurriculumGrade;
@@ -28,6 +29,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
     const [showRemoveDialog, setShowRemoveDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
+    const [expandedGradeRows, setExpandedGradeRows] = useState<any[] | DataTableExpandedRows>([]);
 
     useEffect(() => {
         loadSubjects();
@@ -172,7 +174,15 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                         selection={selectedGradeSubject}
                         dataKey="_id"
                         emptyMessage={`No subject found.`}
+                        expandedRows={expandedGradeRows}
+                        onRowToggle={(e) => setExpandedGradeRows(e.data)}
+                        rowExpansionTemplate={(data) => (
+                            <SubjectWeightComponent
+                                gradeSubject={data as GradeSubject}
+                            />
+                        )}
                     >
+                        <Column expander style={{ width: '3em' }} />
                         <Column field="subject" header="Subject"></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
