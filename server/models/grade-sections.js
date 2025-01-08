@@ -9,13 +9,7 @@ const GradeSectionSchema = new mongoose.Schema({
     section: {
         type: Number,
         required: true
-    },
-    subject_class: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'SubjectClass',
-        required: true
-    }]
-
+    }
 });
 
 GradeSectionSchema.index({ classification_grade: 1, section: 1 }, { unique: true });

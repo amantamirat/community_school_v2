@@ -1,5 +1,5 @@
-const CurriculumGrade = require('../models/curriculum-grade');  // Adjust the path based on your file structure
-
+const CurriculumGrade = require('../models/curriculum-grade');
+const ClassificationGrade = require('../models/classification-grade');
 // Create a new CurriculumGrade
 exports.createCurriculumGrade = async (req, res) => {
     try {
@@ -66,14 +66,21 @@ exports.getCurriculumGradeById = async (req, res) => {
 // Delete a CurriculumGrade
 exports.deleteCurriculumGrade = async (req, res) => {
     try {
+
+        const gradeExists = await ClassificationGrade.findOne({ curriculum_grade: req.params.id});
+        if (gradeExists) {
+            return res.status(400).json({
+                message: "Cannot delete, Grade Registred. It is associated with one or more classification, try by removing classification grade first.",
+            });
+        }
         const deletedCurriculumGrade = await CurriculumGrade.findByIdAndDelete(req.params.id);
 
         if (!deletedCurriculumGrade) {
             return res.status(404).json({ message: 'CurriculumGrade not found' });
         }
-
         res.status(200).json(deletedCurriculumGrade);
     } catch (err) {
+        console.log(err)
         res.status(500).json({ message: 'Error deleting CurriculumGrade', error: err });
     }
 };

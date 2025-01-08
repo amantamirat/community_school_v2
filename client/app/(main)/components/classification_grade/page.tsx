@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { ClassificationGradeService } from "@/services/ClassificationGradeService";
 import { CurriculumGradeService } from "@/services/CurriculumGradeService";
 import { Toolbar } from "primereact/toolbar";
+import { gradeTemplate } from "@/types/templates";
 
 interface ClassificationGradeProps {
     addmission_classification: AdmissionClassification;
@@ -195,6 +196,19 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
         </div>
     );
 
+    const findGradeById = (id: string): Grade | undefined => {
+        return grades.find(grade => grade._id === id);
+    };
+    const findCurriculumGradeById = (id: string): CurriculumGrade | undefined => {
+        return curriculumGrades.find(curr_grade => curr_grade._id === id);
+    };
+
+    const gradeBodyTemplate = (rowData: ClassificationGrade) => {
+        const grade = typeof rowData.curriculum_grade === "string" ? findGradeById(findCurriculumGradeById(rowData.curriculum_grade)?.grade || '') : '';
+        return gradeTemplate(grade as Grade);
+    };
+
+
     const actionBodyTemplate = (rowData: ClassificationGrade) => {
         return (
             <>
@@ -224,7 +238,7 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} grades"
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
-                        <Column field="curriculum_grade" header="Curriculum Grade" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="curriculum_grade" header="Curriculum Grade" body={gradeBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
                     <Dialog

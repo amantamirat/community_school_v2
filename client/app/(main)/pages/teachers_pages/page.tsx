@@ -14,7 +14,7 @@ const TeacherMainPage = () => {
                         <TabPanel header="Teachers" leftIcon={PrimeIcons.USERS}>
                             <TeachersPage />
                         </TabPanel>
-                        <TabPanel header="Departments" leftIcon={PrimeIcons.TABLE}>
+                        <TabPanel header="Departments">
                             <DepartmentsPage />
                         </TabPanel>
                     </TabView>

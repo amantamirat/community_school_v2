@@ -20,10 +20,17 @@ const AppMenu = () => {
             label: 'Manage',
             items: [
                 {
-                    label: 'Registration',
-                    icon: PrimeIcons.REFRESH,
+                    label: 'Class',
+                    icon: PrimeIcons.CLOCK,
                     items: [
-                        { label: 'Enrollment', icon: PrimeIcons.SIGN_IN, to: '/pages/registration' },
+                        { label: 'Teacher Allocation', icon: PrimeIcons.SIGN_IN, to: '/pages/registration' },
+                        { label: 'Section Managment', icon: PrimeIcons.TH_LARGE, to: '/pages/students'}]
+                },
+                {
+                    label: 'Registration',
+                    icon: PrimeIcons.SIGN_IN,
+                    items: [
+                        { label: 'Enrollment', icon: PrimeIcons.SYNC, to: '/pages/registration' },
                         { label: 'Students', icon: PrimeIcons.ID_CARD, to: '/pages/students'}]
                 },
                 { label: 'Academic Session', icon: PrimeIcons.CALENDAR, to: '/pages/academic_session' },

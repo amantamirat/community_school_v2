@@ -79,6 +79,12 @@ export type ClassificationGrade = {
     curriculum_grade: CurriculumGrade | string;
 };
 
+export type GradeSection = {
+    _id?: string;
+    classification_grade: ClassificationGrade | string;
+    section: number;
+};
+
 export type Student = {
     _id?: string;
     first_name: string;
