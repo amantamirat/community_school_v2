@@ -6,6 +6,7 @@ import { LayoutContext } from './context/layoutcontext';
 import { MenuProvider } from './context/menucontext';
 import Link from 'next/link';
 import { AppMenuItem } from '@/types';
+import { PrimeIcons } from 'primereact/api';
 
 const AppMenu = () => {
     const { layoutConfig } = useContext(LayoutContext);
@@ -18,10 +19,16 @@ const AppMenu = () => {
         {
             label: 'Manage',
             items: [
-                { label: 'Teachers', icon: 'pi pi-fw pi-home', to: '/pages/teachers_pages' },
-                { label: 'Curricula', icon: 'pi pi-fw pi-home', to: '/pages/curricula_pages' },
-                { label: 'Calendars', icon: 'pi pi-fw pi-home', to: '/pages/academic_session' },
-                { label: 'Registration', icon: 'pi pi-fw pi-home', to: '/pages/registration' },
+                {
+                    label: 'Registration',
+                    icon: PrimeIcons.REFRESH,
+                    items: [
+                        { label: 'Enrollment', icon: PrimeIcons.SIGN_IN, to: '/pages/registration' },
+                        { label: 'Students', icon: PrimeIcons.ID_CARD, to: '/pages/students'}]
+                },
+                { label: 'Academic Session', icon: PrimeIcons.CALENDAR, to: '/pages/academic_session' },
+                { label: 'Curricula', icon: PrimeIcons.BOOK, to: '/pages/curricula_pages' },
+                { label: 'Teachers', icon: PrimeIcons.USER_PLUS, to: '/pages/teachers_pages' },
             ]
         },
         {

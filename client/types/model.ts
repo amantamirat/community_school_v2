@@ -1,5 +1,3 @@
-export type Sex = "Male" | "Female";
-
 export type Department = {
     _id?: string;
     name: string;
@@ -7,11 +5,11 @@ export type Department = {
 
 export type Teacher = {
     _id?: string;
-    department: string;
+    department: string | Department;
     first_name: string;
     middle_name: string;
     last_name: string;
-    sex: Sex;
+    sex: "Male" | "Female";
     createdAt?: Date;
     updatedAt?: Date;
 };
@@ -80,5 +78,15 @@ export type ClassificationGrade = {
     admission_classification: AdmissionClassification | string;
     curriculum_grade: CurriculumGrade | string;
 };
+
+export type Student = {
+    _id?: string;
+    first_name: string;
+    middle_name: string;
+    last_name: string;
+    sex: "Male" | "Female";
+    birth_date: Date | null;
+};
+
 
 

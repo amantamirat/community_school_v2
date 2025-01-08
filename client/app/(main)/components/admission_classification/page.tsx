@@ -48,7 +48,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
     const loadCurriculums = async () => {
         try {
             const data = await CurriculumService.getCurriculums();
-            setCurriculums(data); // Update state with fetched data
+            setCurriculums(data);
         } catch (err) {
             toast.current?.show({
                 severity: 'error',
@@ -62,7 +62,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
     const loadAdmissionClassifications = async () => {
         try {
             const data = await AdmissionClassificationService.getAcademicSessionClassifications(props.academic_session._id);
-            setAdmissionClassifications(data); // Update state with fetched data
+            setAdmissionClassifications(data);
         } catch (err) {
             toast.current?.show({
                 severity: 'error',
@@ -163,7 +163,12 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
 
     const openEditDialog = (admissionClassification: AdmissionClassification) => {
         setEditMode(true);
-        setSelectedAdmissionClassification({ ...admissionClassification });
+        setSelectedAdmissionClassification({
+            ...admissionClassification,
+            curriculum: (admissionClassification.curriculum && typeof admissionClassification.curriculum === 'string')
+                ? findCurriculumById(admissionClassification.curriculum) || admissionClassification.curriculum
+                : admissionClassification.curriculum,
+        });
         setSubmitted(false);
         setShowSaveDialog(true);
     };
@@ -214,6 +219,14 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
         </div>
     );
 
+    const findCurriculumById = (id: string): Curriculum | undefined => {
+        return curriculums.find(curriculum => curriculum._id === id);
+    };
+    const curriculumBodyTemplate = (rowData: AdmissionClassification) => {
+        const curriculum = typeof rowData.curriculum === "string" ? findCurriculumById(rowData.curriculum) : rowData.curriculum;
+        return curriculumTemplate(curriculum as Curriculum);
+    };
+
     const actionBodyTemplate = (rowData: AdmissionClassification) => {
         return (
             <>
@@ -238,12 +251,8 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
                         onSelectionChange={(e) => setSelectedAdmissionClassification(e.value as AdmissionClassification)}
                         scrollable
                         style={{ tableLayout: 'fixed' }}
-                        paginator
-                        rows={10}
-                        rowsPerPageOptions={[5, 10, 25]}
+                        rows={3}
                         className="datatable-responsive"
-                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} admissionClassifications"
                         emptyMessage="No Classifications found."
                         header={header}
                         expandedRows={expandedGradeRows}
@@ -256,7 +265,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
                     >
                         <Column expander style={{ width: '3em' }} />
                         <Column field="classification" header="Classification" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="curriculum" header="Curriculum" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="curriculum" header="Curriculum" body={curriculumBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 

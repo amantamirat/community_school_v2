@@ -2,7 +2,7 @@ const Teacher = require("../models/teacher");
 const Department = require("../models/department");
 
 const teacherController = {
-    // Create a new teacher
+    
     createTeacher: async (req, res) => {
         try {
             const { department, first_name, middle_name, last_name, sex } = req.body;
@@ -14,18 +14,15 @@ const teacherController = {
             }
 
             const newTeacher = new Teacher({ department, first_name, middle_name, last_name, sex });
-            await newTeacher.save();
-
-            // Update department's teachers array
-            //departmentExists.teachers.push({ teacher: newTeacher._id });
-            await departmentExists.save();
+            await newTeacher.save();           
+            
             res.status(201).json(newTeacher);
         } catch (error) {
             res.status(500).json({ message: "Error creating teacher", error });
         }
     },
 
-    // Get all teachers
+   
     getAllTeachers: async (req, res) => {
         try {
             const teachers = await Teacher.find();
@@ -35,7 +32,7 @@ const teacherController = {
         }
     },
 
-    // Update teacher information
+    
     updateTeacher: async (req, res) => {
         try {
             const { id } = req.params;
@@ -65,7 +62,6 @@ const teacherController = {
         }
     },
 
-    // Delete a teacher
     deleteTeacher: async (req, res) => {
         try {
             const { id } = req.params;

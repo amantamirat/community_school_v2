@@ -14,8 +14,20 @@ const StudentGradeSchema = new mongoose.Schema({
     status: {
         type: String,
         required: true,
-        default: 'ONGOING',
-        enum: ['ONGOING', 'PASSED', 'FAILED', 'INCOMPLETE']
+        default: 'PENDING',
+        enum: ['PENDING', 'PASSED', 'FAILED', 'INCOMPLETE']
+    },
+    is_new_student: {
+        type: Boolean,
+        required: true
+    },
+    external_student_prior_info: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ExternalStudentPriorInfo',
+    },
+    previous_student_grade: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'StudentGrade',
     },
 });
 StudentGradeSchema.index({ classification_grade: 1, student: 1 }, { unique: true });

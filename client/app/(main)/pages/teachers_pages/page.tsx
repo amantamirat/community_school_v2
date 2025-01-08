@@ -3,6 +3,7 @@ import { TabPanel, TabView } from 'primereact/tabview';
 import React from 'react';
 import DepartmentsPage from './departments/page';
 import TeachersPage from './teachers/page';
+import { PrimeIcons } from 'primereact/api';
 
 const TeacherMainPage = () => {
     return (
@@ -10,10 +11,10 @@ const TeacherMainPage = () => {
             <div className="col-12">
                 <div className="card">
                     <TabView>
-                        <TabPanel header="Teachers">
+                        <TabPanel header="Teachers" leftIcon={PrimeIcons.USERS}>
                             <TeachersPage />
                         </TabPanel>
-                        <TabPanel header="Departments">
+                        <TabPanel header="Departments" leftIcon={PrimeIcons.TABLE}>
                             <DepartmentsPage />
                         </TabPanel>
                     </TabView>

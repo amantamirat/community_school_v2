@@ -22,50 +22,7 @@ const StudentSchema = new mongoose.Schema(
         birth_date: {
             type: Date,
             required: true
-        },
-        enrollment: [{
-            admission_classification: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'AdmissionClassification',
-                required: true
-            },
-            grade: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'Grade',
-                required: true
-            },
-            status: {
-                type: String,
-                required: true,
-                enum: ['ACTIVE', 'PASSED', 'FAILED', 'WITHDRAWN','INCOMPLETE']
-            },
-        }],
-        previous_profile: [{
-            school_information: {
-                type: String,
-                required: true
-            },
-            year: {
-                type: String,
-                required: true
-            },
-            classification: {
-                type: String,
-                enum: ['REGULAR', 'EVENING', 'DISTANCE'], // Refers to Regular, Night, and Distance
-                default: 'REGULAR',
-                required: true
-            },
-            grade: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'Grade',
-                required: true
-            },
-            status: {
-                type: String,
-                required: true,
-                enum: ['ACTIVE', 'PASSED', 'FAILED', 'INCOMPLETE', 'WITHDRAWN']
-            },
-        }],
+        }
     }
 );
 

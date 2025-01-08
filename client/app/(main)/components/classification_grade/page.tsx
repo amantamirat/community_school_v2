@@ -1,6 +1,5 @@
 import { GradeService } from "@/services/GradeService";
-import { Curriculum, ClassificationGrade, Grade, AdmissionClassification, CurriculumGrade } from "@/types/model";
-import { gradeTemplate } from "@/types/templates";
+import { ClassificationGrade, Grade, AdmissionClassification, CurriculumGrade } from "@/types/model";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";

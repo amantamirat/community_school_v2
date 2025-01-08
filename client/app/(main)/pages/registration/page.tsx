@@ -140,10 +140,7 @@ const RegistrationMainPage = () => {
                         </TabPanel>
                         <TabPanel header="Registred">
                             <>Display registered student</>
-                        </TabPanel>
-                        <TabPanel header="Students">
-                            <>Manage students</>
-                        </TabPanel>
+                        </TabPanel>                        
                     </TabView>
                 </div>
             </div>
