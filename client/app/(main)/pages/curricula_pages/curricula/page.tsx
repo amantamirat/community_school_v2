@@ -83,50 +83,30 @@ const CurriculumPage = () => {
     const saveCurriculum = async () => {
         setSubmitted(true);
         let _curriculums = [...(curriculums as any)];
-        if (editMode) {
-            try {
+        try {
+            if (editMode) {
                 let id = selectedCurriculum._id || '';
                 const updatedCurriculum = await CurriculumService.updateCurriculum(id, selectedCurriculum);
                 const index = findIndexById(id);
                 _curriculums[index] = updatedCurriculum;
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Curriculum Updated',
-                    life: 3000
-                });
-            } catch (error) {
-                console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to update curriculum',
-                    detail: '' + error,
-                    life: 3000
-                });
-            }
-        } else {
-            try {
-                let processedGrades = selectedGrades?.map(grade => ({
-                    grade: grade._id,
-                    subjects: [],
-                }));
+            } else {
                 const newCurriculum = await CurriculumService.createCurriculum(selectedCurriculum);
                 _curriculums.push(newCurriculum);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Curriculum Created',
-                    life: 3000
-                });
-            } catch (error) {
-                //console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to create curriculums',
-                    detail: '' + error,
-                    life: 3000
-                });
             }
+            toast.current?.show({
+                severity: 'success',
+                summary: 'Successful',
+                detail: `Curriculum ${editMode ? 'Updated' : 'Created'}`,
+                life: 3000
+            });
+
+        } catch (error) {
+            toast.current?.show({
+                severity: 'error',
+                summary: `Failed to ${editMode ? 'update' : 'create'} Curriculum`,
+                detail: '' + error,
+                life: 3000
+            });
         }
         setCurriculums(_curriculums as any);
         setShowSaveDialog(false);
@@ -284,7 +264,7 @@ const CurriculumPage = () => {
                         onRowToggle={(e) => setExpandedGradeRows(e.data)}
                         rowExpansionTemplate={(data) => (
                             <CurriculumGradeComponent
-                                curriculum={data as Curriculum}
+                                curriculum={data as Curriculum}                               
                             />
                         )}
                     >
@@ -328,7 +308,7 @@ const CurriculumPage = () => {
                                     required
                                 />
                                 {submitted && selectedCurriculum.number_of_terms <= 0 && <small className="p-invalid">Semesters must be greater than 0.</small>}
-                            </div>                            
+                            </div>
 
                             <div className="field">
                                 <label htmlFor="maximum_point">Maximum Point (Outof mark per term)</label>

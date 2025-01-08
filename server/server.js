@@ -9,6 +9,7 @@ const subjectRoutes = require("./routes/subjectRoutes");
 const curriculumRoutes = require("./routes/curriculumRoutes");
 const curriculumGradeRoutes = require("./routes/curriculumGradeRoutes ");
 const gradeSubjectRoutes = require("./routes/gradeSubjectRoutes");
+const subjectWeightRoutes = require("./routes/subjectWeightRoutes");
 const academicSessionRoutes = require("./routes/academicSessionRoutes");
 const admissionClassificationRoutes = require("./routes/admissionClassificationRoutes");
 const classificationGradeRoutes = require("./routes/classificationGradeRoutes");
@@ -20,9 +21,11 @@ app.use('/api/grades', gradeRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/teachers", teacherRoutes);
 app.use("/api/subjects", subjectRoutes);
+
 app.use("/api/curricula", curriculumRoutes);
 app.use("/api/curriculum-grade", curriculumGradeRoutes);
 app.use("/api/grade-subject", gradeSubjectRoutes);
+app.use("/api/subject-weights", subjectWeightRoutes);
 
 app.use("/api/academic-sessions", academicSessionRoutes);
 app.use("/api/admission-classifications", admissionClassificationRoutes);

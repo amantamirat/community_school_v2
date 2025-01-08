@@ -11,6 +11,7 @@ import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
 import { ClassificationGradeService } from "@/services/ClassificationGradeService";
 import { CurriculumGradeService } from "@/services/CurriculumGradeService";
+import { Toolbar } from "primereact/toolbar";
 
 interface ClassificationGradeProps {
     addmission_classification: AdmissionClassification;
@@ -180,13 +181,20 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
             <Button label="Delete" icon="pi pi-check" text onClick={deleteClassificationGrade} />
         </>
     );
-    const header = () => {
+
+    const startToolbarTemplate = () => {
         return (
-            <>
+            <div className="my-2">
                 <Button label="Add Grade" icon="pi pi-plus" severity="success" className="mr-2" onClick={openAddDialog} />
-            </>
+            </div>
         );
-    }
+    };
+
+    const header = (
+        <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+            <h5 className="m-0">Classfication Grades</h5>
+        </div>
+    );
 
     const actionBodyTemplate = (rowData: ClassificationGrade) => {
         return (
@@ -202,12 +210,13 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
+                    <Toolbar className="mb-4" start={startToolbarTemplate}></Toolbar>
                     <DataTable
                         header={header}
                         value={classificationGrades}
                         selection={selectedClassificationGrade}
                         onSelectionChange={(e) => setSelectedClassificationGrade(e.value)}
-                        dataKey="_id"                        
+                        dataKey="_id"
                         emptyMessage={`No grade for ${props.addmission_classification.classification} classification found.`}
                         paginator
                         rows={5}

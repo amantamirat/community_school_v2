@@ -11,6 +11,7 @@ import { Toast } from "primereact/toast";
 import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
 import SubjectWeightComponent from "../subject_weight/page";
+import { OverlayPanel } from "primereact/overlaypanel";
 
 interface GradeSubjectProps {
     curriculumGrade: CurriculumGrade;
@@ -29,7 +30,8 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
     const [showRemoveDialog, setShowRemoveDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
-    const [expandedGradeRows, setExpandedGradeRows] = useState<any[] | DataTableExpandedRows>([]);
+
+
 
     useEffect(() => {
         loadSubjects();
@@ -155,14 +157,32 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
         );
     }
 
+
+
     const actionBodyTemplate = (rowData: GradeSubject) => {
+        const op = useRef<OverlayPanel>(null);
+        const toggleSubjectWeight = (event: any) => {
+            op.current?.toggle(event);
+        };
         return (
             <>
+                <Button type="button" label="Weights" onClick={toggleSubjectWeight} outlined rounded style={{ marginRight: '10px' }} />
+                <OverlayPanel ref={op} appendTo={typeof window !== 'undefined' ? document.body : null} showCloseIcon id="overlay_panel" style={{ width: '450px' }}>
+                    <SubjectWeightComponent
+                        gradeSubject={rowData as GradeSubject}
+                    />
+                </OverlayPanel>
                 <Button icon="pi pi-trash" rounded severity="warning" onClick={() => confirmRemoveGradeSubject(rowData)} />
             </>
         );
     };
-    //body={(rowData) => subjectTemplate(subjects.find(subject => subject._id === rowData.subject) as Subject)} 
+
+    const subjectBodyTemplete = (rowData: GradeSubject) => {
+        const subject = subjects.find(subject => subject._id === rowData.subject) as Subject;
+        return subjectTemplate(subject);
+
+    }
+
     return (
         <div className="grid">
             <div className="col-12">
@@ -174,16 +194,8 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                         selection={selectedGradeSubject}
                         dataKey="_id"
                         emptyMessage={`No subject found.`}
-                        expandedRows={expandedGradeRows}
-                        onRowToggle={(e) => setExpandedGradeRows(e.data)}
-                        rowExpansionTemplate={(data) => (
-                            <SubjectWeightComponent
-                                gradeSubject={data as GradeSubject}
-                            />
-                        )}
                     >
-                        <Column expander style={{ width: '3em' }} />
-                        <Column field="subject" header="Subject"></Column>
+                        <Column field="subject" header="Subject" body={subjectBodyTemplete} ></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
                     <Dialog

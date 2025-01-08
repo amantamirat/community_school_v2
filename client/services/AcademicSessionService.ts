@@ -1,5 +1,4 @@
 import { AcademicSession } from "@/types/model";
-import { API_CONFIG } from "./apiConfig";
 import { MyService } from "./MyService";
 
 const get_endpoint = "/api/academic-sessions/";

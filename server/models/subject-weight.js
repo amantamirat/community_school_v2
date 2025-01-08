@@ -13,7 +13,7 @@ const SubjectWeightSchema = new mongoose.Schema({
     assessment_weight: {
         type: Number,
         min: 5,
-        max: 50,
+        max: 100,
         required: true
     }
 });
