@@ -22,9 +22,8 @@ const AppMenu = () => {
                 {
                     label: 'Class',
                     icon: PrimeIcons.CLOCK,
-                    items: [
-                        { label: 'Teacher Allocation', icon: PrimeIcons.SIGN_IN, to: '/pages/registration' },
-                        { label: 'Section Managment', icon: PrimeIcons.TH_LARGE, to: '/pages/students'}]
+                    items: [                       
+                        { label: 'Section Managment', icon: PrimeIcons.TH_LARGE, to: '/pages/sections_pages'}]
                 },
                 {
                     label: 'Registration',
