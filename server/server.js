@@ -1,39 +1,42 @@
 const mongoose = require('mongoose');
 const express = require('express');
 const cors = require('cors');
-const gradeController = require('./controllers/gradeController');
-const gradeRoutes = require('./routes/gradeRoutes');
-const departmentRoutes = require("./routes/departmentRoutes");
-const teacherRoutes = require("./routes/teacherRoutes");
-const subjectRoutes = require("./routes/subjectRoutes");
-const studentRoutes = require("./routes/studentRoutes");
-const curriculumRoutes = require("./routes/curriculumRoutes");
-const curriculumGradeRoutes = require("./routes/curriculumGradeRoutes ");
-const gradeSubjectRoutes = require("./routes/gradeSubjectRoutes");
-const subjectWeightRoutes = require("./routes/subjectWeightRoutes");
-const academicSessionRoutes = require("./routes/academicSessionRoutes");
-const admissionClassificationRoutes = require("./routes/admissionClassificationRoutes");
-const classificationGradeRoutes = require("./routes/classificationGradeRoutes");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+const gradeRoutes = require('./routes/gradeRoutes');
 app.use('/api/grades', gradeRoutes);
+const departmentRoutes = require("./routes/departmentRoutes");
 app.use("/api/departments", departmentRoutes);
+const teacherRoutes = require("./routes/teacherRoutes");
 app.use("/api/teachers", teacherRoutes);
+const subjectRoutes = require("./routes/subjectRoutes");
 app.use("/api/subjects", subjectRoutes);
+const studentRoutes = require("./routes/studentRoutes");
 app.use("/api/students", studentRoutes);
 
+const curriculumRoutes = require("./routes/curriculumRoutes");
 app.use("/api/curricula", curriculumRoutes);
+const curriculumGradeRoutes = require("./routes/curriculumGradeRoutes ");
 app.use("/api/curriculum-grade", curriculumGradeRoutes);
+const gradeSubjectRoutes = require("./routes/gradeSubjectRoutes");
 app.use("/api/grade-subject", gradeSubjectRoutes);
+const subjectWeightRoutes = require("./routes/subjectWeightRoutes");
 app.use("/api/subject-weights", subjectWeightRoutes);
 
+const academicSessionRoutes = require("./routes/academicSessionRoutes");
 app.use("/api/academic-sessions", academicSessionRoutes);
+const admissionClassificationRoutes = require("./routes/admissionClassificationRoutes");
 app.use("/api/admission-classifications", admissionClassificationRoutes);
+const classificationGradeRoutes = require("./routes/classificationGradeRoutes");
 app.use("/api/classification-grades", classificationGradeRoutes);
+const gradeSectionRoutes = require("./routes/gradeSectionRoutes");
+app.use("/api/grade-sections", gradeSectionRoutes);
 
 require('dotenv').config();
+const gradeController = require('./controllers/gradeController');
 mongoose.connect(process.env.MONGO_URL)
   .then(async () => {
     console.log('databased connection established');

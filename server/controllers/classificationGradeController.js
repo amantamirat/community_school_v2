@@ -17,8 +17,7 @@ const ClassificationGradeController = {
 
     // Get all classificationGrades
     getClassificationGradesByClassification: async (req, res) => {
-        try {
-            //console.log("get***")
+        try {            
             const classificationGrades = await ClassificationGrade.find({ admission_classification: req.params.admission_classification });
             res.status(200).json(classificationGrades);
         } catch (error) {
