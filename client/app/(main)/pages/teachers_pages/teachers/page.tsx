@@ -63,7 +63,7 @@ const TeacherPage = () => {
             //const populatedTeachers = data.map(teacher => populateDepartment(teacher));           
             setTeachers(data);
         } catch (err) {
-            console.error('Failed to load teachers:', err);
+            //console.error('Failed to load teachers:', err);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to load teachers',
@@ -88,15 +88,11 @@ const TeacherPage = () => {
         setGlobalFilter(value);
     };
 
-    const validateTeacher = (teacher: any) => {
-        const requiredFields = ['first_name', 'middle_name', 'last_name', 'sex', 'department'];
-        for (const field of requiredFields) {
-            if (!teacher[field] || teacher[field].trim() === '') {
-                console.log(`Field ${field} is missing or empty.`);
-                return false;
-            }
+    const validateTeacher = (teacher: Teacher) => {
+        if (teacher.first_name.trim() === '' || teacher.last_name.trim() === '' || teacher.middle_name.trim() === '' || !teacher.department) {
+            return false;
         }
-        return true; // All required fields are provided
+        return true;
     };
 
     const saveTeacher = async () => {
@@ -137,7 +133,7 @@ const TeacherPage = () => {
                     life: 3000
                 });
             } catch (error) {
-                console.error(error);
+                //console.error(error);
                 toast.current?.show({
                     severity: 'error',
                     summary: 'Failed to create teacher',

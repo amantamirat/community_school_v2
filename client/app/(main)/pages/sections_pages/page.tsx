@@ -2,14 +2,13 @@
 import { AcademicSessionService } from '@/services/AcademicSessionService';
 import { AdmissionClassificationService } from '@/services/AdmissionClassificationService';
 import { ClassificationGradeService } from '@/services/ClassificationGradeService';
-import { CurriculumService } from '@/services/CurriculumService';
-import { GradeService } from '@/services/GradeService';
-import { AcademicSession, AdmissionClassification, ClassificationGrade, Curriculum, Grade } from '@/types/model';
+import { AcademicSession, AdmissionClassification, ClassificationGrade } from '@/types/model';
 import { Dropdown } from 'primereact/dropdown';
 import { TabPanel, TabView } from 'primereact/tabview';
 import { Toast } from 'primereact/toast';
 import React, { useEffect, useRef, useState } from 'react';
 import GradeSectionComponent from '../../components/grade_section/page';
+import SectionClassComponent from '../../components/section_class/page';
 const SectionMainPage = () => {
     const toast = useRef<Toast>(null);
     const [academicSessions, setAcademicSessions] = useState<AcademicSession[]>([]);
@@ -138,14 +137,17 @@ const SectionMainPage = () => {
                     </div>
 
                     <TabView>
-                        <TabPanel header="Teacher Allocation">
-                            <>Display elligible student</>
-                        </TabPanel>
-                        <TabPanel header="Student Class">
-                            <>Display elligible student</>
+                        <TabPanel header="Classes"
+                            key={selectedClassificationGrade ? `${selectedClassificationGrade._id}_tab1` : '_tab1'}
+                        >
+                            {selectedClassificationGrade ? (
+                                <SectionClassComponent classification_grade={selectedClassificationGrade} />
+                            ) : (
+                                <div>Please select a classification grade.</div>
+                            )}
                         </TabPanel>
                         <TabPanel header="Sections"
-                            key={selectedClassificationGrade ? selectedClassificationGrade._id : 'default'}
+                            key={selectedClassificationGrade ? `${selectedClassificationGrade._id}_tab2` : '_tab2'}
                         >
                             {selectedClassificationGrade ? (
                                 <GradeSectionComponent classification_grade={selectedClassificationGrade} />

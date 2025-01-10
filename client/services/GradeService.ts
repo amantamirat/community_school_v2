@@ -1,7 +1,7 @@
 import { Grade } from "@/types/model";
 import { API_CONFIG } from "./apiConfig";
 
-const CACHE_EXPIRATION_TIME = 60 * 60 * 1000; // 60 minutes in milliseconds
+const CACHE_EXPIRATION_TIME = 3 * 60 * 60 * 1000; // 3*60 minutes in milliseconds
 const storageName = 'grades';
 const cacheTimeStampName = 'gradesCacheTimestamp'
 

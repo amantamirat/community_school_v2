@@ -85,6 +85,13 @@ export type GradeSection = {
     section: number;
 };
 
+export type SectionClass = {
+    _id?: string;
+    grade_section: GradeSection | string;
+    grade_subject: GradeSubject | string;
+    teacher?: Teacher | string;
+};
+
 export type Student = {
     _id?: string;
     first_name: string;

@@ -4,7 +4,6 @@ const GradeSubject = require('../models/grade-subject');  // Adjust the path bas
 exports.createGradeSubject = async (req, res) => {
     try {
         const { curriculum_grade, subject } = req.body;
-
         // Create a new grade-subject relationship
         const newGradeSubject = new GradeSubject({
             curriculum_grade,
