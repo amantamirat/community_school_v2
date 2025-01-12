@@ -8,7 +8,6 @@ import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
 import { SectionClassService } from "@/services/SectionClassService";
 import { Toolbar } from "primereact/toolbar";
-import { InputNumber } from "primereact/inputnumber";
 import { GradeSectionService } from "@/services/GradeSectionService";
 import { Dropdown } from "primereact/dropdown";
 import { TeacherService } from "@/services/TeacherService";
@@ -81,7 +80,7 @@ const SectionClassComponent = (props: SectionClassProps) => {
             const data = await TeacherService.getTeachers();
             setTeachers(data);
         } catch (err) {
-            console.error('Failed to load teachers:', err);
+            //console.error('Failed to load teachers:', err);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to load teachers',
@@ -105,12 +104,20 @@ const SectionClassComponent = (props: SectionClassProps) => {
         }
         let _sectionClasss = [...(sectionClasss as any)];
         try {
-            const newSectionClass = await SectionClassService.createSectionClass(selectedSectionClass);
-            _sectionClasss.push(newSectionClass);
+            if (selectedSectionClass._id) {
+                let id = selectedSectionClass._id;
+                const updatedClass = await SectionClassService.updateSectionClass(id, selectedSectionClass);
+                const index = findIndexById(id);
+                _sectionClasss[index] = updatedClass;
+            } else {
+                const newSectionClass = await SectionClassService.createSectionClass(selectedSectionClass);
+                _sectionClasss.push(newSectionClass);
+            }
+
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
-                detail: 'Class Added',
+                detail: `Class ${selectedSectionClass._id ? 'Updated' : 'Created'}`,
                 life: 1500
             });
         } catch (error) {
@@ -128,16 +135,18 @@ const SectionClassComponent = (props: SectionClassProps) => {
     }
     const deleteSectionClass = async () => {
         try {
-            const deleted = await SectionClassService.deleteSectionClass(selectedSectionClass._id ?? '');
-            if (deleted) {
-                let _sectionClasss = (sectionClasss as any)?.filter((val: any) => val._id !== selectedSectionClass._id);
-                setSectionClasss(_sectionClasss);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Class Deleted',
-                    life: 1500
-                });
+            if (selectedSectionClass._id) {
+                const deleted = await SectionClassService.deleteSectionClass(selectedSectionClass._id);
+                if (deleted) {
+                    let _sectionClasss = (sectionClasss as any)?.filter((val: any) => val._id !== selectedSectionClass._id);
+                    setSectionClasss(_sectionClasss);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Class Deleted',
+                        life: 1500
+                    });
+                }
             }
         } catch (error) {
             toast.current?.show({
@@ -151,8 +160,15 @@ const SectionClassComponent = (props: SectionClassProps) => {
         setSelectedSectionClass(emptySectionClass);
     }
 
-    const openAddDialog = () => {
+    const openSaveDialog = () => {
         setSelectedSectionClass({ ...emptySectionClass });
+        setSubmitted(false);
+        setShowAddDialog(true);
+    };
+
+
+    const openEditDialog = (sectionClass: SectionClass) => {
+        setSelectedSectionClass(sectionClass);
         setSubmitted(false);
         setShowAddDialog(true);
     };
@@ -161,10 +177,10 @@ const SectionClassComponent = (props: SectionClassProps) => {
         setSubmitted(false);
         setShowAddDialog(false);
     };
-    const addDialogFooter = (
+    const saveDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideAddDialog} />
-            <Button label="Add" icon="pi pi-check" text onClick={saveSectionClass} />
+            <Button label="Save" icon="pi pi-check" text onClick={saveSectionClass} />
         </>
     );
 
@@ -203,22 +219,12 @@ const SectionClassComponent = (props: SectionClassProps) => {
         );
     };
 
-    const teacherEditor = (options: any) => {
-        return (
-            <Dropdown
-                value={options.value}
-                options={teachers}
-                onChange={(e) => options.editorCallback(e.value)}
-                placeholder="Select a Teacher"
-                optionLabel="_id"
-                filter
-            />);
-    }
+
 
     const endToolbarTemplate = () => {
         return (
             <div className="my-2">
-                <Button label="Add Subject" icon="pi pi-plus" className="mr-2" onClick={openAddDialog} />
+                <Button label="Add Subject" icon="pi pi-plus" className="mr-2" onClick={openSaveDialog} />
             </div>
         );
     };
@@ -241,33 +247,6 @@ const SectionClassComponent = (props: SectionClassProps) => {
         </>);
     };
 
-    const onRowEditComplete = async (e: any) => {
-        let { newData, index } = e;
-        let _sectionClasss = [...sectionClasss];
-        try {
-
-            let id = newData._id || '';
-            console.log(newData);
-            const updatedTeacher = await SectionClassService.updateSectionClass(id, newData);
-            _sectionClasss[index] = updatedTeacher;
-            toast.current?.show({
-                severity: 'success',
-                summary: 'Successful',
-                detail: 'Teacher Updated',
-                life: 3000
-            });
-        } catch (error) {
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to update teacher',
-                detail: '' + error,
-                life: 3000
-            });
-            return;
-        }
-        setSectionClasss(_sectionClasss);
-    };
-
     const findIndexById = (id: string) => {
         let index = -1;
         for (let i = 0; i < (sectionClasss as any)?.length; i++) {
@@ -282,6 +261,7 @@ const SectionClassComponent = (props: SectionClassProps) => {
     const actionBodyTemplate = (rowData: SectionClass) => {
         return (
             <>
+                <Button type="button" label={rowData.teacher ? 'Change Teacher' : 'Assign Teacher'} outlined rounded style={{ marginRight: '10px' }} onClick={() => openEditDialog(rowData)} />
                 <Button icon="pi pi-trash" rounded severity="warning" onClick={() => confirmRemoveSectionClass(rowData)} />
             </>
         );
@@ -302,29 +282,56 @@ const SectionClassComponent = (props: SectionClassProps) => {
                         emptyMessage={`No class for ${selectedGradeSection?._id} section found.`}
                         paginator
                         rows={15}
-                        editMode="row"
-                        onRowEditComplete={onRowEditComplete}
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="grade_subject" header="Subject" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column header="Teacher" editor={(options) => teacherEditor(options)} body={teacherBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column rowEditor headerStyle={{ width: '10%', minWidth: '8rem' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                        <Column header="Teacher" body={teacherBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
                     <Dialog
                         visible={showAddDialog}
                         style={{ width: '450px' }}
-                        header="Add Grade"
+                        header={selectedSectionClass._id ? 'Teacher' : 'Subject'}
                         modal
                         className="p-fluid"
-                        footer={addDialogFooter}
+                        footer={saveDialogFooter}
                         onHide={hideAddDialog}                    >
                         {selectedSectionClass ?
-                            <>
+                            selectedSectionClass._id ? <>
                                 <div className="field">
+                                    <label htmlFor="teacher">Teacher</label>
+                                    <div id="teacher">
+                                        <Dropdown
+                                            value={selectedSectionClass.teacher}
+                                            options={teachers}
+                                            onChange={(e) => setSelectedSectionClass({ ...selectedSectionClass, teacher: e.value })}
+                                            placeholder="Select a Teacher"
+                                            optionLabel="_id"
+                                            filter
+                                        />
+                                    </div>
                                 </div>
                             </> :
-                            <></>}
+                                <div className="field">
+                                    <label htmlFor="subject">Subject</label>
+                                    <div id="subject">
+                                        <Dropdown
+                                            value={selectedSectionClass.grade_subject}
+                                            options={[]}
+                                            onChange={(e) => setSelectedSectionClass({ ...selectedSectionClass, grade_subject: e.value })}
+                                            placeholder="Select a Subject"
+                                            optionLabel="_id"
+                                            filter
+                                            required
+                                            autoFocus
+                                            className={classNames({
+                                                'p-invalid': submitted && !selectedSectionClass.grade_subject,
+                                            })}
+                                        />
+                                    </div>
+                                </div>
+                            : <></>
+                        }
                     </Dialog>
 
                     <Dialog

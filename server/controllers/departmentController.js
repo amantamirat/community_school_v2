@@ -1,5 +1,5 @@
 const Department = require("../models/department");
-const Teacher=require("../models/teacher");
+const Teacher = require("../models/teacher");
 
 // Controller functions
 const departmentController = {
@@ -59,7 +59,6 @@ const departmentController = {
             }
             res.status(200).json({ message: "Department deleted successfully" });
         } catch (error) {
-            
             res.status(500).json({ message: "Error deleting department", error });
         }
     }
