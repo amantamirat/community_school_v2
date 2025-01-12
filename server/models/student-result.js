@@ -1,28 +1,21 @@
 const mongoose = require('mongoose');
 const StudentResultSchema = new mongoose.Schema({
-    subject_class: {
+    student_class: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'SubjectClass',
+        ref: 'StudentClass',
         required: true
     },
-    student: {
+    subject_weight: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Student',
+        ref: 'SubjectWeight',
         required: true
     },
-    results: [{
-        weight: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Weight',
-            required: true
-        },
-        result: {
-            type: Number,
-            min: 0,
-            max: 50,
-            required: true
-        }
-    }]
+    result: {
+        type: Number,
+        min: 0,
+        max: 100,
+        required: true
+    }
 });
 
 const StudentResult = mongoose.model('StudentResult', StudentResultSchema);

@@ -247,7 +247,7 @@ const TeacherPage = () => {
             <h5 className="m-0">Manage Teachers</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
-                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search..." />
+                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search..." className="w-full md:w-1/3" />
             </span>
         </div>
     );

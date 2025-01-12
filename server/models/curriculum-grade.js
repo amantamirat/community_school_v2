@@ -10,6 +10,12 @@ const CurriculumGradeSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Grade',
         required: true
+    },
+    entrance_certificate: {
+        type: String
+    },
+    entrance_result: {
+        type: Number
     }
 });
 CurriculumGradeSchema.index({ curriculum: 1, grade: 1 }, { unique: true });

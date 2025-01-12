@@ -25,6 +25,12 @@ const ExternalStudentPriorInfoSchema = new mongoose.Schema({
         ref: 'Grade',
         required: true
     },
+    average_result: {
+        type: Number,
+        min: 0,
+        max: 100,
+        required: true
+    },
     status: {
         type: String,
         required: true,

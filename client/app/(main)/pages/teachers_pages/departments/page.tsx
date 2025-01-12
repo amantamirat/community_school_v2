@@ -196,6 +196,7 @@ const DepartmentPage = () => {
 
 
     const startToolbarTemplate = () => {
+        //<React.Fragment> is simillar to <></>
         return (
             <React.Fragment>
                 <div className="my-2">
@@ -225,7 +226,7 @@ const DepartmentPage = () => {
             <h5 className="m-0">Manage Departments</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
-                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search Dep't..." />
+                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search Dep't..." className="w-full md:w-1/3"/>
             </span>
         </div>
     );

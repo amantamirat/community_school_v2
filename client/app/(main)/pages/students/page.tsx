@@ -12,6 +12,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { FileUpload } from 'primereact/fileupload';
 import { InputText } from 'primereact/inputtext';
 import { RadioButton } from 'primereact/radiobutton';
+import { Steps } from 'primereact/steps';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
@@ -35,6 +36,13 @@ const StudentPage = () => {
     const dt = useRef<DataTable<any>>(null);
     const [globalFilter, setGlobalFilter] = useState('');
     const [filters, setFilters] = useState<DataTableFilterMeta>({});
+
+    const [activeIndex, setActiveIndex] = useState(0);
+    const steps = [
+        { label: 'Basic Information' },
+        { label: 'Prior School Info' },
+        { label: 'Confirmation' },
+    ];
 
     useEffect(() => {
         initFilters();
@@ -184,6 +192,106 @@ const StudentPage = () => {
         </>
     );
 
+    const handleNext = () => {
+        if (activeIndex < steps.length - 1) {
+            setActiveIndex((prevIndex) => prevIndex + 1);
+        }
+    };
+
+    const handlePrevious = () => {
+        if (activeIndex > 0) {
+            setActiveIndex((prevIndex) => prevIndex - 1);
+        }
+    };
+
+    const renderStepContent = () => {
+        switch (activeIndex) {
+            case 0:
+                return <>
+                    <div className="field grid">
+                        <label htmlFor="first_name" className='col-2 mb-0'>First Name</label>
+                        <div id="first_name" className="col-10">
+                            <InputText
+                                value={selectedStudent.first_name}
+                                onChange={(e) => setSelectedStudent({ ...selectedStudent, first_name: e.target.value })}
+                                required
+                                autoFocus
+                                className={classNames({
+                                    'p-invalid': submitted && !selectedStudent.first_name,
+                                })}
+                            />
+                            {submitted && !selectedStudent.first_name && <small className="p-invalid">First Name is required.</small>}
+                        </div>
+                    </div>
+                    <div className="field grid">
+                        <label htmlFor="middle_name" className="col-2 md:mb-0">Middle Name</label>
+                        <div className="col-10">
+                            <InputText
+                                id="middle_name"
+                                value={selectedStudent.middle_name}
+                                onChange={(e) => setSelectedStudent({ ...selectedStudent, middle_name: e.target.value })}
+                                required
+                                className={classNames({
+                                    'p-invalid': submitted && !selectedStudent.middle_name,
+                                })}
+                            />
+                            {submitted && !selectedStudent.middle_name && <small className="p-invalid">Middle Name is required.</small>}
+                        </div>
+                    </div>
+                    <div className="field grid">
+                        <label htmlFor="last_name" className="col-2 md:mb-0">Last Name</label>
+                        <div className="col-10">
+                            <InputText
+                                id="last_name"
+                                value={selectedStudent.last_name}
+                                onChange={(e) => setSelectedStudent({ ...selectedStudent, last_name: e.target.value })}
+                                required
+                                className={classNames({
+                                    'p-invalid': submitted && !selectedStudent.last_name,
+                                })}
+                            />
+                            {submitted && !selectedStudent.last_name && <small className="p-invalid">Last Name is required.</small>}
+                        </div>
+                    </div>
+
+                    <div className="field grid">
+                        <label className="col-2">Sex</label>
+                        <div className="col-5">
+                            <div className="col-4">
+                                <RadioButton inputId="sex1" name="sex" value="Male" onChange={(e) => setSelectedStudent({ ...selectedStudent, sex: "Male" })} checked={selectedStudent.sex === 'Male'} />
+                                <label htmlFor="sex1">Male</label>
+                            </div>
+                            <div className="col-4">
+                                <RadioButton inputId="sex2" name="sex" value="Female" onChange={(e) => setSelectedStudent({ ...selectedStudent, sex: "Female" })} checked={selectedStudent.sex === 'Female'} />
+                                <label htmlFor="sex2">Female</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="field gid">
+                        <label htmlFor="birth_date" className="col-2">Birth Date</label>
+                        <div className="col-10">
+                            <Calendar id="birth_date"
+                                value={selectedStudent.birth_date ? new Date(selectedStudent.birth_date) : null}
+                                onChange={(e) => setSelectedStudent({ ...selectedStudent, birth_date: e.value || null })}
+                                showIcon required
+                                className={classNames({
+                                    'p-invalid': submitted && !selectedStudent.birth_date,
+                                })}
+                            />
+                            {submitted && !selectedStudent.birth_date && <small className="p-invalid">Birth Date is required.</small>}
+                        </div>
+                    </div>
+                </>;
+            case 1:
+                return <div>Prior School Information Form Goes Here</div>;
+            case 2:
+                return <div>Confirmation Page Goes Here</div>;
+            default:
+                return null;
+        }
+    };
+
     const confirmDeleteItem = (student: Student) => {
         setSelectedStudent(student);
         setShowDeleteDialog(true);
@@ -276,79 +384,19 @@ const StudentPage = () => {
 
                     <Dialog
                         visible={showSaveDialog}
-                        style={{ width: '450px' }}
+                        style={{ width: '550px' }}
                         header={editMode ? 'Edit Student Details' : 'New Student Details'}
                         modal
                         className="p-fluid"
                         footer={saveDialogFooter}
                         onHide={hideSaveDialog}
                     >
-                        <div className="field">
-                            <label htmlFor="first_name">First Name</label>
-                            <InputText
-                                id="first_name"
-                                value={selectedStudent.first_name}
-                                onChange={(e) => setSelectedStudent({ ...selectedStudent, first_name: e.target.value })}
-                                required
-                                autoFocus
-                                className={classNames({
-                                    'p-invalid': submitted && !selectedStudent.first_name,
-                                })}
-                            />
-                            {submitted && !selectedStudent.first_name && <small className="p-invalid">First Name is required.</small>}
-                        </div>
-                        <div className="field">
-                            <label htmlFor="middle_name">Middle Name</label>
-                            <InputText
-                                id="middle_name"
-                                value={selectedStudent.middle_name}
-                                onChange={(e) => setSelectedStudent({ ...selectedStudent, middle_name: e.target.value })}
-                                required
-                                className={classNames({
-                                    'p-invalid': submitted && !selectedStudent.middle_name,
-                                })}
-                            />
-                            {submitted && !selectedStudent.middle_name && <small className="p-invalid">Middle Name is required.</small>}
-                        </div>
-                        <div className="field">
-                            <label htmlFor="last_name">Last Name</label>
-                            <InputText
-                                id="last_name"
-                                value={selectedStudent.last_name}
-                                onChange={(e) => setSelectedStudent({ ...selectedStudent, last_name: e.target.value })}
-                                required
-                                className={classNames({
-                                    'p-invalid': submitted && !selectedStudent.last_name,
-                                })}
-                            />
-                            {submitted && !selectedStudent.last_name && <small className="p-invalid">Last Name is required.</small>}
+                        <Steps model={steps} activeIndex={activeIndex} onSelect={(e) => setActiveIndex(e.index)} readOnly={false} />
+
+                        <div className="dialog-content" style={{ marginTop: '2rem' }}>
+                            {renderStepContent()}
                         </div>
 
-                        <div className="field">
-                            <label className="mb-3">Sex</label>
-                            <div className="formgrid grid">
-                                <div className="field-radiobutton col-4">
-                                    <RadioButton inputId="sex1" name="sex" value="Male" onChange={(e) => setSelectedStudent({ ...selectedStudent, sex: "Male" })} checked={selectedStudent.sex === 'Male'} />
-                                    <label htmlFor="sex1">Male</label>
-                                </div>
-                                <div className="field-radiobutton col-4">
-                                    <RadioButton inputId="sex2" name="sex" value="Female" onChange={(e) => setSelectedStudent({ ...selectedStudent, sex: "Female" })} checked={selectedStudent.sex === 'Female'} />
-                                    <label htmlFor="sex2">Female</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="birth_date">Birth Date</label>
-                            <Calendar id="birth_date"
-                                value={selectedStudent.birth_date ? new Date(selectedStudent.birth_date) : null}
-                                onChange={(e) => setSelectedStudent({ ...selectedStudent, birth_date: e.value || null })}
-                                showIcon required className={classNames({
-                                    'p-invalid': submitted && !selectedStudent.birth_date,
-                                })} />
-
-                            {submitted && !selectedStudent.birth_date && <small className="p-invalid">Birth Date is required.</small>}
-                        </div>
                     </Dialog>
 
                     <Dialog
