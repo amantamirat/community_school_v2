@@ -1,4 +1,4 @@
-import { Curriculum, Department, Grade, Subject } from "./model";
+import { Curriculum, Department, Grade, Subject, Teacher } from "./model";
 
 export const departmentTemplate = (department: Department) => {
     return (
@@ -7,6 +7,9 @@ export const departmentTemplate = (department: Department) => {
 };
 
 export const gradeTemplate = (grade: Grade) => {
+    if(!grade){
+        return <></>
+    }
     let prefix = 'Grade ';
     if (grade.stage === 'KG') {
         prefix = 'KG ';
@@ -19,6 +22,20 @@ export const gradeTemplate = (grade: Grade) => {
         <>{prefix + " - " + grade.level + " " + suffix}</>
     );
 };
+
+export const teacherTemplate = (teacher: Teacher) => {
+    let prefix = ""
+    if (teacher.sex === "Male") {
+        prefix = "Mr. "
+    }
+    else if (teacher.sex === 'Female') {
+        prefix = "Miss. "
+    }
+    return (
+        prefix + "" + teacher.first_name + " " + teacher.last_name
+    );
+};
+
 
 export const subjectTemplate = (subject: Subject) => {
     return (

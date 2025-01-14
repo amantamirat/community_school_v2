@@ -1,8 +1,9 @@
-import { ExternalStudentInfo, Student } from "@/types/model";
+import { ClassificationGrade, ExternalStudentInfo, Student } from "@/types/model";
 import { MyService } from "./MyService";
 
 const get_endpoint = "/api/external-student-info/";
 const get_by_student_endpoint = "/api/external-student-info/student";
+const get_by_classification_grade_endpoint = "/api/external-student-info/classification_grade";
 const create_endpoint = '/api/external-student-info/create';
 const update_endpoint = '/api/external-student-info/update';
 const delete_endpoint = '/api/external-student-info/delete';
@@ -23,6 +24,14 @@ export const ExternalStudentInfoService = {
         const data = await MyService.get(endpoint);
         return data;
     },
+
+    async getExternalElligibleStudentsByGrade(classification_grade: ClassificationGrade): Promise<ExternalStudentInfo[]> {
+        const endpoint = `${get_by_classification_grade_endpoint}/${classification_grade._id}`;
+        const data = await MyService.get(endpoint);
+        return data;
+    },
+
+    
 
     async updateExternalStudentInfo(id: string, student: Partial<ExternalStudentInfo>): Promise<ExternalStudentInfo> {
         const updatedExternalStudentInfo = await MyService.update(id, student, update_endpoint);

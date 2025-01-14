@@ -317,6 +317,7 @@ const CurriculumPage = () => {
                                     value={selectedCurriculum.maximum_point}
                                     onValueChange={(e) => setSelectedCurriculum({ ...selectedCurriculum, maximum_point: e.value || 100 })}
                                     required
+                                    disabled
                                 />
                                 {submitted && selectedCurriculum.maximum_point <= 0 && <small className="p-invalid">Maximum Point must be greater than 0.</small>}
                             </div>

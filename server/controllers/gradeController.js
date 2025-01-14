@@ -1,6 +1,6 @@
 const Grade = require('../models/grade'); // Import the Grade model
 
-exports.getAllGrades = async (req, res) => {
+getAllGrades = async (req, res) => {
     try {
         const grades = await Grade.find();
         res.status(200).json(grades);
@@ -9,7 +9,7 @@ exports.getAllGrades = async (req, res) => {
     }
 };
 
-exports.getGradeById = async (req, res) => {
+getGradeById = async (req, res) => {
     try {
         const grade = await Grade.findById(req.params.id);
         if (!grade) {
@@ -21,7 +21,7 @@ exports.getGradeById = async (req, res) => {
     }
 };
 
-exports.initializeGrades = async () => {
+initializeGrades = async () => {
     const gradesList = [
         { stage: 'KG', level: 1, specialization: 'GEN' },
         { stage: 'KG', level: 2, specialization: 'GEN' },
@@ -82,19 +82,9 @@ async function getPreviousGrade(stage, level, specialization) {
     }
 }
 
-// Controller method to fetch the previous grade
-exports.getPreviousGrade = async (req, res) => {
-    const { stage, level, specialization } = req.body;
-    try {
-        const previousGrade = await getPreviousGrade(stage, level, specialization);
-        if (!previousGrade) {
-            return res.status(404).json({ message: 'No previous grade found for the given input.' });
-        }
-        res.status(200).json(previousGrade);
-    } catch (error) {
-        res.status(500).json({ message: 'An error occurred while fetching the previous grade.', error: error.message });
-    }
-};
+
+
+module.exports = { getAllGrades, getGradeById, initializeGrades, getPreviousGrade };
 
 
 

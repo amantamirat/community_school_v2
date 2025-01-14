@@ -224,7 +224,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
     };
     const curriculumBodyTemplate = (rowData: AdmissionClassification) => {
         const curriculum = typeof rowData.curriculum === "string" ? findCurriculumById(rowData.curriculum) : rowData.curriculum;
-        return curriculumTemplate(curriculum as Curriculum);
+        return curriculum?curriculumTemplate(curriculum as Curriculum):<></>;
     };
 
     const actionBodyTemplate = (rowData: AdmissionClassification) => {

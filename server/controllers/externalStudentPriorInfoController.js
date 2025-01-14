@@ -1,4 +1,7 @@
 const ExternalStudentPriorInfo = require('../models/external-student-info');
+const ClassificationGrade = require('../models/classification-grade');
+const gradeController = require('../controllers/gradeController');
+
 
 const externalStudentPriorInfoController = {
     createExternalStudentPriorInfo: async (req, res) => {
@@ -43,7 +46,44 @@ const externalStudentPriorInfoController = {
         } catch (error) {
             res.status(500).json({ message: "Error fetching prior information", error });
         }
+    },
 
+    getExternalElligibleStudentsByGrade: async (req, res) => {
+        try {
+            const { classification_grade_id } = req.params;
+            const classGrade = await ClassificationGrade.findById(classification_grade_id).populate({
+                path: 'admission_classification', // Populate admission_classification
+                populate: {
+                    path: 'academic_session', // Nested population for academic_session
+                },
+            }).populate({
+                path: 'curriculum_grade', // Populate curriculum_grade
+                populate: {
+                    path: 'grade', // Nested population for grade
+                },
+            });
+
+            if (!classGrade) {
+                return res.status(404).json({ message: "Class Grade not found" });
+            }
+            const grade = classGrade.curriculum_grade.grade;
+            const prevGrade = await gradeController.getPreviousGrade(grade.stage, grade.level, grade.specialization);
+            if (!prevGrade) {
+                return res.status(404).json({ message: "Prior Grade not found" });
+            }
+            const academic_year = classGrade.admission_classification.academic_session.academic_year;
+            const classification = classGrade.admission_classification.classification;
+            const priorInfo = await ExternalStudentPriorInfo.find({
+                $or: [
+                    { grade: prevGrade, status: "PASSED" },
+                    { grade: grade, status: "FAILED" }
+                ]
+            }).populate('student').populate('grade');
+            res.status(200).json(priorInfo);
+        } catch (error) {
+            //console.log(error.message);
+            res.status(500).json({ message: "Error fetching class grade information", error });
+        }
     },
 
     getAllExternalStudentPriorInfo: async (req, res) => {
@@ -69,6 +109,8 @@ const externalStudentPriorInfoController = {
             res.status(500).json({ message: "Error fetching prior information", error });
         }
     },
+
+
 
     updateExternalStudentPriorInfo: async (req, res) => {
         try {

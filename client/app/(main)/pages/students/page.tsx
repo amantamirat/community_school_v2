@@ -399,18 +399,16 @@ const StudentPage = () => {
                             {submitted && !selectedStudent.birth_date && <small className="p-invalid">Birth Date is required.</small>}
                         </div>
                     </div>
-                    {!selectedStudent._id && (
-                        <div className="field grid">
-                            <label htmlFor="isKG1orGrade1" className="col-10 mb-0">Registering for KG-1 or Grade-1? (No Perior School Info)</label>
-                            <div className="col-2">
-                                <Checkbox
-                                    inputId="isKG1orGrade1"
-                                    checked={isKG1orGrade1}
-                                    onChange={(e) => setIsKG1orGrade1(e.checked!)}
-                                />
-                            </div>
+                    <div className="field grid">
+                        <label htmlFor="isKG1orGrade1" className="col-10 mb-0">Registering for KG-1 or Grade-1? (No Perior School Info)</label>
+                        <div className="col-2">
+                            <Checkbox
+                                inputId="isKG1orGrade1"
+                                checked={isKG1orGrade1}
+                                onChange={(e) => setIsKG1orGrade1(e.checked!)}
+                            />
                         </div>
-                    )}
+                    </div>
                 </>;
             case 1:
                 return <>
