@@ -1,4 +1,4 @@
-const ExternalStudentPriorInfo = require('../models/externalStudentPriorInfo');
+const ExternalStudentPriorInfo = require('../models/external-student-info');
 
 const externalStudentPriorInfoController = {
     createExternalStudentPriorInfo: async (req, res) => {
@@ -28,8 +28,22 @@ const externalStudentPriorInfoController = {
             await newInfo.save();
             res.status(201).json(newInfo);
         } catch (error) {
-            res.status(500).json({ message: "Error creating prior information", error });
+            res.status(500).json({ message: error.message });
         }
+    },
+
+    getExternalInfoByStudent: async (req, res) => {
+        try {
+            const { student_id } = req.params;
+            const priorInfo = await ExternalStudentPriorInfo.findOne({ student: student_id }).populate('grade');
+            if (!priorInfo) {
+                return res.status(404).json({ message: "Prior information not found" });
+            }
+            res.status(200).json(priorInfo);
+        } catch (error) {
+            res.status(500).json({ message: "Error fetching prior information", error });
+        }
+
     },
 
     getAllExternalStudentPriorInfo: async (req, res) => {
@@ -37,7 +51,7 @@ const externalStudentPriorInfoController = {
             const priorInfo = await ExternalStudentPriorInfo.find().populate('student').populate('grade');
             res.status(200).json(priorInfo);
         } catch (error) {
-            res.status(500).json({ message: "Error fetching prior information", error });
+            res.status(500).json({ message: error.message });
         }
     },
 
@@ -82,7 +96,7 @@ const externalStudentPriorInfoController = {
 
             res.status(200).json(updatedInfo);
         } catch (error) {
-            res.status(500).json({ message: "Error updating prior information", error });
+            res.status(500).json({ message: error.message });
         }
     },
 

@@ -266,7 +266,7 @@ const TeacherPage = () => {
     };
     const departmentBodyTemplate = (rowData: Teacher) => {
         const department = typeof rowData.department === "string" ? findDepartmentById(rowData.department) : rowData.department;
-        return departmentTemplate(department as Department);
+        return department?departmentTemplate(department as Department):<></>;
     };
 
     return (

@@ -131,7 +131,7 @@ const StudentPage = () => {
             externalInfo.status.trim() === '' ||
             externalInfo.classification.trim() === '' ||
             isNaN(externalInfo.academic_year) ||
-            isNaN(externalInfo.average_result) 
+            isNaN(externalInfo.average_result)
         ) {
             return false;
         }
@@ -150,10 +150,20 @@ const StudentPage = () => {
                 const updatedStudent = await StudentService.updateStudent(id, selectedStudent);
                 const index = findIndexById(id);
                 _students[index] = updatedStudent;
+                if (selectedExternalInfo._id) {
+                    const updatedExternalInfo = await ExternalStudentInfoService.updateExternalStudentInfo(selectedExternalInfo._id, selectedExternalInfo);
+                } else {
+                    const updatedExternalInfo = { ...selectedExternalInfo, student: updatedStudent };
+                    const newExternalInfo = await ExternalStudentInfoService.createExternalStudentInfo(updatedExternalInfo);
+                }
             } else {
+                if (!isKG1orGrade1 && !validateExternalInfo(selectedExternalInfo)) {
+                    return;
+                }
                 const newStudent = await StudentService.createStudent(selectedStudent);
-                if (!isKG1orGrade1) {
-                    const newExternalInfo = await ExternalStudentInfoService.createExternalStudentInfo(selectedExternalInfo);
+                if (!isKG1orGrade1 && newStudent) {
+                    const updatedExternalInfo = { ...selectedExternalInfo, student: newStudent };
+                    const newExternalInfo = await ExternalStudentInfoService.createExternalStudentInfo(updatedExternalInfo);
                 }
                 _students.push(newStudent);
             }
@@ -219,21 +229,29 @@ const StudentPage = () => {
         setEditMode(false);
         setSelectedStudent(emptyStudent);
         setSelectedExternalInfo(emptyExternalInfo);
+        setActiveIndex(0);
         setSubmitted(false);
         setShowSaveDialog(true);
     };
 
-    const openEditDialog = (student: Student) => {
+    const openEditDialog = async (student: Student) => {
         setEditMode(true);
+        setActiveIndex(0);
         setSelectedStudent({ ...student });
+        try {
+            const externalInfo = await ExternalStudentInfoService.getExternalInfoByStudent(selectedStudent);
+            setSelectedExternalInfo(externalInfo);
+        } catch (error) {
+            console.log("error" + error)
+            setSelectedExternalInfo(emptyExternalInfo);
+        }
         setSubmitted(false);
         setShowSaveDialog(true);
     };
 
     const hideSaveDialog = () => {
-        setSubmitted(false);
-        setActiveIndex(0);
         setShowSaveDialog(false);
+        setSubmitted(false);
     };
 
     const saveFotter = () => {
@@ -381,16 +399,18 @@ const StudentPage = () => {
                             {submitted && !selectedStudent.birth_date && <small className="p-invalid">Birth Date is required.</small>}
                         </div>
                     </div>
-                    <div className="field grid">
-                        <label htmlFor="isKG1orGrade1" className="col-6 mb-0">Registering for KG-1 or Grade-1?</label>
-                        <div className="col-6">
-                            <Checkbox
-                                inputId="isKG1orGrade1"
-                                checked={isKG1orGrade1}
-                                onChange={(e) => setIsKG1orGrade1(e.checked!)}
-                            />
+                    {!selectedStudent._id && (
+                        <div className="field grid">
+                            <label htmlFor="isKG1orGrade1" className="col-10 mb-0">Registering for KG-1 or Grade-1? (No Perior School Info)</label>
+                            <div className="col-2">
+                                <Checkbox
+                                    inputId="isKG1orGrade1"
+                                    checked={isKG1orGrade1}
+                                    onChange={(e) => setIsKG1orGrade1(e.checked!)}
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </>;
             case 1:
                 return <>
@@ -465,7 +485,7 @@ const StudentPage = () => {
                                         <div className="col-8" id="grade">
                                             <Dropdown
                                                 value={selectedExternalInfo.grade}
-                                                onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, grade: e.value})}
+                                                onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, grade: e.value })}
                                                 options={grades}
                                                 itemTemplate={gradeTemplate}
                                                 valueTemplate={selectedExternalInfo.grade ? gradeTemplate : ""}
@@ -564,7 +584,7 @@ const StudentPage = () => {
     const endToolbarTemplate = () => {
         return (
             <React.Fragment>
-                <FileUpload mode="basic" accept="image/*" maxFileSize={1000000} chooseLabel="Import" className="mr-2 inline-block" />
+                <FileUpload mode="basic" accept="image/*" disabled={true} maxFileSize={1000000} chooseLabel="Import" className="mr-2 inline-block" />
             </React.Fragment>
         );
     };
@@ -647,7 +667,7 @@ const StudentPage = () => {
                         <Steps model={steps} activeIndex={activeIndex} onSelect={(e) => setActiveIndex(e.index)} readOnly={false} />
 
                         <div className="dialog-content" style={{ marginTop: '2rem' }}>
-                            {renderStepContent()}
+                            {selectedStudent && renderStepContent()}
                         </div>
                     </Dialog>
 

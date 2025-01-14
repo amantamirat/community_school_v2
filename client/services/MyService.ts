@@ -1,7 +1,7 @@
 import { API_CONFIG } from "./apiConfig";
 
 export const MyService = {
-    async get(endPoint: string): Promise<any[]> {
+    async get(endPoint: string): Promise<any> {
         const url = `${API_CONFIG.baseURL}${endPoint}`;
         //console.log(url);
         try {
