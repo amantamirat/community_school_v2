@@ -101,5 +101,17 @@ export type Student = {
     birth_date: Date | null;
 };
 
+export type ExternalStudentInfo = {
+    _id?: string;
+    student: Student | string;
+    school_name: string;
+    academic_year: number;
+    classification: 'REGULAR' | 'EVENING' | 'DISTANCE';
+    grade: Grade | string;
+    average_result: number;
+    status: 'PASSED' | 'FAILED' | 'INCOMPLETE';
+    transferReason: string;
+};
+
 
 

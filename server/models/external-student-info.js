@@ -6,12 +6,12 @@ const ExternalStudentPriorInfoSchema = new mongoose.Schema({
         ref: 'Student',
         required: true
     },
-    school_information: {
+    school_name: {
         type: String,
         required: true
     },
     academic_year: {
-        type: String,
+        type: Number,
         required: true
     },
     classification: {

@@ -16,6 +16,8 @@ const subjectRoutes = require("./routes/subjectRoutes");
 app.use("/api/subjects", subjectRoutes);
 const studentRoutes = require("./routes/studentRoutes");
 app.use("/api/students", studentRoutes);
+const externalInfoRoutes = require("./routes/externalStudentPriorInfoRoutes");
+app.use("/api/external-student-info", externalInfoRoutes);
 
 const curriculumRoutes = require("./routes/curriculumRoutes");
 app.use("/api/curricula", curriculumRoutes);

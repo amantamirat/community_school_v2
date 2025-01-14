@@ -17,6 +17,7 @@ export const StudentService = {
         return createdData;
 
     },
+
     async updateStudent(id: string, student: Partial<Student>): Promise<Student> {
         const updatedStudent = await MyService.update(id, student, update_endpoint);
         return updatedStudent;

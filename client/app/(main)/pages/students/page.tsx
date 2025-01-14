@@ -1,15 +1,19 @@
 'use client';
-import { DepartmentService } from '@/services/DepartmentService';
+import { ExternalStudentInfoService } from '@/services/ExternalStudentInfoService';
+import { GradeService } from '@/services/GradeService';
 import { StudentService } from '@/services/StudentService';
-import { Student } from '@/types/model';
+import { ExternalStudentInfo, Grade, Student } from '@/types/model';
+import { gradeTemplate } from '@/types/templates';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Calendar } from 'primereact/calendar';
+import { Checkbox } from 'primereact/checkbox';
 import { Column } from 'primereact/column';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { FileUpload } from 'primereact/fileupload';
+import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { RadioButton } from 'primereact/radiobutton';
 import { Steps } from 'primereact/steps';
@@ -25,6 +29,16 @@ const StudentPage = () => {
         last_name: '',
         sex: 'Male',
         birth_date: null,
+    };
+    let emptyExternalInfo: ExternalStudentInfo = {
+        student: '',
+        school_name: '',
+        academic_year: 1990,
+        classification: "REGULAR",
+        grade: '',
+        average_result: 0,
+        status: 'INCOMPLETE',
+        transferReason: ''
     };
     const [students, setStudents] = useState<Student[] | null>(null);
     const [selectedStudent, setSelectedStudent] = useState<Student>(emptyStudent);
@@ -43,10 +57,14 @@ const StudentPage = () => {
         { label: 'Prior School Info' },
         { label: 'Confirmation' },
     ];
+    const [isKG1orGrade1, setIsKG1orGrade1] = useState(false);
+    const [selectedExternalInfo, setSelectedExternalInfo] = useState<ExternalStudentInfo>(emptyExternalInfo);
+    const [grades, setGrades] = useState<Grade[]>([]);
 
     useEffect(() => {
         initFilters();
         loadStudents();
+        loadGrades();
     }, []);
 
 
@@ -60,6 +78,21 @@ const StudentPage = () => {
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to load students',
+                detail: '' + err,
+                life: 3000
+            });
+        }
+    };
+
+    const loadGrades = async () => {
+        try {
+            const data = await GradeService.getGrades();
+            setGrades(data);
+        } catch (err) {
+            console.error('Failed to load grades:', err);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load grades',
                 detail: '' + err,
                 life: 3000
             });
@@ -92,6 +125,19 @@ const StudentPage = () => {
         return true; // All required fields are provided
     };
 
+    const validateExternalInfo = (externalInfo: ExternalStudentInfo) => {
+        if (externalInfo.school_name.trim() === '' ||
+            externalInfo.transferReason.trim() === '' ||
+            externalInfo.status.trim() === '' ||
+            externalInfo.classification.trim() === '' ||
+            isNaN(externalInfo.academic_year) ||
+            isNaN(externalInfo.average_result) 
+        ) {
+            return false;
+        }
+        return true; // All required fields are provided
+    };
+
     const saveStudent = async () => {
         setSubmitted(true);
         let _students = [...(students as any)];
@@ -106,6 +152,9 @@ const StudentPage = () => {
                 _students[index] = updatedStudent;
             } else {
                 const newStudent = await StudentService.createStudent(selectedStudent);
+                if (!isKG1orGrade1) {
+                    const newExternalInfo = await ExternalStudentInfoService.createExternalStudentInfo(selectedExternalInfo);
+                }
                 _students.push(newStudent);
             }
             toast.current?.show({
@@ -169,6 +218,7 @@ const StudentPage = () => {
     const openSaveDialog = () => {
         setEditMode(false);
         setSelectedStudent(emptyStudent);
+        setSelectedExternalInfo(emptyExternalInfo);
         setSubmitted(false);
         setShowSaveDialog(true);
     };
@@ -182,18 +232,68 @@ const StudentPage = () => {
 
     const hideSaveDialog = () => {
         setSubmitted(false);
+        setActiveIndex(0);
         setShowSaveDialog(false);
     };
 
-    const saveDialogFooter = (
-        <>
-            <Button label="Cancel" icon="pi pi-times" text onClick={hideSaveDialog} />
-            <Button label="Save" icon="pi pi-check" text onClick={saveStudent} />
-        </>
-    );
+    const saveFotter = () => {
+        if (activeIndex === 2) {
+            return <>
+                <Button label="Cancel" icon="pi pi-times" className="p-button-secondary" onClick={hideSaveDialog} />
+                <Button label="Save" icon="pi pi-check" className="p-button-primary" onClick={saveStudent} />
+            </>
+        }
+    }
+
+
+    const dialogFooter = () => {
+        return <><div className="dialog-footer" style={{ marginTop: '2rem', textAlign: 'right' }}>
+            <Button
+                label="Previous"
+                icon="pi pi-arrow-left"
+                onClick={handlePrevious}
+                disabled={activeIndex === 0}
+                className="p-button-secondary"
+                style={{ marginRight: '0.5rem' }}
+            />
+            {activeIndex < steps.length - 1 && (
+                <Button
+                    label="Next"
+                    icon="pi pi-arrow-right"
+                    onClick={handleNext}
+                    className="p-button-primary"
+                />
+            )}
+            {activeIndex === steps.length - 1 && (
+                <Button
+                    label="Finish"
+                    icon="pi pi-check"
+                    onClick={saveStudent}
+                    className="p-button-success"
+                />
+            )}
+        </div></>
+    };
 
     const handleNext = () => {
         if (activeIndex < steps.length - 1) {
+            if (activeIndex === 0) {
+                setSubmitted(true);
+                if (!validateStudent(selectedStudent)) {
+                    return;
+                }
+                if (isKG1orGrade1) {
+                    setActiveIndex((prevIndex) => prevIndex + 1);//skip step 2
+                }
+            }
+            else if (activeIndex === 1) {
+                setSubmitted(true);
+                if (!validateExternalInfo(selectedExternalInfo)) {
+                    console.log("failed validating")
+                    return;
+                }
+            }
+            setSubmitted(false);
             setActiveIndex((prevIndex) => prevIndex + 1);
         }
     };
@@ -255,21 +355,20 @@ const StudentPage = () => {
                     </div>
 
                     <div className="field grid">
-                        <label className="col-2">Sex</label>
-                        <div className="col-5">
-                            <div className="col-4">
+                        <label className="col-2">Gender</label>
+                        <div className="col-10 flex align-items-center">
+                            <div className="col-5">
                                 <RadioButton inputId="sex1" name="sex" value="Male" onChange={(e) => setSelectedStudent({ ...selectedStudent, sex: "Male" })} checked={selectedStudent.sex === 'Male'} />
                                 <label htmlFor="sex1">Male</label>
                             </div>
-                            <div className="col-4">
+                            <div className="col-5" style={{ marginLeft: "20px" }}>
                                 <RadioButton inputId="sex2" name="sex" value="Female" onChange={(e) => setSelectedStudent({ ...selectedStudent, sex: "Female" })} checked={selectedStudent.sex === 'Female'} />
                                 <label htmlFor="sex2">Female</label>
                             </div>
                         </div>
                     </div>
-
-                    <div className="field gid">
-                        <label htmlFor="birth_date" className="col-2">Birth Date</label>
+                    <div className="field grid">
+                        <label htmlFor="birth_date" className="col-2 md:mb-0">Birth Date</label>
                         <div className="col-10">
                             <Calendar id="birth_date"
                                 value={selectedStudent.birth_date ? new Date(selectedStudent.birth_date) : null}
@@ -282,9 +381,163 @@ const StudentPage = () => {
                             {submitted && !selectedStudent.birth_date && <small className="p-invalid">Birth Date is required.</small>}
                         </div>
                     </div>
+                    <div className="field grid">
+                        <label htmlFor="isKG1orGrade1" className="col-6 mb-0">Registering for KG-1 or Grade-1?</label>
+                        <div className="col-6">
+                            <Checkbox
+                                inputId="isKG1orGrade1"
+                                checked={isKG1orGrade1}
+                                onChange={(e) => setIsKG1orGrade1(e.checked!)}
+                            />
+                        </div>
+                    </div>
                 </>;
             case 1:
-                return <div>Prior School Information Form Goes Here</div>;
+                return <>
+                    {!isKG1orGrade1 && (
+                        <div className="form">
+                            {/* School Name */}
+                            <div className="field grid">
+                                <label htmlFor="school_name" className="col-2 mb-0">School Name</label>
+                                <div className="col-10">
+                                    <InputText
+                                        id="school_name"
+                                        value={selectedExternalInfo.school_name}
+                                        onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, school_name: e.target.value })}
+                                        required
+                                        className={classNames({
+                                            'p-invalid': submitted && !selectedExternalInfo.school_name,
+                                        })}
+                                    />
+                                    {submitted && !selectedExternalInfo.school_name && <small className="p-invalid">School Name is required.</small>}
+                                </div>
+                            </div>
+                            <div className="field grid">
+                                {/* Academic Year */}
+                                <div className="col-6">
+                                    <div className="field grid">
+                                        <label htmlFor="academic_year" className="col-4 mb-0">Academic Year</label>
+                                        <div className="col-8">
+                                            <InputNumber
+                                                id="academic_year"
+                                                value={selectedExternalInfo.academic_year}
+                                                onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, academic_year: e.value || 1990 })}
+                                                mode="decimal" // Basic number mode
+                                                useGrouping={false} // No thousand separator
+                                                required
+                                                min={1970}
+                                                max={4444}
+                                                className={classNames({
+                                                    'p-invalid': submitted && !selectedExternalInfo.academic_year,
+                                                })}
+                                            />
+                                            {submitted && !selectedExternalInfo.academic_year && <small className="p-invalid">Academic Year is required.</small>}
+                                        </div>
+                                    </div>
+                                </div>
+                                {/* Classification */}
+                                <div className="col-6">
+                                    <div className="field grid">
+                                        <label htmlFor="classification" className="col-4 mb-0">Classification</label>
+                                        <div className="col-8">
+                                            <Dropdown
+                                                id="classification"
+                                                value={selectedExternalInfo.classification}
+                                                options={[{ label: 'Regular', value: 'REGULAR' }, { label: 'Evening', value: 'EVENING' }, { label: 'Distance', value: 'DISTANCE' }]}
+                                                onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, classification: e.value })}
+                                                required
+                                                placeholder="Select Classification"
+                                                className={classNames({
+                                                    'p-invalid': submitted && !selectedExternalInfo.classification,
+                                                })}
+                                            />
+                                            {submitted && !selectedExternalInfo.classification && <small className="p-invalid">Classification is required.</small>}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="field grid">
+                                {/* Grade */}
+                                <div className="col-6">
+                                    <div className="field grid">
+                                        <label htmlFor="grade" className="col-4 mb-0">Grade</label>
+                                        <div className="col-8" id="grade">
+                                            <Dropdown
+                                                value={selectedExternalInfo.grade}
+                                                onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, grade: e.value})}
+                                                options={grades}
+                                                itemTemplate={gradeTemplate}
+                                                valueTemplate={selectedExternalInfo.grade ? gradeTemplate : ""}
+                                                placeholder="Select a Grade"
+                                                optionLabel="_id"
+                                                filter
+                                                className={classNames({
+                                                    'p-invalid': submitted && !selectedExternalInfo.grade,
+                                                })}
+                                            />
+                                            {submitted && !selectedExternalInfo.grade && <small className="p-invalid">Grade is required.</small>}
+                                        </div>
+                                    </div>
+                                </div>
+                                {/* Average Result */}
+                                <div className="col-6">
+                                    <div className="field grid">
+                                        <label htmlFor="average_result" className="col-4 mb-0">Average Result</label>
+                                        <div className="col-8">
+                                            <InputNumber
+                                                id="average_result"
+                                                value={selectedExternalInfo.average_result}
+                                                onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, average_result: e.value || 0 })}
+                                                min={0}
+                                                max={100}
+                                                required
+                                                className={classNames({
+                                                    'p-invalid': submitted && (selectedExternalInfo.average_result == null || selectedExternalInfo.average_result < 0 || selectedExternalInfo.average_result > 100),
+                                                })}
+                                            />
+                                            {submitted && (selectedExternalInfo.average_result == null || selectedExternalInfo.average_result < 0 || selectedExternalInfo.average_result > 100) && <small className="p-invalid">Average Result is required and must be between 0 and 100.</small>}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {/* Status */}
+                            <div className="field grid">
+                                <label htmlFor="status" className="col-2 mb-0">Status</label>
+                                <div className="col-10">
+                                    <Dropdown
+                                        id="status"
+                                        value={selectedExternalInfo.status}
+                                        options={[{ label: 'Passed', value: 'PASSED' }, { label: 'Failed', value: 'FAILED' }, { label: 'Incomplete', value: 'INCOMPLETE' }]}
+                                        onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, status: e.value })}
+                                        required
+                                        placeholder="Select Status"
+                                        className={classNames({
+                                            'p-invalid': submitted && !selectedExternalInfo.status,
+                                        })}
+                                    />
+                                    {submitted && !selectedExternalInfo.status && <small className="p-invalid">Status is required.</small>}
+                                </div>
+                            </div>
+
+                            {/* Transfer Reason */}
+                            <div className="field grid">
+                                <label htmlFor="transferReason" className="col-2 mb-0">Transfer Reason</label>
+                                <div className="col-10">
+                                    <InputText
+                                        id="transferReason"
+                                        value={selectedExternalInfo.transferReason || ''}
+                                        onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, transferReason: e.target.value })}
+                                        className={classNames({
+                                            'p-invalid': submitted && !selectedExternalInfo.transferReason,
+                                        })}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )
+                    }
+                </>;
             case 2:
                 return <div>Confirmation Page Goes Here</div>;
             default:
@@ -388,7 +641,7 @@ const StudentPage = () => {
                         header={editMode ? 'Edit Student Details' : 'New Student Details'}
                         modal
                         className="p-fluid"
-                        footer={saveDialogFooter}
+                        footer={dialogFooter}
                         onHide={hideSaveDialog}
                     >
                         <Steps model={steps} activeIndex={activeIndex} onSelect={(e) => setActiveIndex(e.index)} readOnly={false} />
@@ -396,7 +649,6 @@ const StudentPage = () => {
                         <div className="dialog-content" style={{ marginTop: '2rem' }}>
                             {renderStepContent()}
                         </div>
-
                     </Dialog>
 
                     <Dialog
