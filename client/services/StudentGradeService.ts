@@ -9,7 +9,8 @@ const delete_endpoint = '/api/student-grades/delete';
 
 export const StudentGradeService = {
     async registerExternalStudents(classification_grade: Partial<ClassificationGrade>, external_students: Partial<ExternalStudentInfo[]>): Promise<StudentGrade[]> {
-        const createdData = await MyService.create(external_students, `${register_external_students_endpoint}/${classification_grade._id}`);
+        const selected_external_students = external_students.map(external_candidate => external_candidate?._id);        
+        const createdData = await MyService.create(selected_external_students, `${register_external_students_endpoint}/${classification_grade._id}`);
         return createdData;
     },
 };

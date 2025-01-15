@@ -3,7 +3,7 @@ const studentGradeController = {
     registerExternalStudents: async (req, res) => {
         try {
             const { classification_grade } = req.params;
-            //console.log(req.body);
+            console.log(req.body);
             //const { elligible_external_students} = req.body;
             
 
