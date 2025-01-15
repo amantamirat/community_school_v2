@@ -112,6 +112,12 @@ export type ExternalStudentInfo = {
     status: 'PASSED' | 'FAILED' | 'INCOMPLETE';
     transferReason: string;
 };
+export type StudentGrade = {
+    _id?: string;
+    classification_grade: ClassificationGrade | string;
+    student: Student | string;
+    status: 'PENDING' | 'PASSED' | 'FAILED' | 'INCOMPLETE';
+};
 
 
 

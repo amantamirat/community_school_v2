@@ -18,6 +18,8 @@ const studentRoutes = require("./routes/studentRoutes");
 app.use("/api/students", studentRoutes);
 const externalInfoRoutes = require("./routes/externalStudentPriorInfoRoutes");
 app.use("/api/external-student-info", externalInfoRoutes);
+const studentGradeRoutes = require("./routes/studentGradeRoutes");
+app.use("/api/student-grades", studentGradeRoutes);
 
 const curriculumRoutes = require("./routes/curriculumRoutes");
 app.use("/api/curricula", curriculumRoutes);

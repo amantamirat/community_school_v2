@@ -29,9 +29,7 @@ export const ExternalStudentInfoService = {
         const endpoint = `${get_by_classification_grade_endpoint}/${classification_grade._id}`;
         const data = await MyService.get(endpoint);
         return data;
-    },
-
-    
+    },    
 
     async updateExternalStudentInfo(id: string, student: Partial<ExternalStudentInfo>): Promise<ExternalStudentInfo> {
         const updatedExternalStudentInfo = await MyService.update(id, student, update_endpoint);

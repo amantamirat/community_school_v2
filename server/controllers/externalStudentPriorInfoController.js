@@ -50,8 +50,8 @@ const externalStudentPriorInfoController = {
 
     getExternalElligibleStudentsByGrade: async (req, res) => {
         try {
-            const { classification_grade_id } = req.params;
-            const classGrade = await ClassificationGrade.findById(classification_grade_id).populate({
+            const { classification_grade } = req.params;
+            const classGrade = await ClassificationGrade.findById(classification_grade).populate({
                 path: 'admission_classification', // Populate admission_classification
                 populate: {
                     path: 'academic_session', // Nested population for academic_session
@@ -67,19 +67,23 @@ const externalStudentPriorInfoController = {
                 return res.status(404).json({ message: "Class Grade not found" });
             }
             const grade = classGrade.curriculum_grade.grade;
-            const prevGrade = await gradeController.getPreviousGrade(grade.stage, grade.level, grade.specialization);
-            if (!prevGrade) {
-                return res.status(404).json({ message: "Prior Grade not found" });
-            }
             const academic_year = classGrade.admission_classification.academic_session.academic_year;
             const classification = classGrade.admission_classification.classification;
-            const priorInfo = await ExternalStudentPriorInfo.find({
-                $or: [
-                    { grade: prevGrade, status: "PASSED" },
-                    { grade: grade, status: "FAILED" }
-                ]
-            }).populate('student').populate('grade');
-            res.status(200).json(priorInfo);
+            const prevGrade = await gradeController.getPreviousGrade(grade.stage, grade.level, grade.specialization);
+            if (!prevGrade) {
+                const priorInfo = await ExternalStudentPriorInfo.find({
+                    grade: grade, status: "FAILED"
+                }).populate('student').populate('grade');
+                res.status(200).json(priorInfo);
+            } else {
+                const priorInfo = await ExternalStudentPriorInfo.find({
+                    $or: [
+                        { grade: prevGrade, status: "PASSED" },
+                        { grade: grade, status: "FAILED" }
+                    ]
+                }).populate('student').populate('grade');
+                res.status(200).json(priorInfo);
+            }
         } catch (error) {
             //console.log(error.message);
             res.status(500).json({ message: "Error fetching class grade information", error });
