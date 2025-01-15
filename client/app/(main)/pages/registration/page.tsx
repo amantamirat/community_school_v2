@@ -13,6 +13,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { TabPanel, TabView } from 'primereact/tabview';
 import { Toast } from 'primereact/toast';
 import React, { useEffect, useRef, useState } from 'react';
+import NewStudentsComponent from '../../components/enrollment/new_students/page';
 const RegistrationMainPage = () => {
     const toast = useRef<Toast>(null);
     const [academicSessions, setAcademicSessions] = useState<AcademicSession[]>([]);
@@ -21,7 +22,6 @@ const RegistrationMainPage = () => {
     const [selectedAdmissionClassification, setSelectedAdmissionClassification] = useState<AdmissionClassification>();
     const [classificationGrades, setClassificationGrades] = useState<ClassificationGrade[]>([]);
     const [selectedClassificationGrade, setSelectedClassificationGrade] = useState<ClassificationGrade>();
-    const [elligibleStudents, setElligibleStudents] = useState<ExternalStudentInfo[]>([]);
 
     useEffect(() => {
         loadAcademicSessions();
@@ -87,18 +87,6 @@ const RegistrationMainPage = () => {
         }
     };
 
-    const getElligbleStudents = async () => {
-        try {
-            if (selectedClassificationGrade) {
-                const data = await ExternalStudentInfoService.getExternalElligibleStudentsByGrade(selectedClassificationGrade);
-                setElligibleStudents(data);
-            }
-        } catch (error) {
-
-        }
-
-    };
-
     return (
         <div className="grid">
             <div className="col-12">
@@ -150,39 +138,16 @@ const RegistrationMainPage = () => {
                             </div>
                         </div>
                     </div>
-
                     <TabView>
-                        <TabPanel header="Enrollment">
+                        <TabPanel header="Returning">
                             <>
-                                <Button label="Request" icon="pi pi-plus" severity="success" className="mr-2" onClick={getElligbleStudents} />
-                                <DataTable
-                                    value={elligibleStudents}
-                                    dataKey="_id"
-                                    paginator
-                                    rows={10}
-                                    rowsPerPageOptions={[5, 10, 25]}
-                                    className="datatable-responsive"
-                                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} students"
-                                    emptyMessage="No students found."
-                                    scrollable
-                                >
-                                    <Column
-                                        header="#"
-                                        body={(rowData, options) => options.rowIndex + 1}
-                                        style={{ width: '50px' }}
-                                    />
-                                    <Column field="student.first_name" header="First Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                                    <Column field="student.last_name" header="Last Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                                    <Column field="student.sex" header="Sex" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                                    <Column field="student.birth_date" header="Birth Date" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                                    <Column field="grade.stage" header="grade stage" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                                    <Column field="grade.level" header="grade level" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                                    <Column field="academic_year" header="Academic Year" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                                    <Column field="status" header="AStatus" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                                </DataTable>
                             </>
-
+                        </TabPanel>
+                        <TabPanel header="New">
+                            {selectedClassificationGrade ? (
+                                <NewStudentsComponent classification_grade={selectedClassificationGrade} />) : (
+                                <div>Please select a classification grade.</div>
+                            )}
                         </TabPanel>
                         <TabPanel header="Registred">
                             <>Display registered student</>

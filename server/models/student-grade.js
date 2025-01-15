@@ -30,6 +30,14 @@ const StudentGradeSchema = new mongoose.Schema({
         ref: 'StudentGrade',
     },
 });
+
+StudentGradeSchema.pre('validate', function (next) {
+    if (this.external_student_prior_info && this.previous_student_grade) {
+        next(new Error('Only one of `external_student_prior_info` or `previous_student_grade` can be set.'));
+    } else {
+        next();
+    }
+});
 StudentGradeSchema.index({ classification_grade: 1, student: 1 }, { unique: true });
 const StudentGrade = mongoose.model('StudentGrade', StudentGradeSchema);
 module.exports = StudentGrade;
