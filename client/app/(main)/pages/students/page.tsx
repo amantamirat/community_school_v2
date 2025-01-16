@@ -234,16 +234,16 @@ const StudentPage = () => {
     };
 
     const openEditDialog = async (student: Student) => {
-        setEditMode(true);
-        setActiveIndex(0);
         setSelectedStudent({ ...student });
         try {
-            const externalInfo = await ExternalStudentInfoService.getExternalInfoByStudent(selectedStudent);
-            setSelectedExternalInfo(externalInfo);
+            const externalInfo = await ExternalStudentInfoService.getExternalInfoByStudent(student);
+            setSelectedExternalInfo({ ...externalInfo });
         } catch (error) {
             console.log("error" + error)
             setSelectedExternalInfo(emptyExternalInfo);
         }
+        setActiveIndex(0);
+        setEditMode(true);
         setSubmitted(false);
         setShowSaveDialog(true);
     };
@@ -544,7 +544,7 @@ const StudentPage = () => {
                                     <InputText
                                         id="transferReason"
                                         value={selectedExternalInfo.transfer_reason || ''}
-                                        onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, transfer_reason: e.target.value })}                                        
+                                        onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, transfer_reason: e.target.value })}
                                     />
                                 </div>
                             </div>

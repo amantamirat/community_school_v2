@@ -54,7 +54,7 @@ const studentGradeController = {
             const saved_student_grades = await StudentGrade.insertMany(student_grades);
             await ExternalStudentPriorInfo.updateMany(
                 { _id: { $in: external_info_updates } },
-                { $set: { is_registered: true } }
+                { $set: { is_registred: true } }
             );
             res.status(201).json(saved_student_grades);
         } catch (error) {
