@@ -13,7 +13,8 @@ import { Dropdown } from 'primereact/dropdown';
 import { TabPanel, TabView } from 'primereact/tabview';
 import { Toast } from 'primereact/toast';
 import React, { useEffect, useRef, useState } from 'react';
-import NewStudentsComponent from '../../components/enrollment/new_students/page';
+import NewExternalStudentsComponent from '../../components/enrollment/new_students/page';
+import RegisteredStudentsComponent from '../../components/enrollment/registerd_students/page';
 const RegistrationMainPage = () => {
     const toast = useRef<Toast>(null);
     const [academicSessions, setAcademicSessions] = useState<AcademicSession[]>([]);
@@ -145,12 +146,15 @@ const RegistrationMainPage = () => {
                         </TabPanel>
                         <TabPanel header="New (External)">
                             {selectedClassificationGrade ? (
-                                <NewStudentsComponent classification_grade={selectedClassificationGrade} />) : (
+                                <NewExternalStudentsComponent classification_grade={selectedClassificationGrade} />) : (
                                 <div>Please select a classification grade.</div>
                             )}
                         </TabPanel>
                         <TabPanel header="Registred">
-                            <>Display registered student</>
+                            {selectedClassificationGrade ? (
+                                <RegisteredStudentsComponent classification_grade={selectedClassificationGrade} />) : (
+                                <div>Please select a classification grade.</div>
+                            )}
                         </TabPanel>
                     </TabView>
                 </div>

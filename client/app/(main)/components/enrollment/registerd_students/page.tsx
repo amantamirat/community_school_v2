@@ -17,13 +17,13 @@ import { TabPanel, TabView } from 'primereact/tabview';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import React, { useEffect, useRef, useState } from 'react';
-interface NewExternalStudentsProps {
+interface RegisteredStudentsProps {
     classification_grade: ClassificationGrade;
 }
-const NewExternalStudentsComponent = (props: NewExternalStudentsProps) => {
+const RegisteredStudentsComponent = (props: RegisteredStudentsProps) => {
     const toast = useRef<Toast>(null);
-    const [selectedElligibleStudents, setSelectedElligibleStudents] = useState<ExternalStudentInfo[]>([]);
-    const [elligibleStudents, setElligibleStudents] = useState<ExternalStudentInfo[]>([]);
+    const [selectedRegisteredStudents, setSelectedRegisteredStudents] = useState<StudentGrade[]>([]);
+    const [registeredStudents, setRegisteredStudents] = useState<StudentGrade[]>([]);
     const [loading, setLoading] = useState(false);
     const [globalFilter, setGlobalFilter] = useState('');
     const [filters, setFilters] = useState<DataTableFilterMeta>({});
@@ -48,57 +48,44 @@ const NewExternalStudentsComponent = (props: NewExternalStudentsProps) => {
         setGlobalFilter(value);
     };
 
-    const loadElligbleStudents = async () => {
+    const loadRegisteredStudents = async () => {
         try {
             if (props.classification_grade) {
                 setLoading(true);
-                const data = await ExternalStudentInfoService.getExternalElligibleStudentsByGrade(props.classification_grade);
-                setElligibleStudents(data);
+                const data = await StudentGradeService.getRegisteredStudents(props.classification_grade);
+                console.log(data);
+                setRegisteredStudents(data);
                 setLoading(false);
             }
         } catch (error) {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed Load Elligible Students',
+                summary: 'Failed Load Registred Students',
                 detail: '' + error,
                 life: 3000
             });
         }
     };
 
-    const enrollExternalElligibleStudents = async () => {
+    const deregisterStudents = async () => {
         try {
-            const registered_students: StudentGrade[] = await StudentGradeService.registerExternalStudents(props.classification_grade, selectedElligibleStudents);
-            const registered_student_ids = registered_students.map(registered =>
-                typeof registered.student === 'string' ? registered.student : registered.student._id
-            );
-            setElligibleStudents((prevElligibleStudents) =>
-                prevElligibleStudents.filter(student => {
-                    if (typeof student.student === 'string') {
-                        return !registered_student_ids.includes(student.student);
-                    }
-                    return !registered_student_ids.includes(student.student._id);
-                })
-            );
-            setSelectedElligibleStudents((prevElligibleStudents) =>
-                prevElligibleStudents.filter(student => {
-                    if (typeof student.student === 'string') {
-                        return !registered_student_ids.includes(student.student);
-                    }
-                    return !registered_student_ids.includes(student.student._id);
-                })
+            await StudentGradeService.deRegisterStudents(props.classification_grade, selectedRegisteredStudents);
+            setRegisteredStudents((prevRegStudents) =>
+                prevRegStudents.filter(
+                    (student) => !selectedRegisteredStudents.some((selected) => selected._id === student._id)
+                )
             );
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
-                detail: `${registered_student_ids.length} students enrolled`,
+                detail: `${selectedRegisteredStudents.length} students unenrolled`,
                 life: 3000
             });
-            //console.log(data);
+            setSelectedRegisteredStudents([]);
         } catch (error) {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed Enrol New Students',
+                summary: 'Failed to deregister Students',
                 detail: '' + error,
                 life: 3000
             });
@@ -109,7 +96,7 @@ const NewExternalStudentsComponent = (props: NewExternalStudentsProps) => {
         return (
             <>
                 <div className="my-2">
-                    <Button label="Display Elligible Students" icon={PrimeIcons.EYE} severity="info" loading={loading} className="mr-2" onClick={loadElligbleStudents} />
+                    <Button label="Display Registred Students" icon={PrimeIcons.EYE} severity="info" loading={loading} className="mr-2" onClick={loadRegisteredStudents} />
                 </div>
             </>
         );
@@ -119,7 +106,7 @@ const NewExternalStudentsComponent = (props: NewExternalStudentsProps) => {
         return (
             <>
                 <div className="my-2">
-                    <Button label="Enrol Selected Students" icon={PrimeIcons.CHECK_CIRCLE} severity="success" className="mr-2" disabled={selectedElligibleStudents.length == 0} onClick={enrollExternalElligibleStudents} />
+                    <Button label="Deregister Selected Students" icon={PrimeIcons.STOP_CIRCLE} severity="danger" className="mr-2" disabled={selectedRegisteredStudents.length == 0} onClick={deregisterStudents} />
                 </div>
             </>
         );
@@ -127,7 +114,7 @@ const NewExternalStudentsComponent = (props: NewExternalStudentsProps) => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">External (NEW) Students</h5>
+            <h5 className="m-0">Registred Students</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search..." />
@@ -144,7 +131,7 @@ const NewExternalStudentsComponent = (props: NewExternalStudentsProps) => {
                         <Toolbar className="mb-4" start={startToolbarTemplate} end={endToolbarTemplate} />
                         <DataTable
                             header={header}
-                            value={elligibleStudents}
+                            value={registeredStudents}
                             dataKey="_id"
                             paginator
                             rows={10}
@@ -155,10 +142,10 @@ const NewExternalStudentsComponent = (props: NewExternalStudentsProps) => {
                             emptyMessage="No students found."
                             scrollable
                             selectionMode="multiple"
-                            selection={selectedElligibleStudents}
+                            selection={selectedRegisteredStudents}
                             globalFilter={globalFilter}
                             filters={filters}
-                            onSelectionChange={(e) => setSelectedElligibleStudents(e.value as any)}>
+                            onSelectionChange={(e) => setSelectedRegisteredStudents(e.value as any)}>
                             <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
                             <Column
                                 header="#"
@@ -169,9 +156,6 @@ const NewExternalStudentsComponent = (props: NewExternalStudentsProps) => {
                             <Column field="student.last_name" header="Last Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                             <Column field="student.sex" header="Sex" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                             <Column field="student.birth_date" header="Birth Date" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                            <Column field="grade.stage" header="Grade stage" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                            <Column field="grade.level" header="Grade level" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                            <Column field="academic_year" header="Academic Year" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                             <Column field="status" header="Status" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         </DataTable>
                     </>
@@ -181,4 +165,4 @@ const NewExternalStudentsComponent = (props: NewExternalStudentsProps) => {
     );
 };
 
-export default NewExternalStudentsComponent;
+export default RegisteredStudentsComponent;

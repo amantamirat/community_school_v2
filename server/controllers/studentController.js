@@ -1,17 +1,35 @@
 const Student = require("../models/student");
+const ExternalStudentPriorInfo = require('../models/external-student-info');
+const mongoose = require('mongoose');
 
 const studentController = {
-
     createStudent: async (req, res) => {
+        //const session = await mongoose.startSession();
         try {
-            const { first_name, middle_name, last_name, sex, birth_date } = req.body;
-
-            const newStudent = new Student({ first_name, middle_name, last_name, sex, birth_date });
+            const { student, external_info } = req.body
+            if (student.has_perior_school_info && external_info === null) {
+                return res.status(404).json({ message: "Student External Information Not Found!" });
+            }
+            //session.startTransaction();
+            const { first_name, middle_name, last_name, sex, birth_date, has_perior_school_info } = student;
+            //console.log(student);
+            //console.log(external_info);
+            const newStudent = new Student({ first_name, middle_name, last_name, sex, birth_date, has_perior_school_info });
+            //await newStudent.save({ session });
             await newStudent.save();
-
+            if (has_perior_school_info) {
+                const { school_name, academic_year, classification, grade, average_result, status, transfer_reason } = external_info;
+                const newInfo = new ExternalStudentPriorInfo({ student: newStudent._id, school_name, academic_year, classification, grade, average_result, status, transfer_reason });
+                //await newInfo.save({ session });
+                await newInfo.save();
+            }
+            //await session.commitTransaction();
+            //session.endSession();
             res.status(201).json(newStudent);
         } catch (error) {
-            res.status(500).json({ message: "Error creating student", error });
+            //await session.abortTransaction();
+            //session.endSession();
+            res.status(500).json({ message: error.message });
         }
     },
 
@@ -29,11 +47,11 @@ const studentController = {
     updateStudent: async (req, res) => {
         try {
             const { id } = req.params;
-            const { first_name, middle_name, last_name, sex, birth_date } = req.body;         
+            const { first_name, middle_name, last_name, sex, birth_date } = req.body;
 
             const updatedStudent = await Student.findByIdAndUpdate(
                 id,
-                {first_name, middle_name, last_name, sex,birth_date},
+                { first_name, middle_name, last_name, sex, birth_date },
                 { new: true }
             );
 

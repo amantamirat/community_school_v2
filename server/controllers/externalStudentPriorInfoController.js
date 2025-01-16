@@ -73,12 +73,12 @@ const externalStudentPriorInfoController = {
             const prevGrade = await gradeController.getPreviousGrade(grade.stage, grade.level, grade.specialization);
             let query;
             if (!prevGrade) {
-                query = { grade: grade, status: "FAILED", is_registred: false };
+                query = { grade: grade, status: "FAILED", is_referred: false };
             } else {
                 query = {
                     $or: [
-                        { grade: prevGrade, status: "PASSED", is_registred: false },
-                        { grade: grade, status: "FAILED", is_registred: false }
+                        { grade: prevGrade, status: "PASSED", is_referred: false },
+                        { grade: grade, status: "FAILED", is_referred: false }
                     ]
                 };
             }

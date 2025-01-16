@@ -29,6 +29,7 @@ const StudentPage = () => {
         last_name: '',
         sex: 'Male',
         birth_date: null,
+        has_perior_school_info: true
     };
     let emptyExternalInfo: ExternalStudentInfo = {
         student: '',
@@ -57,7 +58,7 @@ const StudentPage = () => {
         { label: 'Last Recent School Info' },
         { label: 'Confirmation' },
     ];
-    const [isKG1orGrade1, setIsKG1orGrade1] = useState(false);
+
     const [selectedExternalInfo, setSelectedExternalInfo] = useState<ExternalStudentInfo>(emptyExternalInfo);
     const [grades, setGrades] = useState<Grade[]>([]);
 
@@ -141,6 +142,9 @@ const StudentPage = () => {
         if (!validateStudent(selectedStudent)) {
             return;
         }
+        if (selectedStudent.has_perior_school_info && !validateExternalInfo(selectedExternalInfo)) {
+            return;
+        }
         try {
             if (editMode) {
                 let id = selectedStudent._id || '';
@@ -154,15 +158,14 @@ const StudentPage = () => {
                     const newExternalInfo = await ExternalStudentInfoService.createExternalStudentInfo(updatedExternalInfo);
                 }
             } else {
-                if (!isKG1orGrade1 && !validateExternalInfo(selectedExternalInfo)) {
-                    return;
+                const newStudent = await StudentService.createStudent(selectedStudent, selectedStudent.has_perior_school_info ? selectedExternalInfo : null);
+                //const newStudent = await StudentService.createStudent(selectedStudent);
+                if (newStudent) {
+                    _students.push(newStudent);
+                    //const updatedExternalInfo = { ...selectedExternalInfo, student: newStudent };
+                    // const newExternalInfo = await ExternalStudentInfoService.createExternalStudentInfo(updatedExternalInfo);
                 }
-                const newStudent = await StudentService.createStudent(selectedStudent);
-                if (!isKG1orGrade1 && newStudent) {
-                    const updatedExternalInfo = { ...selectedExternalInfo, student: newStudent };
-                    const newExternalInfo = await ExternalStudentInfoService.createExternalStudentInfo(updatedExternalInfo);
-                }
-                _students.push(newStudent);
+                
             }
             toast.current?.show({
                 severity: 'success',
@@ -297,14 +300,14 @@ const StudentPage = () => {
                 if (!validateStudent(selectedStudent)) {
                     return;
                 }
-                if (isKG1orGrade1) {
-                    setActiveIndex((prevIndex) => prevIndex + 1);//skip step 2
+                if (!selectedStudent.has_perior_school_info) {
+                    setActiveIndex(2);//go to step 3
+                    return
                 }
             }
             else if (activeIndex === 1) {
                 setSubmitted(true);
                 if (!validateExternalInfo(selectedExternalInfo)) {
-                    console.log("failed validating")
                     return;
                 }
             }
@@ -315,6 +318,12 @@ const StudentPage = () => {
 
     const handlePrevious = () => {
         if (activeIndex > 0) {
+            if (activeIndex === 2) {
+                if (!selectedStudent.has_perior_school_info) {
+                    setActiveIndex(1);//go to step 1
+                    return
+                }
+            }
             setActiveIndex((prevIndex) => prevIndex - 1);
         }
     };
@@ -397,19 +406,19 @@ const StudentPage = () => {
                         </div>
                     </div>
                     <div className="field grid">
-                        <label htmlFor="isKG1orGrade1" className="col-10 mb-0">Registering for KG-1 or Grade-1? (No Perior School Info)</label>
-                        <div className="col-2">
+                        <label htmlFor="has_perior_school_info" className="col-6 mb-0">Has Perior School Info</label>
+                        <div className="col-6">
                             <Checkbox
-                                inputId="isKG1orGrade1"
-                                checked={isKG1orGrade1}
-                                onChange={(e) => setIsKG1orGrade1(e.checked!)}
+                                inputId="has_perior_school_info"
+                                checked={selectedStudent.has_perior_school_info}
+                                onChange={(e) => setSelectedStudent({ ...selectedStudent, has_perior_school_info: e.checked! })}
                             />
                         </div>
                     </div>
                 </>;
             case 1:
                 return <>
-                    {!isKG1orGrade1 && (
+                    {selectedStudent.has_perior_school_info ? (
                         <div className="form">
                             {/* School Name */}
                             <div className="field grid">
@@ -547,7 +556,7 @@ const StudentPage = () => {
                                 </div>
                             </div>
                         </div>
-                    )
+                    ) : (<>Student Has No School Information!</>)
                     }
                 </>;
             case 2:
@@ -656,7 +665,7 @@ const StudentPage = () => {
                         footer={dialogFooter}
                         onHide={hideSaveDialog}
                     >
-                        <Steps model={steps} activeIndex={activeIndex} onSelect={(e) => setActiveIndex(e.index)} readOnly={false} />
+                        <Steps model={steps} readOnly activeIndex={activeIndex} onSelect={(e) => setActiveIndex(e.index)} />
 
                         <div className="dialog-content" style={{ marginTop: '2rem' }}>
                             {selectedStudent && renderStepContent()}

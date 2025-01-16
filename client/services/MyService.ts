@@ -3,7 +3,6 @@ import { API_CONFIG } from "./apiConfig";
 export const MyService = {
     async get(endPoint: string): Promise<any> {
         const url = `${API_CONFIG.baseURL}${endPoint}`;
-        //console.log(url);
         try {
             const response = await fetch(url, {
                 headers: {
@@ -24,7 +23,7 @@ export const MyService = {
     },
 
 
-    async create(payload: Partial<any>, endpoint: string): Promise<any> {
+    async create(payload: any, endpoint: string): Promise<any> {
         const url = `${API_CONFIG.baseURL}${endpoint}`;
         const response = await fetch(url, {
             method: "POST",
@@ -44,7 +43,7 @@ export const MyService = {
 
     },
 
-    async update(id: string, payload: Partial<any>, endpoint: string): Promise<any> {
+    async update(id: string, payload: any, endpoint: string): Promise<any> {
         const url = `${API_CONFIG.baseURL}${endpoint}`;
         const response = await fetch(`${url}/${id}`, {
             method: "PUT",
@@ -73,5 +72,21 @@ export const MyService = {
             });
         }
         return response.status === 200;
+    },
+    async delete_payload(payload: any, endpoint: string): Promise<any> {
+        const url = `${API_CONFIG.baseURL}${endpoint}`;
+        const response = await fetch(`${url}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || "Failed to delete");
+            });
+        }
+        return response.json();
     },
 };

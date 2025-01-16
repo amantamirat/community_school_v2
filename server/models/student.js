@@ -22,6 +22,11 @@ const StudentSchema = new mongoose.Schema(
         birth_date: {
             type: Date,
             required: true
+        },
+        has_perior_school_info: {
+            type: Boolean,
+            default: true,
+            required: true,
         }
     }
 );

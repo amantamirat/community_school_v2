@@ -99,6 +99,7 @@ export type Student = {
     last_name: string;
     sex: "Male" | "Female";
     birth_date: Date | null;
+    has_perior_school_info:boolean;
 };
 
 export type ExternalStudentInfo = {

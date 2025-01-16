@@ -1,4 +1,4 @@
-import { Student } from "@/types/model";
+import { ExternalStudentInfo, Student } from "@/types/model";
 import { MyService } from "./MyService";
 
 const get_endpoint = "/api/students/";
@@ -6,16 +6,21 @@ const create_endpoint = '/api/students/create';
 const update_endpoint = '/api/students/update';
 const delete_endpoint = '/api/students/delete';
 
+interface ExternalStudent {
+    student: Student;
+    external_info: ExternalStudentInfo | null;
+}
+
 export const StudentService = {
     async getStudents(): Promise<Student[]> {
         const data = await MyService.get(get_endpoint);
         return data as Student[];
-    },
+    },    
 
-    async createStudent(student: Partial<Student>): Promise<Student> {
-        const createdData = await MyService.create(student, create_endpoint);
+    async createStudent(student: Student, external_info: ExternalStudentInfo | null): Promise<Student> {
+        const external_student: ExternalStudent = { student: student, external_info: external_info }
+        const createdData = await MyService.create(external_student, create_endpoint);
         return createdData;
-
     },
 
     async updateStudent(id: string, student: Partial<Student>): Promise<Student> {

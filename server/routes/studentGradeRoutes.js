@@ -4,7 +4,8 @@ const studentGradeController = require('../controllers/studentGradeController');
 
 // Define routes for studentGrade operations
 router.post("/register_external_students/:classification_grade", studentGradeController.registerExternalStudents);
-//router.get('/', studentGradeController.getAllStudentGrades); 
-//router.get('/:id', studentGradeController.getStudentGradeById); 
+router.get('/registered_students/:classification_grade', studentGradeController.getRegisteredStudentsByClassificationGrade); 
+router.delete("/deregister_students/:classification_grade", studentGradeController.deregisterStudents);
+
 
 module.exports = router;
