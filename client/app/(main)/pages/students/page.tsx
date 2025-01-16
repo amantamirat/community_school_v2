@@ -67,8 +67,6 @@ const StudentPage = () => {
         loadGrades();
     }, []);
 
-
-
     const loadStudents = async () => {
         try {
             const data = await StudentService.getStudents();
