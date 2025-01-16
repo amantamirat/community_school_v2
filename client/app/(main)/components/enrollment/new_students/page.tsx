@@ -40,9 +40,16 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
 
     const enrollExternalElligibleStudents = async () => {
         try {
-            await StudentGradeService.registerExternalStudents(props.classification_grade, selectedElligibleStudents);
-
-        } catch (error) { }
+            const data = await StudentGradeService.registerExternalStudents(props.classification_grade, selectedElligibleStudents);
+            console.log(data);
+        } catch (error) { 
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load academicSessions',
+                detail: '' + error,
+                life: 3000
+            });
+        }
     }
 
     const startToolbarTemplate = () => {

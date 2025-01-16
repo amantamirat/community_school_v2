@@ -1,17 +1,60 @@
 const StudentGrade = require("../models/student-grade");
+const ExternalStudentPriorInfo = require('../models/external-student-info');
+const ClassificationGrade = require('../models/classification-grade');
+const gradeController = require('../controllers/gradeController');
 const studentGradeController = {
     registerExternalStudents: async (req, res) => {
         try {
             const { classification_grade } = req.params;
-            console.log(req.body);
-            //const { elligible_external_students} = req.body;
-            
-
-            //const newStudent = new Student({ first_name, middle_name, last_name, sex, birth_date });
-            //await newStudent.save();
-
-            res.status(201).json([]);
+            const classificationGrade = await ClassificationGrade.findById(classification_grade).populate({
+                path: 'curriculum_grade',
+                populate: {
+                    path: 'grade',
+                },
+            });
+            if (!classificationGrade) {
+                return res.status(404).json({ message: "Classification Grade not found" });
+            }
+            const current_grade = classificationGrade.curriculum_grade.grade;
+            const prev_grade = await gradeController.getPreviousGrade(current_grade.stage, current_grade.level, current_grade.specialization);
+            if (!prev_grade) {
+                return res.status(404).json({ message: 'Previous Grade not found, for' + current_grade.stage + '-' + current_grade.level });
+            }
+            const candidate_external_students = req.body;
+            const student_grades = [];
+            if (Array.isArray(candidate_external_students)) {
+                for (const cadidate of candidate_external_students) {
+                    const externalInfo = await ExternalStudentPriorInfo.findById(cadidate);
+                    if (!externalInfo) {
+                        return res.status(404).json({ message: "Non External Student Information Found." });
+                    }
+                    console.log(externalInfo);
+                    if (externalInfo.status === 'PASSED') {
+                        if (externalInfo.grade !== prev_grade._id) {
+                            continue;
+                        }
+                    } else if (externalInfo.status === 'FAILED') {
+                        if (externalInfo.grade !== current_grade._id) {
+                            continue;
+                        }
+                    } else {
+                        continue;
+                    }
+                    const student_grade = new StudentGrade({
+                        classification_grade: classificationGrade._id,
+                        student: externalInfo.student,
+                        external_student_prior_info: externalInfo._id
+                    });
+                    student_grades.push(student_grade);
+                }
+            } else {
+                res.status(404).json({ message: "Non Array Students Found Error registering students" });
+            }
+            console.log(student_grades);
+            const savedStudentGrades = await StudentGrade.insertMany(student_grades);
+            res.status(201).json(savedStudentGrades);
         } catch (error) {
+            console.log(error);
             res.status(500).json({ message: "Error registering students", error });
         }
     },
