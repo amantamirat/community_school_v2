@@ -6,7 +6,7 @@ import { CurriculumService } from '@/services/CurriculumService';
 import { ExternalStudentInfoService } from '@/services/ExternalStudentInfoService';
 import { GradeService } from '@/services/GradeService';
 import { StudentGradeService } from '@/services/StudentGradeService';
-import { AcademicSession, AdmissionClassification, ClassificationGrade, Curriculum, ExternalStudentInfo, Grade } from '@/types/model';
+import { AcademicSession, AdmissionClassification, ClassificationGrade, Curriculum, ExternalStudentInfo, Grade, StudentGrade } from '@/types/model';
 import { PrimeIcons } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -40,9 +40,36 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
 
     const enrollExternalElligibleStudents = async () => {
         try {
-            const data = await StudentGradeService.registerExternalStudents(props.classification_grade, selectedElligibleStudents);
-            console.log(data);
-        } catch (error) { 
+            const registered_students: StudentGrade[] = await StudentGradeService.registerExternalStudents(props.classification_grade, selectedElligibleStudents);
+
+            const registered_student_ids = registered_students.map(registered =>
+                typeof registered.student === 'string' ? registered.student : registered.student._id
+            );
+
+            console.log(registered_student_ids);
+
+            setElligibleStudents((prevElligibleStudents) =>
+                prevElligibleStudents.filter(student => {
+                    // If student is a string, compare directly
+                    if (typeof student.student === 'string') {
+                        return !registered_student_ids.includes(student.student);
+                    }
+                    // If student is an object, compare using student._id
+                    return !registered_student_ids.includes(student.student._id);
+                })
+            );
+
+            setSelectedElligibleStudents((prevElligibleStudents) =>
+                prevElligibleStudents.filter(student => !registered_student_ids.includes(student._id || ''))
+            );
+            toast.current?.show({
+                severity: 'success',
+                summary: 'Successful',
+                detail: `${registered_student_ids.length} students enrolled`,
+                life: 3000
+            });
+            //console.log(data);
+        } catch (error) {
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed Enrol New Students',
