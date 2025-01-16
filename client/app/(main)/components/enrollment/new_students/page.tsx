@@ -45,7 +45,7 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
         } catch (error) { 
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed to load academicSessions',
+                summary: 'Failed Enrol New Students',
                 detail: '' + error,
                 life: 3000
             });

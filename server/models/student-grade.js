@@ -19,25 +19,22 @@ const StudentGradeSchema = new mongoose.Schema({
     },
     is_new_student: {
         type: Boolean,
-        required: true
+        required: false
     },
     external_student_prior_info: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ExternalStudentPriorInfo',
+        unique: true,
+        sparse: true
     },
     previous_student_grade: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'StudentGrade',
+        unique: true,
+        sparse: true
     },
 });
 
-StudentGradeSchema.pre('validate', function (next) {
-    if (this.external_student_prior_info && this.previous_student_grade) {
-        next(new Error('Only one of `external_student_prior_info` or `previous_student_grade` can be set.'));
-    } else {
-        next();
-    }
-});
 StudentGradeSchema.index({ classification_grade: 1, student: 1 }, { unique: true });
 const StudentGrade = mongoose.model('StudentGrade', StudentGradeSchema);
 module.exports = StudentGrade;

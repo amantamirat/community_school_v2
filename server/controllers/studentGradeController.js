@@ -28,13 +28,12 @@ const studentGradeController = {
                     if (!externalInfo) {
                         return res.status(404).json({ message: "Non External Student Information Found." });
                     }
-                    console.log(externalInfo);
                     if (externalInfo.status === 'PASSED') {
-                        if (externalInfo.grade !== prev_grade._id) {
+                        if (!externalInfo.grade.equals(prev_grade._id)) {
                             continue;
                         }
                     } else if (externalInfo.status === 'FAILED') {
-                        if (externalInfo.grade !== current_grade._id) {
+                        if (!externalInfo.grade.equals(current_grade._id)) {
                             continue;
                         }
                     } else {
@@ -50,12 +49,11 @@ const studentGradeController = {
             } else {
                 res.status(404).json({ message: "Non Array Students Found Error registering students" });
             }
-            console.log(student_grades);
             const savedStudentGrades = await StudentGrade.insertMany(student_grades);
             res.status(201).json(savedStudentGrades);
         } catch (error) {
-            console.log(error);
-            res.status(500).json({ message: "Error registering students", error });
+            //console.log(error);
+            res.status(500).json({ message: "Error registering students" + error });
         }
     },
 };
