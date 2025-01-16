@@ -12,7 +12,9 @@ const ExternalStudentPriorInfoSchema = new mongoose.Schema({
     },
     academic_year: {
         type: Number,
-        required: true
+        required: true,
+        min: 1970,
+        max: 4444
     },
     classification: {
         type: String,
@@ -36,9 +38,14 @@ const ExternalStudentPriorInfoSchema = new mongoose.Schema({
         required: true,
         enum: ['PASSED', 'FAILED', 'INCOMPLETE']
     },
-    transferReason: {
+    transfer_reason: {
         type: String,
         required: false
+    },
+    is_registered: {
+        type: Boolean,
+        default: false,
+        required: true,
     }
 });
 

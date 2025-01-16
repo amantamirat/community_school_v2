@@ -143,7 +143,7 @@ const RegistrationMainPage = () => {
                             <>
                             </>
                         </TabPanel>
-                        <TabPanel header="New">
+                        <TabPanel header="New (External)">
                             {selectedClassificationGrade ? (
                                 <NewStudentsComponent classification_grade={selectedClassificationGrade} />) : (
                                 <div>Please select a classification grade.</div>

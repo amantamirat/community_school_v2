@@ -22,11 +22,12 @@ const studentGradeController = {
             }
             const candidate_external_students = req.body;
             const student_grades = [];
+            const external_info_updates = []; // promises
             if (Array.isArray(candidate_external_students)) {
                 for (const cadidate of candidate_external_students) {
                     const externalInfo = await ExternalStudentPriorInfo.findById(cadidate);
                     if (!externalInfo) {
-                        return res.status(404).json({ message: "Non External Student Information Found." });
+                        return res.status(404).json({ message: "Non External Student Information Found (Invalid Data)." });
                     }
                     if (externalInfo.status === 'PASSED') {
                         if (!externalInfo.grade.equals(prev_grade._id)) {
@@ -45,12 +46,17 @@ const studentGradeController = {
                         external_student_prior_info: externalInfo._id
                     });
                     student_grades.push(student_grade);
+                    external_info_updates.push(externalInfo._id);
                 }
             } else {
                 res.status(404).json({ message: "Non Array Students Found Error registering students" });
             }
-            const savedStudentGrades = await StudentGrade.insertMany(student_grades);
-            res.status(201).json(savedStudentGrades);
+            const saved_student_grades = await StudentGrade.insertMany(student_grades);
+            await ExternalStudentPriorInfo.updateMany(
+                { _id: { $in: external_info_updates } },
+                { $set: { is_registered: true } }
+            );
+            res.status(201).json(saved_student_grades);
         } catch (error) {
             //console.log(error);
             res.status(500).json({ message: "Error registering students" + error });

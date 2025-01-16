@@ -1,5 +1,6 @@
 const ExternalStudentPriorInfo = require('../models/external-student-info');
 const ClassificationGrade = require('../models/classification-grade');
+const StudentGrade = require("../models/student-grade");
 const gradeController = require('../controllers/gradeController');
 
 
@@ -14,7 +15,7 @@ const externalStudentPriorInfoController = {
                 grade,
                 average_result,
                 status,
-                transferReason,
+                transfer_reason,
             } = req.body;
 
             const newInfo = new ExternalStudentPriorInfo({
@@ -25,7 +26,7 @@ const externalStudentPriorInfoController = {
                 grade,
                 average_result,
                 status,
-                transferReason,
+                transfer_reason,
             });
 
             await newInfo.save();
@@ -72,30 +73,19 @@ const externalStudentPriorInfoController = {
             const prevGrade = await gradeController.getPreviousGrade(grade.stage, grade.level, grade.specialization);
             let query;
             if (!prevGrade) {
-                query = { grade: grade, status: "FAILED" };
+                query = { grade: grade, status: "FAILED", is_registred: false };
             } else {
                 query = {
                     $or: [
-                        { grade: prevGrade, status: "PASSED" },
-                        { grade: grade, status: "FAILED" }
+                        { grade: prevGrade, status: "PASSED", is_registred: false },
+                        { grade: grade, status: "FAILED", is_registred: false }
                     ]
                 };
             }
-
-
-
-            
-
             const priorInfo = await ExternalStudentPriorInfo.find(query)
                 .populate('student')
                 .populate('grade');
             res.status(200).json(priorInfo);
-
-
-
-
-
-
         } catch (error) {
             //console.log(error.message);
             res.status(500).json({ message: "Error fetching class grade information", error });
@@ -139,12 +129,12 @@ const externalStudentPriorInfoController = {
                 grade,
                 average_result,
                 status,
-                transferReason,
+                transfer_reason,
             } = req.body;
 
             const updatedInfo = await ExternalStudentPriorInfo.findByIdAndUpdate(
                 id,
-                { student, school_name, academic_year, classification, grade, average_result, status, transferReason },
+                { student, school_name, academic_year, classification, grade, average_result, status, transfer_reason },
                 { new: true }
             );
 

@@ -38,7 +38,7 @@ const StudentPage = () => {
         grade: '',
         average_result: 0,
         status: 'INCOMPLETE',
-        transferReason: ''
+        transfer_reason: ''
     };
     const [students, setStudents] = useState<Student[] | null>(null);
     const [selectedStudent, setSelectedStudent] = useState<Student>(emptyStudent);
@@ -54,7 +54,7 @@ const StudentPage = () => {
     const [activeIndex, setActiveIndex] = useState(0);
     const steps = [
         { label: 'Basic Information' },
-        { label: 'Prior School Info' },
+        { label: 'Last Recent School Info' },
         { label: 'Confirmation' },
     ];
     const [isKG1orGrade1, setIsKG1orGrade1] = useState(false);
@@ -127,7 +127,6 @@ const StudentPage = () => {
 
     const validateExternalInfo = (externalInfo: ExternalStudentInfo) => {
         if (externalInfo.school_name.trim() === '' ||
-            externalInfo.transferReason.trim() === '' ||
             externalInfo.status.trim() === '' ||
             externalInfo.classification.trim() === '' ||
             isNaN(externalInfo.academic_year) ||
@@ -544,11 +543,8 @@ const StudentPage = () => {
                                 <div className="col-10">
                                     <InputText
                                         id="transferReason"
-                                        value={selectedExternalInfo.transferReason || ''}
-                                        onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, transferReason: e.target.value })}
-                                        className={classNames({
-                                            'p-invalid': submitted && !selectedExternalInfo.transferReason,
-                                        })}
+                                        value={selectedExternalInfo.transfer_reason || ''}
+                                        onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, transfer_reason: e.target.value })}                                        
                                     />
                                 </div>
                             </div>

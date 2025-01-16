@@ -30,7 +30,7 @@ async function populateData() {
 
     // Generate students
     const students = [];
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 100; i++) {
         const student = new Student({
             first_name: faker.name.firstName(),
             middle_name: faker.name.middleName(),
@@ -45,18 +45,18 @@ async function populateData() {
 
     // Generate ExternalStudentPriorInfo
     const externalStudentInfo = [];
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 100; i++) {
         //const student = savedStudents[Math.floor(Math.random() * savedStudents.length)];
         const student = savedStudents[i];
         const info = new ExternalStudentPriorInfo({
             student: student._id,
             school_name: faker.company.companyName(),
-            academic_year: faker.random.number({ min: 2010, max: 2014 }),
+            academic_year: faker.datatype.number({ min: 1970, max: 1974}),//faker.random.number
             classification: getRandomEnumValue(classifications),
             grade: gradeIds[Math.floor(Math.random() * gradeIds.length)],
-            average_result: faker.random.number({ min: 0, max: 100 }),
+            average_result: faker.datatype.number({ min: 0, max: 100 }),
             status: getRandomEnumValue(statuses),
-            transferReason: faker.lorem.sentence()
+            transfer_reason: faker.lorem.sentence()
         });
         externalStudentInfo.push(info);
     }

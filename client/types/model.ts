@@ -110,7 +110,7 @@ export type ExternalStudentInfo = {
     grade: Grade | string;
     average_result: number;
     status: 'PASSED' | 'FAILED' | 'INCOMPLETE';
-    transferReason: string;
+    transfer_reason?: string;
 };
 export type StudentGrade = {
     _id?: string;
