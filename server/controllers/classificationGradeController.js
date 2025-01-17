@@ -15,10 +15,13 @@ const ClassificationGradeController = {
         }
     },
 
-    // Get all classificationGrades
+
     getClassificationGradesByClassification: async (req, res) => {
-        try {            
-            const classificationGrades = await ClassificationGrade.find({ admission_classification: req.params.admission_classification });
+        try {
+            const classificationGrades = await ClassificationGrade.find({ admission_classification: req.params.admission_classification }).populate({
+                path: 'curriculum_grade',
+                populate: { path: 'grade', },
+            });
             res.status(200).json(classificationGrades);
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -53,7 +56,7 @@ const ClassificationGradeController = {
                 return res.status(404).json({ message: 'Classification Grade not found' });
             }
             res.status(200).json({ message: 'Classification Grade deleted successfully' });
-        } catch (error) {            
+        } catch (error) {
             res.status(500).json({ message: error.message });
         }
     },

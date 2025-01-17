@@ -241,7 +241,7 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                             {selectedCurriculumGrade && (
                                 <span>
-                                    Are you sure you want to delete <b>{selectedCurriculumGrade.grade}</b>?
+                                    Are you sure you want to delete <b>{selectedCurriculumGrade._id}</b>?
                                 </span>
                             )}
                         </div>

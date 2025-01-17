@@ -41,8 +41,8 @@ export type Curriculum = {
 
 export type CurriculumGrade = {
     _id: string;
-    curriculum: string;
-    grade: string;
+    curriculum: string | Curriculum;
+    grade: string | Grade;
 }
 
 export type GradeSubject = {
@@ -99,7 +99,7 @@ export type Student = {
     last_name: string;
     sex: "Male" | "Female";
     birth_date: Date | null;
-    has_perior_school_info:boolean;
+    has_perior_school_info: boolean;
 };
 
 export type ExternalStudentInfo = {

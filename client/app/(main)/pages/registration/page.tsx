@@ -2,10 +2,7 @@
 import { AcademicSessionService } from '@/services/AcademicSessionService';
 import { AdmissionClassificationService } from '@/services/AdmissionClassificationService';
 import { ClassificationGradeService } from '@/services/ClassificationGradeService';
-import { AcademicSession, AdmissionClassification, ClassificationGrade, Curriculum, ExternalStudentInfo, Grade } from '@/types/model';
-import { Button } from 'primereact/button';
-import { Column } from 'primereact/column';
-import { DataTable } from 'primereact/datatable';
+import { AcademicSession, AdmissionClassification, ClassificationGrade, CurriculumGrade } from '@/types/model';
 import { Dropdown } from 'primereact/dropdown';
 import { TabPanel, TabView } from 'primereact/tabview';
 import { Toast } from 'primereact/toast';
@@ -13,6 +10,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import NewStudentsComponent from '../../components/enrollment/new_students/page';
 import RegisteredStudentsComponent from '../../components/enrollment/registerd_students/page';
 import NewExternalStudentsComponent from '../../components/enrollment/external_students/page';
+import { GradeService } from '@/services/GradeService';
+import { gradeTemplate } from '@/types/templates';
 const RegistrationMainPage = () => {
     const toast = useRef<Toast>(null);
     const [academicSessions, setAcademicSessions] = useState<AcademicSession[]>([]);
@@ -75,6 +74,7 @@ const RegistrationMainPage = () => {
     const loadClassificationGrades = async () => {
         try {
             const data = await ClassificationGradeService.getClassificationGradesByClassification(selectedAdmissionClassification?._id ?? '');
+            //console.log(data);
             setClassificationGrades(data); // Update state with fetched data
         } catch (err) {
             toast.current?.show({
@@ -84,6 +84,20 @@ const RegistrationMainPage = () => {
                 life: 3000
             });
         }
+    };
+
+    const renderGradeTemplate = (classificationGrade: ClassificationGrade) => {
+        if (!classificationGrade) {
+            return <span>Please select a grade</span>;
+        }
+        const curriculumGrade = classificationGrade?.curriculum_grade;
+        if (typeof curriculumGrade === "object" && curriculumGrade !== null) {
+            const grade = curriculumGrade.grade;
+            if (typeof grade === "object" && grade !== null) {
+                return gradeTemplate(grade);
+            }
+        }
+        return <span>{"N/A"}</span>; // Fallback if gradeLabel is undefined
     };
 
     return (
@@ -130,8 +144,10 @@ const RegistrationMainPage = () => {
                                             setSelectedClassificationGrade(e.value)
                                         }
                                         options={classificationGrades}
-                                        optionLabel="curriculum_grade"
-                                        placeholder="Select Grade"
+                                        itemTemplate={renderGradeTemplate}
+                                        valueTemplate={renderGradeTemplate}
+                                        optionLabel="_id"
+                                        placeholder="Select a Grade"
                                     />
                                 </div>
                             </div>
@@ -148,11 +164,8 @@ const RegistrationMainPage = () => {
                                 <div>Please select a classification grade.</div>
                             )}
                         </TabPanel>
-                        <TabPanel header="New (Level-1)" leftIcon="pi pi-user-plus mr-2">
-                            {selectedClassificationGrade ? (
-                                <NewStudentsComponent classification_grade={selectedClassificationGrade} />) : (
-                                <div>Please select a classification grade.</div>
-                            )}
+                        <TabPanel header="New (First Level)" leftIcon="pi pi-user-plus mr-2">
+                            <NewStudentsComponent classification_grade={selectedClassificationGrade} />
                         </TabPanel>
                         <TabPanel header="Registred" leftIcon="pi pi-users mr-2">
                             {selectedClassificationGrade ? (

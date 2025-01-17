@@ -1,6 +1,6 @@
 const Student = require("../models/student");
 const ExternalStudentPriorInfo = require('../models/external-student-info');
-const mongoose = require('mongoose');
+//const mongoose = require('mongoose');
 
 const studentController = {
     createStudent: async (req, res) => {

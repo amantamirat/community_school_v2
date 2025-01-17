@@ -1,22 +1,16 @@
 'use client';
-import { AcademicSessionService } from '@/services/AcademicSessionService';
-import { AdmissionClassificationService } from '@/services/AdmissionClassificationService';
-import { ClassificationGradeService } from '@/services/ClassificationGradeService';
-import { CurriculumService } from '@/services/CurriculumService';
 import { ExternalStudentInfoService } from '@/services/ExternalStudentInfoService';
-import { GradeService } from '@/services/GradeService';
 import { StudentGradeService } from '@/services/StudentGradeService';
-import { AcademicSession, AdmissionClassification, ClassificationGrade, Curriculum, ExternalStudentInfo, Grade, StudentGrade } from '@/types/model';
+import { ClassificationGrade, ExternalStudentInfo, StudentGrade } from '@/types/model';
 import { FilterMatchMode, PrimeIcons } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
-import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
-import { TabPanel, TabView } from 'primereact/tabview';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import React, { useEffect, useRef, useState } from 'react';
+
 interface NewExternalStudentsProps {
     classification_grade: ClassificationGrade;
 }

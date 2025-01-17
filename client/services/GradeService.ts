@@ -24,7 +24,17 @@ export const GradeService = {
             throw error;
         }
     },
-    async getLevelOneGrades(): Promise<Grade[]> {
+    /*
+    async findGradeById(id: string): Promise<Grade> {
+        const grades: Grade[] = await this.getGrades();
+        for (const grade of grades) {
+            if (grade._id === id) {
+                return grade;
+            }
+        }
+        throw Error("Could Not Find Grade");
+    },*/
+    async getFirstLevelGrades(): Promise<Grade[]> {
         const grades: Grade[] = await this.getGrades();
         const levelOneGrades = [];
         for (const grade of grades) {

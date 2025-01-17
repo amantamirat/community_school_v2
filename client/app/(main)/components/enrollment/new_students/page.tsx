@@ -15,7 +15,7 @@ import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import React, { useEffect, useRef, useState } from 'react';
 interface NewStudentsProps {
-    classification_grade: ClassificationGrade;
+    classification_grade: ClassificationGrade | undefined;
 }
 const NewStudentsComponent = (props: NewStudentsProps) => {
     const toast = useRef<Toast>(null);
@@ -65,14 +65,21 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
 
     const enrollNewElligibleStudents = async () => {
         try {
-            const registered_student_ids = [];
-            
-            toast.current?.show({
-                severity: 'success',
-                summary: 'Successful',
-                detail: `${registered_student_ids.length} new students enrolled`,
-                life: 3000
-            });
+            if (props.classification_grade) {
+                const registered_students: StudentGrade[] = await StudentGradeService.registerFirstLevelStudents(props.classification_grade, selectedElligibleStudents);
+                const registered_student_ids = registered_students.map(registered =>
+                    typeof registered.student === 'string' ? registered.student : registered.student._id
+                );
+                setElligibleStudents((prevElligibleStudents) =>
+                    prevElligibleStudents.filter(student => !registered_student_ids.includes(student._id)));
+
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: `${registered_student_ids.length} new students enrolled`,
+                    life: 3000
+                });
+            }
             //console.log(data);
         } catch (error) {
             toast.current?.show({
