@@ -49,13 +49,53 @@ const studentGradeController = {
                     external_students_info.push(externalInfo._id);
                 }
             } else {
-                res.status(404).json({ message: "data protocol error array students Found Error registering students" });
+                res.status(404).json({ message: "Data protocol error, no array students found. Error for registering students" });
             }
             const saved_student_grades = await StudentGrade.insertMany(student_grades);
             await ExternalStudentPriorInfo.updateMany(
                 { _id: { $in: external_students_info } },
-                { $set: {is_referred: true } }
+                { $set: { is_referred: true } }
             );
+            res.status(201).json(saved_student_grades);
+        } catch (error) {
+            //console.log(error);
+            res.status(500).json({ message: "Error registering students" + error });
+        }
+    },
+
+    registerLevel1Students: async (req, res) => {
+        try {
+            const { classification_grade } = req.params;
+            const classificationGrade = await ClassificationGrade.findById(classification_grade).populate({
+                path: 'curriculum_grade',
+                populate: {
+                    path: 'grade',
+                },
+            });
+            if (!classificationGrade) {
+                return res.status(404).json({ message: "Classification Grade not found" });
+            }
+            const current_grade = classificationGrade.curriculum_grade.grade;
+            if (!current_grade.level != 1) {
+                return res.status(404).json({ message: 'Non Level 1 Grade found.'});
+            }
+
+           
+            const candidate_students = req.body;
+            const student_grades = [];
+            if (Array.isArray(candidate_students)) {
+                for (const cadidate of candidate_students) {                    
+                    const student_grade = new StudentGrade({
+                        classification_grade: classificationGrade._id,
+                        student: externalInfo.student
+                    });
+                    student_grades.push(student_grade);
+                }
+            } else {
+                res.status(404).json({ message: "Data protocol error, no array students found. Error for registering students" });
+            }
+            const saved_student_grades = await StudentGrade.insertMany(student_grades);
+            
             res.status(201).json(saved_student_grades);
         } catch (error) {
             //console.log(error);

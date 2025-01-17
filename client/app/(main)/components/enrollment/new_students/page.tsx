@@ -63,35 +63,14 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
         }
     };
 
-    const enrollExternalElligibleStudents = async () => {
+    const enrollNewElligibleStudents = async () => {
         try {
-            //const registered_students: StudentGrade[] = await StudentGradeService.registerExternalStudents(props.classification_grade, selectedElligibleStudents);
             const registered_student_ids = [];
-            /*
-            registered_students.map(registered =>
-                typeof registered.student === 'string' ? registered.student : registered.student._id
-            );*/
-            /*
-            setElligibleStudents((prevElligibleStudents) =>
-                prevElligibleStudents.filter(student => {
-                    if (typeof student.student === 'string') {
-                        return !registered_student_ids.includes(student.student);
-                    }
-                    return !registered_student_ids.includes(student.student._id);
-                })
-            );
-            setSelectedElligibleStudents((prevElligibleStudents) =>
-                prevElligibleStudents.filter(student => {
-                    if (typeof student.student === 'string') {
-                        return !registered_student_ids.includes(student.student);
-                    }
-                    return !registered_student_ids.includes(student.student._id);
-                })
-            );*/
+            
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
-                detail: `${registered_student_ids.length} students enrolled`,
+                detail: `${registered_student_ids.length} new students enrolled`,
                 life: 3000
             });
             //console.log(data);
@@ -119,7 +98,7 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
         return (
             <>
                 <div className="my-2">
-                    <Button label="Enrol Selected Students" icon={PrimeIcons.CHECK_CIRCLE} severity="success" className="mr-2" disabled={selectedElligibleStudents.length == 0} onClick={enrollExternalElligibleStudents} />
+                    <Button label="Enrol Selected Students" icon={PrimeIcons.CHECK_CIRCLE} severity="success" className="mr-2" disabled={selectedElligibleStudents.length == 0} onClick={enrollNewElligibleStudents} />
                 </div>
             </>
         );
@@ -127,7 +106,7 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">New Students (for Level-1) Only</h5>
+            <h5 className="m-0">New (Level-1) Students</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search..." />
