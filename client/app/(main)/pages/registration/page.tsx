@@ -2,9 +2,6 @@
 import { AcademicSessionService } from '@/services/AcademicSessionService';
 import { AdmissionClassificationService } from '@/services/AdmissionClassificationService';
 import { ClassificationGradeService } from '@/services/ClassificationGradeService';
-import { CurriculumService } from '@/services/CurriculumService';
-import { ExternalStudentInfoService } from '@/services/ExternalStudentInfoService';
-import { GradeService } from '@/services/GradeService';
 import { AcademicSession, AdmissionClassification, ClassificationGrade, Curriculum, ExternalStudentInfo, Grade } from '@/types/model';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -13,8 +10,9 @@ import { Dropdown } from 'primereact/dropdown';
 import { TabPanel, TabView } from 'primereact/tabview';
 import { Toast } from 'primereact/toast';
 import React, { useEffect, useRef, useState } from 'react';
-import NewExternalStudentsComponent from '../../components/enrollment/new_students/page';
+import NewStudentsComponent from '../../components/enrollment/new_students/page';
 import RegisteredStudentsComponent from '../../components/enrollment/registerd_students/page';
+import NewExternalStudentsComponent from '../../components/enrollment/external_students/page';
 const RegistrationMainPage = () => {
     const toast = useRef<Toast>(null);
     const [academicSessions, setAcademicSessions] = useState<AcademicSession[]>([]);
@@ -140,17 +138,23 @@ const RegistrationMainPage = () => {
                         </div>
                     </div>
                     <TabView>
-                        <TabPanel header="Returning">
+                        <TabPanel header="Returning" leftIcon="pi pi-replay mr-2">
                             <>
                             </>
                         </TabPanel>
-                        <TabPanel header="New (External)">
+                        <TabPanel header="New (External)" leftIcon="pi pi-external-link mr-2">
                             {selectedClassificationGrade ? (
                                 <NewExternalStudentsComponent classification_grade={selectedClassificationGrade} />) : (
                                 <div>Please select a classification grade.</div>
                             )}
                         </TabPanel>
-                        <TabPanel header="Registred">
+                        <TabPanel header="New (Level-1)" leftIcon="pi pi-user-plus mr-2">
+                            {selectedClassificationGrade ? (
+                                <NewStudentsComponent classification_grade={selectedClassificationGrade} />) : (
+                                <div>Please select a classification grade.</div>
+                            )}
+                        </TabPanel>
+                        <TabPanel header="Registred" leftIcon="pi pi-users mr-2">
                             {selectedClassificationGrade ? (
                                 <RegisteredStudentsComponent classification_grade={selectedClassificationGrade} />) : (
                                 <div>Please select a classification grade.</div>
@@ -159,7 +163,7 @@ const RegistrationMainPage = () => {
                     </TabView>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

@@ -1,9 +1,12 @@
 'use client';
+import { AcademicSessionService } from '@/services/AcademicSessionService';
+import { AdmissionClassificationService } from '@/services/AdmissionClassificationService';
+import { ClassificationGradeService } from '@/services/ClassificationGradeService';
+import { CurriculumService } from '@/services/CurriculumService';
 import { ExternalStudentInfoService } from '@/services/ExternalStudentInfoService';
 import { GradeService } from '@/services/GradeService';
 import { StudentGradeService } from '@/services/StudentGradeService';
-import { StudentService } from '@/services/StudentService';
-import { AcademicSession, AdmissionClassification, ClassificationGrade, Curriculum, ExternalStudentInfo, Grade, Student, StudentGrade } from '@/types/model';
+import { AcademicSession, AdmissionClassification, ClassificationGrade, Curriculum, ExternalStudentInfo, Grade, StudentGrade } from '@/types/model';
 import { FilterMatchMode, PrimeIcons } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -14,13 +17,13 @@ import { TabPanel, TabView } from 'primereact/tabview';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import React, { useEffect, useRef, useState } from 'react';
-interface NewStudentsProps {
+interface NewExternalStudentsProps {
     classification_grade: ClassificationGrade;
 }
-const NewStudentsComponent = (props: NewStudentsProps) => {
+const NewExternalStudentsComponent = (props: NewExternalStudentsProps) => {
     const toast = useRef<Toast>(null);
-    const [selectedElligibleStudents, setSelectedElligibleStudents] = useState<Student[]>([]);
-    const [elligibleStudents, setElligibleStudents] = useState<Student[]>([]);
+    const [selectedElligibleStudents, setSelectedElligibleStudents] = useState<ExternalStudentInfo[]>([]);
+    const [elligibleStudents, setElligibleStudents] = useState<ExternalStudentInfo[]>([]);
     const [loading, setLoading] = useState(false);
     const [globalFilter, setGlobalFilter] = useState('');
     const [filters, setFilters] = useState<DataTableFilterMeta>({});
@@ -49,7 +52,7 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
         try {
             if (props.classification_grade) {
                 setLoading(true);
-                const data = await StudentService.getNewStudents();
+                const data = await ExternalStudentInfoService.getExternalElligibleStudentsByGrade(props.classification_grade);
                 setElligibleStudents(data);
                 setLoading(false);
             }
@@ -65,13 +68,10 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
 
     const enrollExternalElligibleStudents = async () => {
         try {
-            //const registered_students: StudentGrade[] = await StudentGradeService.registerExternalStudents(props.classification_grade, selectedElligibleStudents);
-            const registered_student_ids = [];
-            /*
-            registered_students.map(registered =>
+            const registered_students: StudentGrade[] = await StudentGradeService.registerExternalStudents(props.classification_grade, selectedElligibleStudents);
+            const registered_student_ids = registered_students.map(registered =>
                 typeof registered.student === 'string' ? registered.student : registered.student._id
-            );*/
-            /*
+            );
             setElligibleStudents((prevElligibleStudents) =>
                 prevElligibleStudents.filter(student => {
                     if (typeof student.student === 'string') {
@@ -87,7 +87,7 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
                     }
                     return !registered_student_ids.includes(student.student._id);
                 })
-            );*/
+            );
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
@@ -127,7 +127,7 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">New Students (for Level-1) Only</h5>
+            <h5 className="m-0">External (NEW) Students</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search..." />
@@ -165,10 +165,14 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
                                 body={(rowData, options) => options.rowIndex + 1}
                                 style={{ width: '50px' }}
                             />
-                            <Column field="first_name" header="First Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                            <Column field="last_name" header="Last Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                            <Column field="sex" header="Sex" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                            <Column field="birth_date" header="Birth Date" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="student.first_name" header="First Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="student.last_name" header="Last Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="student.sex" header="Sex" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                            <Column field="student.birth_date" header="Birth Date" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="grade.stage" header="Grade stage" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="grade.level" header="Grade level" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="academic_year" header="Academic Year" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="status" header="Status" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         </DataTable>
                     </>
                 </div>
@@ -177,4 +181,4 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
     );
 };
 
-export default NewStudentsComponent;
+export default NewExternalStudentsComponent;

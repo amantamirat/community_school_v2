@@ -148,24 +148,14 @@ const StudentPage = () => {
         try {
             if (editMode) {
                 let id = selectedStudent._id || '';
-                const updatedStudent = await StudentService.updateStudent(id, selectedStudent);
+                const updatedStudent = await StudentService.updateStudent(selectedStudent, selectedStudent.has_perior_school_info ? selectedExternalInfo : null);
                 const index = findIndexById(id);
-                _students[index] = updatedStudent;
-                if (selectedExternalInfo._id) {
-                    const updatedExternalInfo = await ExternalStudentInfoService.updateExternalStudentInfo(selectedExternalInfo._id, selectedExternalInfo);
-                } else {
-                    const updatedExternalInfo = { ...selectedExternalInfo, student: updatedStudent };
-                    const newExternalInfo = await ExternalStudentInfoService.createExternalStudentInfo(updatedExternalInfo);
-                }
+                _students[index] = updatedStudent;                
             } else {
                 const newStudent = await StudentService.createStudent(selectedStudent, selectedStudent.has_perior_school_info ? selectedExternalInfo : null);
-                //const newStudent = await StudentService.createStudent(selectedStudent);
                 if (newStudent) {
                     _students.push(newStudent);
-                    //const updatedExternalInfo = { ...selectedExternalInfo, student: newStudent };
-                    // const newExternalInfo = await ExternalStudentInfoService.createExternalStudentInfo(updatedExternalInfo);
                 }
-                
             }
             toast.current?.show({
                 severity: 'success',
@@ -240,7 +230,7 @@ const StudentPage = () => {
             const externalInfo = await ExternalStudentInfoService.getExternalInfoByStudent(student);
             setSelectedExternalInfo({ ...externalInfo });
         } catch (error) {
-            console.log("error" + error)
+            //console.log("error" + error)
             setSelectedExternalInfo(emptyExternalInfo);
         }
         setActiveIndex(0);
@@ -253,16 +243,7 @@ const StudentPage = () => {
         setShowSaveDialog(false);
         setSubmitted(false);
     };
-
-    const saveFotter = () => {
-        if (activeIndex === 2) {
-            return <>
-                <Button label="Cancel" icon="pi pi-times" className="p-button-secondary" onClick={hideSaveDialog} />
-                <Button label="Save" icon="pi pi-check" className="p-button-primary" onClick={saveStudent} />
-            </>
-        }
-    }
-
+    
 
     const dialogFooter = () => {
         return <><div className="dialog-footer" style={{ marginTop: '2rem', textAlign: 'right' }}>
@@ -310,6 +291,7 @@ const StudentPage = () => {
                 if (!validateExternalInfo(selectedExternalInfo)) {
                     return;
                 }
+                
             }
             setSubmitted(false);
             setActiveIndex((prevIndex) => prevIndex + 1);

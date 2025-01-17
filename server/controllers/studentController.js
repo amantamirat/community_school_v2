@@ -12,8 +12,6 @@ const studentController = {
             }
             //session.startTransaction();
             const { first_name, middle_name, last_name, sex, birth_date, has_perior_school_info } = student;
-            //console.log(student);
-            //console.log(external_info);
             const newStudent = new Student({ first_name, middle_name, last_name, sex, birth_date, has_perior_school_info });
             //await newStudent.save({ session });
             await newStudent.save();
@@ -43,25 +41,47 @@ const studentController = {
         }
     },
 
+    getNewStudents: async (req, res) => {
+        try {
+            const students = await Student.find({ has_perior_school_info: false });
+            res.status(200).json(students);
+        } catch (error) {
+            res.status(500).json({ message: "Error fetching students", error });
+        }
+    },
+
 
     updateStudent: async (req, res) => {
         try {
             const { id } = req.params;
-            const { first_name, middle_name, last_name, sex, birth_date } = req.body;
-
-            const updatedStudent = await Student.findByIdAndUpdate(
-                id,
-                { first_name, middle_name, last_name, sex, birth_date },
-                { new: true }
-            );
-
+            const { student, external_info } = req.body
+            if (student.has_perior_school_info && external_info === null) {
+                return res.status(404).json({ message: "Student External Information Not Found!" });
+            }
+            const { first_name, middle_name, last_name, sex, birth_date, has_perior_school_info } = student;
+            const updatedStudent = await Student.findByIdAndUpdate(id, { first_name, middle_name, last_name, sex, birth_date, has_perior_school_info }, { new: true });
             if (!updatedStudent) {
                 return res.status(404).json({ message: "Student not found" });
             }
-
+            const priorInfo = await ExternalStudentPriorInfo.findOne({ student: updatedStudent._id });
+            if (has_perior_school_info) {
+                const { school_name, academic_year, classification, grade, average_result, status, transfer_reason } = external_info;
+                if (priorInfo) {
+                    await ExternalStudentPriorInfo.findByIdAndUpdate(
+                        priorInfo._id, { school_name, academic_year, classification, grade, average_result, status, transfer_reason }, { new: true }
+                    );//update
+                } else {
+                    const newInfo = new ExternalStudentPriorInfo({ student: updatedStudent._id, school_name, academic_year, classification, grade, average_result, status, transfer_reason });
+                    await newInfo.save();//create
+                }
+            } else {
+                if (priorInfo) {
+                    await ExternalStudentPriorInfo.findByIdAndDelete(priorInfo._id);//remove
+                }
+            }
             res.status(200).json(updatedStudent);
         } catch (error) {
-            res.status(500).json({ message: "Error updating student", error });
+            res.status(500).json({ message: error.message });
         }
     },
 
