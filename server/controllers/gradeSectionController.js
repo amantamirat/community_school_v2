@@ -11,8 +11,10 @@ const GradeSectionController = {
             const { classification_grade, section } = req.body;
             const gradeSection = new GradeSection({ classification_grade, section });
             const savedGradeSection = await gradeSection.save();
+            
             const cgrade = await ClassificationGrade.findById(classification_grade);
             const subjectGrades = await GradeSubject.find({ curriculum_grade: cgrade.curriculum_grade}); 
+            
             for (const subjectGrade of subjectGrades) {
                 const newSubjectClass = new SectionClass({
                     grade_section: savedGradeSection._id,

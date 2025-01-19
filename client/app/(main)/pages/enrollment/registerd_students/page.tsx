@@ -107,9 +107,17 @@ const RegisteredStudentsComponent = () => {
         }
         try {
             const updatedData = await StudentGradeService.assignSectionStudents(gradeSection, selectedRegisteredStudents);
-            console.log(updatedData);
-            //const index = findIndexById(id);
-            //_sectionClasss[index] = updatedClass;
+            setRegisteredStudents((prev) =>
+                prev.map((student) => {
+                    const selectedStudent = selectedRegisteredStudents.find(
+                        (selStudent) => selStudent._id === student._id
+                    );
+                    if (selectedStudent) {
+                        return { ...student, grade_section: gradeSection };
+                    }
+                    return student;
+                })
+            );
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
@@ -141,7 +149,7 @@ const RegisteredStudentsComponent = () => {
     const sectionDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideSectionDialog} />
-            <Button label="Assign" icon="pi pi-check" text onClick={assignSectionStudents}/>
+            <Button label="Assign" icon="pi pi-check" text onClick={assignSectionStudents} />
         </>
     );
 
