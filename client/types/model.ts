@@ -118,6 +118,7 @@ export type StudentGrade = {
     classification_grade: ClassificationGrade | string;
     student: Student | string;
     status: 'PENDING' | 'PASSED' | 'FAILED' | 'INCOMPLETE';
+    grade_section?: GradeSection | string;
 };
 
 

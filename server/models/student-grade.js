@@ -29,6 +29,10 @@ const StudentGradeSchema = new mongoose.Schema({
         unique: true,
         sparse: true
     },
+    grade_section: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'GradeSection'
+    },
 });
 
 StudentGradeSchema.index({ classification_grade: 1, student: 1 }, { unique: true });

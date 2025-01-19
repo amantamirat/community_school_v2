@@ -1,25 +1,24 @@
-import { GradeSection, Grade, CurriculumGrade, ClassificationGrade } from "@/types/model";
+'use client';
+import { useClassificationGrade } from "@/app/(main)/contexts/classificationGradeContext";
+import { GradeSectionService } from "@/services/GradeSectionService";
+import { GradeSection } from "@/types/model";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
+import { InputNumber } from "primereact/inputnumber";
 import { Toast } from "primereact/toast";
+import { Toolbar } from "primereact/toolbar";
 import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
-import { GradeSectionService } from "@/services/GradeSectionService";
-import { Toolbar } from "primereact/toolbar";
-import { InputNumber } from "primereact/inputnumber";
 
-interface GradeSectionProps {
-    classification_grade: ClassificationGrade;
-}
-
-const GradeSectionComponent = (props: GradeSectionProps) => {
+const GradeSectionComponent = () => {
 
     let emptyGradeSection: GradeSection = {
-        classification_grade: props.classification_grade,
+        classification_grade: '',
         section: 0
     };
+    const { selectedClassificationGrade } = useClassificationGrade();
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
     const [selectedGradeSection, setSelectedGradeSection] = useState<GradeSection>(emptyGradeSection);
     const [showAddDialog, setShowAddDialog] = useState(false);
@@ -28,14 +27,12 @@ const GradeSectionComponent = (props: GradeSectionProps) => {
     const toast = useRef<Toast>(null);
 
     useEffect(() => {
-        loadGradeSections();
-    }, []);
-
-
-    const loadGradeSections = async () => {
         try {
-            const data = await GradeSectionService.getGradeSectionsByClassificationGrade(props.classification_grade._id ?? '');
-            setGradeSections(data);
+            if (selectedClassificationGrade) {
+                GradeSectionService.getGradeSectionsByClassificationGrade(selectedClassificationGrade).then((data) => {
+                    setGradeSections(data);
+                });
+            }
         } catch (err) {
             toast.current?.show({
                 severity: 'error',
@@ -44,7 +41,8 @@ const GradeSectionComponent = (props: GradeSectionProps) => {
                 life: 3000
             });
         }
-    };
+    }, [selectedClassificationGrade]);
+
 
     const validateGradeSection = (section: GradeSection) => {
         if (!section.classification_grade || isNaN(section.section) || section.section <= 0) {
@@ -113,9 +111,11 @@ const GradeSectionComponent = (props: GradeSectionProps) => {
                 max_section = gradeSections[i].section;
             }
         }
-        setSelectedGradeSection({ ...emptyGradeSection, section: max_section + 1 });
-        setSubmitted(false);
-        setShowAddDialog(true);
+        if (selectedClassificationGrade) {
+            setSelectedGradeSection({ ...emptyGradeSection, classification_grade: selectedClassificationGrade, section: max_section + 1 });
+            setSubmitted(false);
+            setShowAddDialog(true);
+        }
     };
 
     const hideAddDialog = () => {
@@ -148,7 +148,7 @@ const GradeSectionComponent = (props: GradeSectionProps) => {
     const startToolbarTemplate = () => {
         return (
             <div className="my-2">
-                <Button label="Add Section" icon="pi pi-plus" className="mr-2" onClick={openAddDialog} />
+                <Button label="Create Section" icon="pi pi-plus" className="mr-2" onClick={openAddDialog} disabled={!selectedClassificationGrade}/>
             </div>
         );
     };
@@ -180,7 +180,7 @@ const GradeSectionComponent = (props: GradeSectionProps) => {
                         selection={selectedGradeSection}
                         onSelectionChange={(e) => setSelectedGradeSection(e.value)}
                         dataKey="_id"
-                        emptyMessage={`No section for ${props.classification_grade.curriculum_grade} grade found.`}
+                        emptyMessage={`No section for ${selectedClassificationGrade?.curriculum_grade} grade found.`}
                         paginator
                         rows={5}
                         rowsPerPageOptions={[5, 10, 25]}
@@ -194,7 +194,7 @@ const GradeSectionComponent = (props: GradeSectionProps) => {
                     <Dialog
                         visible={showAddDialog}
                         style={{ width: '450px' }}
-                        header="Add Grade"
+                        header="Add Section"
                         modal
                         className="p-fluid"
                         footer={addDialogFooter}

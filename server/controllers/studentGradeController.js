@@ -2,6 +2,7 @@ const StudentGrade = require("../models/student-grade");
 const ExternalStudentPriorInfo = require('../models/external-student-info');
 const ClassificationGrade = require('../models/classification-grade');
 const Student = require("../models/student");
+const GradeSection = require('../models/grade-sections');
 const gradeController = require('../controllers/gradeController');
 const studentGradeController = {
     registerExternalStudents: async (req, res) => {
@@ -117,7 +118,7 @@ const studentGradeController = {
             if (!classificationGrade) {
                 return res.status(404).json({ message: "Classification Grade not found" });
             }
-            const registered_students = await StudentGrade.find({ classification_grade: classification_grade }).populate('student');
+            const registered_students = await StudentGrade.find({ classification_grade: classification_grade }).populate('student').populate('grade_section');
             res.status(200).json(registered_students);
         } catch (error) {
             //console.log(error);
@@ -160,6 +161,38 @@ const studentGradeController = {
             await Student.updateMany(
                 { _id: { $in: dereg_new_students } },
                 { $set: { has_perior_school_info: false } }
+            );
+            res.status(200).json(result);
+        } catch (error) {
+            //console.log(error);
+            res.status(500).json({ message: error.message });
+        }
+    },
+    allocateSection: async (req, res) => {
+        try {
+            const { grade_section } = req.params;
+            const gradeSection = await GradeSection.findById(grade_section);
+            if (!gradeSection) {
+                return res.status(404).json({ message: "Grade Section not found" });
+            }
+            const selected_students = req.body;
+            if (!Array.isArray(selected_students)) {
+                res.status(404).json({ message: "error array students required" });
+            }
+            const section_students = [];
+            for (const student of selected_students) {
+                const grade_student = await StudentGrade.findById(student);
+                if (!grade_student) {
+                    return res.status(404).json({ message: "Non Registred Student Information Found (Invalid ID Data)." });
+                }
+                if (!grade_student.classification_grade.equals(gradeSection.classification_grade)) {
+                    res.status(404).json({ message: "Student are not belongs to the selected grade" });
+                }
+                section_students.push(student);
+            }
+            const result = await StudentGrade.updateMany(
+                { _id: { $in: section_students } },
+                { $set: { grade_section: gradeSection._id } }
             );
             res.status(200).json(result);
         } catch (error) {

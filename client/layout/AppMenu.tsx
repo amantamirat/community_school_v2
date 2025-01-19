@@ -20,12 +20,6 @@ const AppMenu = () => {
             label: 'Manage',
             items: [
                 {
-                    label: 'Class',
-                    icon: PrimeIcons.CLOCK,
-                    items: [
-                        { label: 'Section Managment', icon: PrimeIcons.TH_LARGE, to: '/pages/sections_pages' }]
-                },
-                {
                     label: 'Enrollment',
                     icon: PrimeIcons.SYNC,
                     items: [
@@ -38,7 +32,8 @@ const AppMenu = () => {
                                 { label: 'First Level', icon: PrimeIcons.SUN, to: '/pages/enrollment/registration/first_level' }
                             ]
                         },
-                        { label: 'Section Managment', icon: PrimeIcons.TH_LARGE, to: '/pages/enrollment/student_sections' }
+                        { label: 'Sections', icon: PrimeIcons.TH_LARGE, to: '/pages/enrollment/grade_sections' },
+                        { label: 'Class', icon: PrimeIcons.CLOCK, to: '/pages/enrollment/section_class' }
                     ]
                 },
                 { label: 'Academic Session', icon: PrimeIcons.CALENDAR, to: '/pages/academic_session' },

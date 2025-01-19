@@ -42,23 +42,25 @@ const NewExternalStudentsComponent = () => {
         setGlobalFilter(value);
     };
 
-    const loadElligbleStudents = async () => {
+    useEffect(() => {
         try {
             if (selectedClassificationGrade) {
                 setLoading(true);
-                const data = await ExternalStudentInfoService.getExternalElligibleStudentsByGrade(selectedClassificationGrade);
-                setElligibleStudents(data);
-                setLoading(false);
+                ExternalStudentInfoService.getExternalElligibleStudentsByGrade(selectedClassificationGrade).then((data) => {
+                    setElligibleStudents(data);
+                    setLoading(false);
+                });
             }
-        } catch (error) {
+        } catch (err) {
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed Load Elligible Students',
-                detail: '' + error,
+                detail: '' + err,
                 life: 3000
             });
+            setLoading(false);
         }
-    };
+    }, [selectedClassificationGrade]);
 
     const enrollExternalElligibleStudents = async () => {
         try {
@@ -105,7 +107,7 @@ const NewExternalStudentsComponent = () => {
         return (
             <>
                 <div className="my-2">
-                    <Button label="Display Elligible Students" icon={PrimeIcons.EYE} severity="info" loading={loading} className="mr-2" onClick={loadElligbleStudents} />
+                    <Button label="Enrol Selected Students" icon={PrimeIcons.CHECK_CIRCLE} severity="success" className="mr-2" disabled={selectedElligibleStudents.length == 0} onClick={enrollExternalElligibleStudents} />
                 </div>
             </>
         );
@@ -115,7 +117,6 @@ const NewExternalStudentsComponent = () => {
         return (
             <>
                 <div className="my-2">
-                    <Button label="Enrol Selected Students" icon={PrimeIcons.CHECK_CIRCLE} severity="success" className="mr-2" disabled={selectedElligibleStudents.length == 0} onClick={enrollExternalElligibleStudents} />
                 </div>
             </>
         );

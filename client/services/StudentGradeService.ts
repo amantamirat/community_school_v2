@@ -1,10 +1,11 @@
-import { ClassificationGrade, ExternalStudentInfo, Student, StudentGrade } from "@/types/model";
+import { ClassificationGrade, ExternalStudentInfo, GradeSection, Student, StudentGrade } from "@/types/model";
 import { MyService } from "./MyService";
 
 const get_registered_students_endpoint = "/api/student-grades/registered_students";
 const register_external_students_endpoint = '/api/student-grades/register_external_students';
 const register_first_level_students_endpoint = '/api/student-grades/register_first_level_students';
 const deregister_students_endpoint = '/api/student-grades/deregister_students';
+const allocate_section_endpoint = '/api/student-grades/allocate_section'
 const update_endpoint = '/api/student-grades/update';
 const delete_endpoint = '/api/student-grades/delete';
 
@@ -21,7 +22,7 @@ export const StudentGradeService = {
         return registeredData as StudentGrade[];
     },
 
-    async getRegisteredStudents(classification_grade: Partial<ClassificationGrade>): Promise<StudentGrade[]> {
+    async getRegisteredStudents(classification_grade: ClassificationGrade): Promise<StudentGrade[]> {
         const data = await MyService.get(`${get_registered_students_endpoint}/${classification_grade._id}`);
         return data as StudentGrade[];
     },
@@ -32,14 +33,13 @@ export const StudentGradeService = {
         return de_registeredData as any;
     },
 
-    toString(studentGrade: StudentGrade): String {
-        if (!studentGrade) {
-            return "N/A";
+    async assignSectionStudents(grade_section: GradeSection, registred_students: StudentGrade[]): Promise<any> {
+        const selected_registred_students = registred_students.map(registred_candidate => registred_candidate?._id);
+        if(grade_section._id){
+            const data = await MyService.update(grade_section._id, selected_registred_students, allocate_section_endpoint);
+            return data as any;
         }
-        const student = studentGrade.student;
-        if (typeof student === "object" && student !== null) {
-            return student.first_name + " " + student.last_name;
-        }
-        return "N/A";
-    }
+        throw new Error('I told you, grade section is required');
+    },
+
 };

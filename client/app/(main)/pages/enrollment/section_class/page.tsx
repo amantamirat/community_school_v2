@@ -1,27 +1,27 @@
-import { SectionClass, ClassificationGrade, GradeSection, Teacher } from "@/types/model";
+'use client';
+import { useClassificationGrade } from "@/app/(main)/contexts/classificationGradeContext";
+import { GradeSectionService } from "@/services/GradeSectionService";
+import { SectionClassService } from "@/services/SectionClassService";
+import { TeacherService } from "@/services/TeacherService";
+import { GradeSection, SectionClass, Teacher } from "@/types/model";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
+import { Dropdown } from "primereact/dropdown";
 import { Toast } from "primereact/toast";
+import { Toolbar } from "primereact/toolbar";
 import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
-import { SectionClassService } from "@/services/SectionClassService";
-import { Toolbar } from "primereact/toolbar";
-import { GradeSectionService } from "@/services/GradeSectionService";
-import { Dropdown } from "primereact/dropdown";
-import { TeacherService } from "@/services/TeacherService";
 
-interface SectionClassProps {
-    classification_grade: ClassificationGrade;
-}
 
-const SectionClassComponent = (props: SectionClassProps) => {
+const SectionClassComponent = () => {
 
     let emptySectionClass: SectionClass = {
         grade_section: '',
         grade_subject: ''
     };
+    const { selectedClassificationGrade } = useClassificationGrade();
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
     const [selectedGradeSection, setSelectedGradeSection] = useState<GradeSection | null>(null);
     const [sectionClasss, setSectionClasss] = useState<SectionClass[]>([]);
@@ -34,7 +34,6 @@ const SectionClassComponent = (props: SectionClassProps) => {
 
 
     useEffect(() => {
-        loadGradeSections();
         loadTeachers();
     }, []);
 
@@ -42,10 +41,13 @@ const SectionClassComponent = (props: SectionClassProps) => {
         loadSectionClasss();
     }, [selectedGradeSection]);
 
-    const loadGradeSections = async () => {
+    useEffect(() => {
         try {
-            const data = await GradeSectionService.getGradeSectionsByClassificationGrade(props.classification_grade._id ?? '');
-            setGradeSections(data);
+            if (selectedClassificationGrade) {
+                GradeSectionService.getGradeSectionsByClassificationGrade(selectedClassificationGrade).then((data) => {
+                    setGradeSections(data);
+                });
+            }
         } catch (err) {
             toast.current?.show({
                 severity: 'error',
@@ -54,13 +56,15 @@ const SectionClassComponent = (props: SectionClassProps) => {
                 life: 3000
             });
         }
-    };
+    }, [selectedClassificationGrade]);
+
 
     const loadSectionClasss = async () => {
         try {
             if (selectedGradeSection) {
-                const data = await SectionClassService.getSectionClasssByGradeSection(selectedGradeSection);
-                setSectionClasss(data);
+                SectionClassService.getSectionClasssByGradeSection(selectedGradeSection).then((data) => {
+                    setSectionClasss(data);
+                });
             } else {
                 setSectionClasss([])
             }
@@ -210,7 +214,7 @@ const SectionClassComponent = (props: SectionClassProps) => {
                             setSelectedGradeSection(e.value)
                         }
                         options={gradeSections}
-                        optionLabel="_id"
+                        optionLabel="section"
                         placeholder="Select Section"
                     />
                 </div>

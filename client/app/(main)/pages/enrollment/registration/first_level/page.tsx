@@ -14,7 +14,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 const NewStudentsComponent = () => {
     const toast = useRef<Toast>(null);
-    const {selectedClassificationGrade} = useClassificationGrade();
+    const { selectedClassificationGrade } = useClassificationGrade();
     const [selectedElligibleStudents, setSelectedElligibleStudents] = useState<Student[]>([]);
     const [elligibleStudents, setElligibleStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(false);
@@ -41,23 +41,25 @@ const NewStudentsComponent = () => {
         setGlobalFilter(value);
     };
 
-    const loadElligbleStudents = async () => {
+    useEffect(() => {
         try {
             if (selectedClassificationGrade) {
                 setLoading(true);
-                const data = await StudentService.getNewStudents();
-                setElligibleStudents(data);
-                setLoading(false);
+                StudentService.getNewStudents().then((data) => {
+                    setElligibleStudents(data);
+                    setLoading(false);
+                });
             }
-        } catch (error) {
+        } catch (err) {
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed Load Elligible Students',
-                detail: '' + error,
+                detail: '' + err,
                 life: 3000
             });
+            setLoading(false);
         }
-    };
+    }, [selectedClassificationGrade]);
 
     const enrollNewElligibleStudents = async () => {
         try {
@@ -91,7 +93,7 @@ const NewStudentsComponent = () => {
         return (
             <>
                 <div className="my-2">
-                    <Button label="Display Elligible Students" icon={PrimeIcons.EYE} severity="info" loading={loading} className="mr-2" onClick={loadElligbleStudents} />
+                    <Button label="Enrol Selected Students" icon={PrimeIcons.CHECK_CIRCLE} severity="success" className="mr-2" disabled={selectedElligibleStudents.length == 0} onClick={enrollNewElligibleStudents} />
                 </div>
             </>
         );
@@ -101,7 +103,6 @@ const NewStudentsComponent = () => {
         return (
             <>
                 <div className="my-2">
-                    <Button label="Enrol Selected Students" icon={PrimeIcons.CHECK_CIRCLE} severity="success" className="mr-2" disabled={selectedElligibleStudents.length == 0} onClick={enrollNewElligibleStudents} />
                 </div>
             </>
         );

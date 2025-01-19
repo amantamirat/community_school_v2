@@ -1,4 +1,4 @@
-import { ClassificationGrade, Curriculum, Department, Grade, Student, StudentGrade, Subject, Teacher } from "./model";
+import { ClassificationGrade, Curriculum, Department, Grade, GradeSection, Student, StudentGrade, Subject, Teacher } from "./model";
 
 export const departmentTemplate = (department: Department) => {
     return (
@@ -81,4 +81,12 @@ export const studentGradeTemplate = (studentGrde: StudentGrade) => {
     return (
         ""
     );
+};
+
+
+export const gradeSectionTemplate = (gradeSection: GradeSection) => {
+    if (!gradeSection) {
+        return "N/A";
+    }
+    return ("Section-" + gradeSection.section);
 };
