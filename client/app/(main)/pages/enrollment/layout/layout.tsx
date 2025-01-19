@@ -1,25 +1,25 @@
 'use client';
+import { ClassificationGradeProvider, useClassificationGrade } from '@/app/(main)/contexts/classificationGradeContext';
 import { AcademicSessionService } from '@/services/AcademicSessionService';
 import { AdmissionClassificationService } from '@/services/AdmissionClassificationService';
 import { ClassificationGradeService } from '@/services/ClassificationGradeService';
-import { AcademicSession, AdmissionClassification, ClassificationGrade, CurriculumGrade } from '@/types/model';
+import { ChildContainerProps } from '@/types';
+import { AcademicSession, AdmissionClassification, ClassificationGrade } from '@/types/model';
+import { classificationGradeTemplate } from '@/types/templates';
 import { Dropdown } from 'primereact/dropdown';
-import { TabPanel, TabView } from 'primereact/tabview';
 import { Toast } from 'primereact/toast';
-import React, { useEffect, useRef, useState } from 'react';
-import NewStudentsComponent from '../../components/enrollment/new_students/page';
-import RegisteredStudentsComponent from '../../components/enrollment/registerd_students/page';
-import NewExternalStudentsComponent from '../../components/enrollment/external_students/page';
-import { GradeService } from '@/services/GradeService';
-import { gradeTemplate } from '@/types/templates';
-const RegistrationMainPage = () => {
+import { useEffect, useRef, useState } from 'react';
+
+const Layout = ({ children }: ChildContainerProps) => {
     const toast = useRef<Toast>(null);
     const [academicSessions, setAcademicSessions] = useState<AcademicSession[]>([]);
     const [selectedAcademicSession, setSelectedAcademicSession] = useState<AcademicSession>();
     const [admissionClassifications, setAdmissionClassifications] = useState<AdmissionClassification[]>([]);
     const [selectedAdmissionClassification, setSelectedAdmissionClassification] = useState<AdmissionClassification>();
     const [classificationGrades, setClassificationGrades] = useState<ClassificationGrade[]>([]);
-    const [selectedClassificationGrade, setSelectedClassificationGrade] = useState<ClassificationGrade>();
+    //const [selectedClassificationGrade, setSelectedClassificationGrade] = useState<ClassificationGrade>();
+    const { selectedClassificationGrade, setSelectedClassificationGrade } = useClassificationGrade();
+
 
     useEffect(() => {
         loadAcademicSessions();
@@ -86,26 +86,12 @@ const RegistrationMainPage = () => {
         }
     };
 
-    const renderGradeTemplate = (classificationGrade: ClassificationGrade) => {
-        if (!classificationGrade) {
-            return <span>Please select a grade</span>;
-        }
-        const curriculumGrade = classificationGrade?.curriculum_grade;
-        if (typeof curriculumGrade === "object" && curriculumGrade !== null) {
-            const grade = curriculumGrade.grade;
-            if (typeof grade === "object" && grade !== null) {
-                return gradeTemplate(grade);
-            }
-        }
-        return <span>{"N/A"}</span>; // Fallback if gradeLabel is undefined
-    };
-
     return (
-        <div className="grid">
-            <div className="col-12">
-                <div className="card">
-                    <Toast ref={toast} />
-                    <div className="card p-fluid">
+        <>
+            <Toast ref={toast} />
+            <div className="card p-fluid">
+                <div className="grid">
+                    <div className="col-12">
                         <div className="formgrid grid">
                             <div className="field col">
                                 <label htmlFor="session">Academic Year</label>
@@ -144,8 +130,8 @@ const RegistrationMainPage = () => {
                                             setSelectedClassificationGrade(e.value)
                                         }
                                         options={classificationGrades}
-                                        itemTemplate={renderGradeTemplate}
-                                        valueTemplate={renderGradeTemplate}
+                                        itemTemplate={classificationGradeTemplate}
+                                        valueTemplate={classificationGradeTemplate}
                                         optionLabel="_id"
                                         placeholder="Select a Grade"
                                     />
@@ -153,31 +139,11 @@ const RegistrationMainPage = () => {
                             </div>
                         </div>
                     </div>
-                    <TabView>
-                        <TabPanel header="Returning" leftIcon="pi pi-replay mr-2">
-                            <>
-                            </>
-                        </TabPanel>
-                        <TabPanel header="New (External)" leftIcon="pi pi-external-link mr-2">
-                            {selectedClassificationGrade ? (
-                                <NewExternalStudentsComponent classification_grade={selectedClassificationGrade} />) : (
-                                <div>Please select a classification grade.</div>
-                            )}
-                        </TabPanel>
-                        <TabPanel header="New (First Level)" leftIcon="pi pi-user-plus mr-2">
-                            <NewStudentsComponent classification_grade={selectedClassificationGrade} />
-                        </TabPanel>
-                        <TabPanel header="Registred" leftIcon="pi pi-users mr-2">
-                            {selectedClassificationGrade ? (
-                                <RegisteredStudentsComponent classification_grade={selectedClassificationGrade} />) : (
-                                <div>Please select a classification grade.</div>
-                            )}
-                        </TabPanel>
-                    </TabView>
                 </div>
             </div>
-        </div >
+            <>{children}</>
+        </>
     );
 };
+export default Layout;
 
-export default RegistrationMainPage;

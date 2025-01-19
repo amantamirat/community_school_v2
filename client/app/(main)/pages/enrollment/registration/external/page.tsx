@@ -1,26 +1,23 @@
 'use client';
+import { useClassificationGrade } from '@/app/(main)/contexts/classificationGradeContext';
 import { ExternalStudentInfoService } from '@/services/ExternalStudentInfoService';
-import { GradeService } from '@/services/GradeService';
 import { StudentGradeService } from '@/services/StudentGradeService';
-import { StudentService } from '@/services/StudentService';
-import { AcademicSession, AdmissionClassification, ClassificationGrade, Curriculum, ExternalStudentInfo, Grade, Student, StudentGrade } from '@/types/model';
+import { ClassificationGrade, ExternalStudentInfo, StudentGrade } from '@/types/model';
 import { FilterMatchMode, PrimeIcons } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
-import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
-import { TabPanel, TabView } from 'primereact/tabview';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import React, { useEffect, useRef, useState } from 'react';
-interface NewStudentsProps {
-    classification_grade: ClassificationGrade | undefined;
-}
-const NewStudentsComponent = (props: NewStudentsProps) => {
+
+
+const NewExternalStudentsComponent = () => {
     const toast = useRef<Toast>(null);
-    const [selectedElligibleStudents, setSelectedElligibleStudents] = useState<Student[]>([]);
-    const [elligibleStudents, setElligibleStudents] = useState<Student[]>([]);
+    const { selectedClassificationGrade } = useClassificationGrade();
+    const [selectedElligibleStudents, setSelectedElligibleStudents] = useState<ExternalStudentInfo[]>([]);
+    const [elligibleStudents, setElligibleStudents] = useState<ExternalStudentInfo[]>([]);
     const [loading, setLoading] = useState(false);
     const [globalFilter, setGlobalFilter] = useState('');
     const [filters, setFilters] = useState<DataTableFilterMeta>({});
@@ -47,9 +44,9 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
 
     const loadElligbleStudents = async () => {
         try {
-            if (props.classification_grade) {
+            if (selectedClassificationGrade) {
                 setLoading(true);
-                const data = await StudentService.getNewStudents();
+                const data = await ExternalStudentInfoService.getExternalElligibleStudentsByGrade(selectedClassificationGrade);
                 setElligibleStudents(data);
                 setLoading(false);
             }
@@ -63,20 +60,33 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
         }
     };
 
-    const enrollNewElligibleStudents = async () => {
+    const enrollExternalElligibleStudents = async () => {
         try {
-            if (props.classification_grade) {
-                const registered_students: StudentGrade[] = await StudentGradeService.registerFirstLevelStudents(props.classification_grade, selectedElligibleStudents);
+            if (selectedClassificationGrade) {
+                const registered_students: StudentGrade[] = await StudentGradeService.registerExternalStudents(selectedClassificationGrade, selectedElligibleStudents);
                 const registered_student_ids = registered_students.map(registered =>
                     typeof registered.student === 'string' ? registered.student : registered.student._id
                 );
                 setElligibleStudents((prevElligibleStudents) =>
-                    prevElligibleStudents.filter(student => !registered_student_ids.includes(student._id)));
-
+                    prevElligibleStudents.filter(student => {
+                        if (typeof student.student === 'string') {
+                            return !registered_student_ids.includes(student.student);
+                        }
+                        return !registered_student_ids.includes(student.student._id);
+                    })
+                );
+                setSelectedElligibleStudents((prevElligibleStudents) =>
+                    prevElligibleStudents.filter(student => {
+                        if (typeof student.student === 'string') {
+                            return !registered_student_ids.includes(student.student);
+                        }
+                        return !registered_student_ids.includes(student.student._id);
+                    })
+                );
                 toast.current?.show({
                     severity: 'success',
                     summary: 'Successful',
-                    detail: `${registered_student_ids.length} new students enrolled`,
+                    detail: `${registered_student_ids.length} students enrolled`,
                     life: 3000
                 });
             }
@@ -105,7 +115,7 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
         return (
             <>
                 <div className="my-2">
-                    <Button label="Enrol Selected Students" icon={PrimeIcons.CHECK_CIRCLE} severity="success" className="mr-2" disabled={selectedElligibleStudents.length == 0} onClick={enrollNewElligibleStudents} />
+                    <Button label="Enrol Selected Students" icon={PrimeIcons.CHECK_CIRCLE} severity="success" className="mr-2" disabled={selectedElligibleStudents.length == 0} onClick={enrollExternalElligibleStudents} />
                 </div>
             </>
         );
@@ -113,7 +123,7 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">New (Level-1) Students</h5>
+            <h5 className="m-0">External (NEW) Students</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search..." />
@@ -151,10 +161,14 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
                                 body={(rowData, options) => options.rowIndex + 1}
                                 style={{ width: '50px' }}
                             />
-                            <Column field="first_name" header="First Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                            <Column field="last_name" header="Last Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                            <Column field="sex" header="Sex" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                            <Column field="birth_date" header="Birth Date" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="student.first_name" header="First Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="student.last_name" header="Last Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="student.sex" header="Sex" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                            <Column field="student.birth_date" header="Birth Date" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="grade.stage" header="Grade stage" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="grade.level" header="Grade level" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="academic_year" header="Academic Year" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="status" header="Status" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         </DataTable>
                     </>
                 </div>
@@ -163,4 +177,4 @@ const NewStudentsComponent = (props: NewStudentsProps) => {
     );
 };
 
-export default NewStudentsComponent;
+export default NewExternalStudentsComponent;

@@ -22,19 +22,29 @@ const AppMenu = () => {
                 {
                     label: 'Class',
                     icon: PrimeIcons.CLOCK,
-                    items: [                       
-                        { label: 'Section Managment', icon: PrimeIcons.TH_LARGE, to: '/pages/sections_pages'}]
+                    items: [
+                        { label: 'Section Managment', icon: PrimeIcons.TH_LARGE, to: '/pages/sections_pages' }]
                 },
                 {
-                    label: 'Registration',
-                    icon: PrimeIcons.SIGN_IN,
+                    label: 'Enrollment',
+                    icon: PrimeIcons.SYNC,
                     items: [
-                        { label: 'Enrollment', icon: PrimeIcons.SYNC, to: '/pages/registration' },
-                        { label: 'Students', icon: PrimeIcons.ID_CARD, to: '/pages/students'}]
+                        { label: 'Registered', icon: PrimeIcons.USERS, to: '/pages/enrollment/registerd_students' },
+                        {
+                            label: 'Registration',
+                            icon: PrimeIcons.SIGN_IN,
+                            items: [
+                                { label: 'External', icon: PrimeIcons.PRIME, to: '/pages/enrollment/registration/external' },
+                                { label: 'First Level', icon: PrimeIcons.SUN, to: '/pages/enrollment/registration/first_level' }
+                            ]
+                        },
+                        { label: 'Section Managment', icon: PrimeIcons.TH_LARGE, to: '/pages/enrollment/student_sections' }
+                    ]
                 },
                 { label: 'Academic Session', icon: PrimeIcons.CALENDAR, to: '/pages/academic_session' },
                 { label: 'Curricula', icon: PrimeIcons.BOOK, to: '/pages/curricula_pages' },
                 { label: 'Teachers', icon: PrimeIcons.USER_PLUS, to: '/pages/teachers_pages' },
+                { label: 'Students', icon: PrimeIcons.ID_CARD, to: '/pages/students' }
             ]
         },
         {

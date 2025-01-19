@@ -1,4 +1,4 @@
-import { ExternalStudentInfo, Student } from "@/types/model";
+import { ExternalStudentInfo, Student, StudentGrade } from "@/types/model";
 import { MyService } from "./MyService";
 
 
@@ -42,5 +42,5 @@ export const StudentService = {
     async deleteStudent(id: string): Promise<boolean> {
         const response = await MyService.delete(id, delete_endpoint);
         return response;
-    },
+    }
 };

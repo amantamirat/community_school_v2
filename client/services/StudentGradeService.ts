@@ -31,4 +31,15 @@ export const StudentGradeService = {
         const de_registeredData = await MyService.delete_payload(selected_registred_students, `${deregister_students_endpoint}/${classification_grade._id}`);
         return de_registeredData as any;
     },
+
+    toString(studentGrade: StudentGrade): String {
+        if (!studentGrade) {
+            return "N/A";
+        }
+        const student = studentGrade.student;
+        if (typeof student === "object" && student !== null) {
+            return student.first_name + " " + student.last_name;
+        }
+        return "N/A";
+    }
 };
