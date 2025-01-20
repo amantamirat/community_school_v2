@@ -38,6 +38,9 @@ export const teacherTemplate = (teacher: Teacher) => {
 
 
 export const subjectTemplate = (subject: Subject) => {
+    if (!subject) {
+        return <><span>N/A</span></>
+    }
     return (
         <>{subject.title}-({subject.load})</>
     );

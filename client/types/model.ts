@@ -25,7 +25,6 @@ export type Subject = {
     _id?: string;
     title: string;
     load: number;
-    optional: boolean;
 };
 
 export type Curriculum = {
@@ -49,6 +48,7 @@ export type GradeSubject = {
     _id: string;
     curriculum_grade: string;
     subject: string;
+    optional: boolean;
 }
 
 export type SubjectWeight = {

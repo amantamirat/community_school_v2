@@ -3,12 +3,10 @@ import { SubjectService } from '@/services/SubjectService';
 import { Subject } from '@/types/model';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
-import { Checkbox } from 'primereact/checkbox';
 import { Column } from 'primereact/column';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
-import { InputNumber, InputNumberValueChangeEvent } from 'primereact/inputnumber';
-import { InputSwitch } from 'primereact/inputswitch';
+import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
@@ -21,8 +19,7 @@ const SubjectPage = () => {
 
     let emptySubject: Subject = {
         title: '',
-        load: 2,
-        optional: false
+        load: 3
     };
 
     const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -271,7 +268,6 @@ const SubjectPage = () => {
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="title" header="Subject Title" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="load" header="Load (hrs/week)" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="optional" header="Optional" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
@@ -313,16 +309,7 @@ const SubjectPage = () => {
                                 />
                                 {submitted && !selectedSubject.load && <small className="p-invalid">Subject Load is required.</small>}
                             </div>
-                            <div className="field">
-                                <label htmlFor="optional">Optional</label>
-                                <div id="optional">
-                                    <InputSwitch
-                                        checked={selectedSubject.optional}
-                                        onChange={(e) => setSelectedSubject({ ...selectedSubject, optional: !selectedSubject.optional })}
-                                    />
-                                </div>
-
-                            </div></> : <></>}
+                        </> : <></>}
                     </Dialog>
 
                     <Dialog

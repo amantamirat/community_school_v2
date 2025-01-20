@@ -6,8 +6,8 @@ const subjectController = {
     // Create a new subject
     createSubject: async (req, res) => {
         try {
-            const { title, load, optional } = req.body;
-            const newSubject = new Subject({ title, load, optional });
+            const { title, load } = req.body;
+            const newSubject = new Subject({ title, load });
             await newSubject.save();
             res.status(201).json(newSubject);
         } catch (error) {
@@ -36,8 +36,8 @@ const subjectController = {
                     message: "Cannot delete subject as it is referenced in a curriculum.",
                 });
             }
-            const { title, load, optional } = req.body;
-            const updatedSubject = await Subject.findByIdAndUpdate(id, { title, load, optional }, { new: true });
+            const { title, load } = req.body;
+            const updatedSubject = await Subject.findByIdAndUpdate(id, { title, load }, { new: true });
             if (!updatedSubject) {
                 return res.status(404).json({ message: "Subject not found" });
             }

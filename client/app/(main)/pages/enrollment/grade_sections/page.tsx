@@ -63,7 +63,7 @@ const GradeSectionComponent = () => {
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
-                detail: 'Grade Added',
+                detail: 'Section Created',
                 life: 1500
             });
         } catch (error) {

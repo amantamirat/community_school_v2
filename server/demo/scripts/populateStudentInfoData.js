@@ -16,7 +16,6 @@ function getRandomEnumValue(enumArray) {
 
 async function populateData() {
     await connectDB();
-
     // Clear existing data
     await Student.deleteMany();
     await ExternalStudentPriorInfo.deleteMany();

@@ -10,6 +10,11 @@ const GradeSubjectSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Subject',
         required: true
+    },
+    optional: {
+        type: Boolean,
+        default: false, //Optional Subjects can be more than one and selected by students
+        required: true,
     }
 });
 GradeSubjectSchema.index({ curriculum_grade: 1, subject: 1 }, { unique: true });

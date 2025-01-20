@@ -12,6 +12,7 @@ import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
 import SubjectWeightComponent from "../subject_weight/page";
 import { OverlayPanel } from "primereact/overlaypanel";
+import { InputSwitch } from "primereact/inputswitch";
 
 interface GradeSubjectProps {
     curriculumGrade: CurriculumGrade;
@@ -22,6 +23,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
         _id: '',
         curriculum_grade: props.curriculumGrade._id,
         subject: '',
+        optional: false
     };
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [gradeSubjects, setGradeSubjects] = useState<GradeSubject[]>([]);
@@ -196,6 +198,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                         emptyMessage={`No subject found.`}
                     >
                         <Column field="subject" header="Subject" body={subjectBodyTemplete} ></Column>
+                        <Column field="optional" header="Optional" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
                     <Dialog
@@ -228,6 +231,15 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                                     />
                                 </div>
                                 {submitted && !selectedGradeSubject.subject && <small className="p-invalid">Subject is required.</small>}
+                            </div>
+                            <div className="field">
+                                <label htmlFor="optional">Optional</label>
+                                <div id="optional">
+                                    <InputSwitch
+                                        checked={selectedGradeSubject.optional}
+                                        onChange={(e) => setSelectedGradeSubject({ ...selectedGradeSubject, optional: !selectedGradeSubject.optional })}
+                                    />
+                                </div>
                             </div>
                         </> : <></>}
                     </Dialog>
