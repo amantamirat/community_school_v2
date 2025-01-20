@@ -126,6 +126,16 @@ const ResultEntryPage = () => {
                                     />
                                 </div>
                             </div>
+
+                            <div className="field col">
+                                <label htmlFor="term">Term(Semester)</label>
+                                <div id="term">
+                                    <Dropdown
+                                        options={[1, 2]}
+                                        placeholder="Select Curriculum Term"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
