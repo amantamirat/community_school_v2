@@ -1,9 +1,10 @@
 'use client';
 import { useClassificationGrade } from "@/app/(main)/contexts/classificationGradeContext";
 import { GradeSectionService } from "@/services/GradeSectionService";
+import { GradeSubjectService } from "@/services/GradeSubjectService";
 import { SectionClassService } from "@/services/SectionClassService";
 import { TeacherService } from "@/services/TeacherService";
-import { GradeSection, SectionClass, Teacher } from "@/types/model";
+import { GradeSection, GradeSubject, SectionClass, Teacher } from "@/types/model";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
@@ -31,6 +32,7 @@ const SectionClassComponent = () => {
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
+    const [gradeSubjects, setGradeSubjects] = useState<GradeSubject[]>([]);
 
 
     useEffect(() => {
@@ -43,6 +45,11 @@ const SectionClassComponent = () => {
                 GradeSectionService.getGradeSectionsByClassificationGrade(selectedClassificationGrade).then((data) => {
                     setGradeSections(data);
                 });
+                if (typeof selectedClassificationGrade.curriculum_grade === 'object') {
+                    GradeSubjectService.getGradeSubjectsByCurriculumGrade(selectedClassificationGrade.curriculum_grade).then((data) => {
+                        setGradeSubjects(data);
+                    });;
+                }
             }
         } catch (err) {
             toast.current?.show({
@@ -240,7 +247,7 @@ const SectionClassComponent = () => {
             {typeof rowData.teacher === 'string' ? (
                 rowData.teacher || 'N/A'
             ) : rowData.teacher && typeof rowData.teacher === 'object' ? (
-                rowData.teacher.first_name+" "+rowData.teacher.last_name || 'N/A'
+                rowData.teacher.first_name + " " + rowData.teacher.last_name || 'N/A'
             ) : (
                 'N/A'
             )}
@@ -317,7 +324,7 @@ const SectionClassComponent = () => {
                                     <div id="subject">
                                         <Dropdown
                                             value={selectedSectionClass.grade_subject}
-                                            options={[]}
+                                            options={gradeSubjects}
                                             onChange={(e) => setSelectedSectionClass({ ...selectedSectionClass, grade_subject: e.value })}
                                             placeholder="Select a Subject"
                                             optionLabel="_id"

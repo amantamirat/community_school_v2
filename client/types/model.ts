@@ -39,15 +39,15 @@ export type Curriculum = {
 };
 
 export type CurriculumGrade = {
-    _id: string;
+    _id?: string;
     curriculum: string | Curriculum;
     grade: string | Grade;
 }
 
 export type GradeSubject = {
     _id?: string;
-    curriculum_grade: string;
-    subject: string;
+    curriculum_grade: string | CurriculumGrade;
+    subject: string | Subject;
     optional: boolean;
 }
 

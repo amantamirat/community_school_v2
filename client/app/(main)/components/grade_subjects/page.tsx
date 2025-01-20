@@ -20,7 +20,7 @@ interface GradeSubjectProps {
 
 const GradeSubjectComponent = (props: GradeSubjectProps) => {
     let emptyGradeSubject: GradeSubject = {
-        curriculum_grade: props.curriculumGrade._id,
+        curriculum_grade: props.curriculumGrade,
         subject: '',
         optional: false
     };
@@ -54,7 +54,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
 
     const loadGradeSubjects = async () => {
         try {
-            const data = await GradeSubjectService.getGradeSubjectsByCurriculumGrade(props.curriculumGrade._id);
+            const data = await GradeSubjectService.getGradeSubjectsByCurriculumGrade(props.curriculumGrade);
             setGradeSubjects(data);
         } catch (err) {
             toast.current?.show({
@@ -277,7 +277,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                             {selectedGradeSubject && (
                                 <span>
-                                    Are you sure you want to delete <b>{selectedGradeSubject.subject}</b>?
+                                    Are you sure you want to delete <b>{selectedGradeSubject._id}</b>?
                                 </span>
                             )}
                         </div>

@@ -1,4 +1,4 @@
-import { GradeSubject } from "@/types/model";
+import { CurriculumGrade, GradeSubject } from "@/types/model";
 import { API_CONFIG } from "./apiConfig";
 import { MyService } from "./MyService";
 
@@ -9,19 +9,21 @@ const update_endpoint = '/api/grade-subject/update';
 
 export const GradeSubjectService = {
 
-    async getGradeSubjectsByCurriculumGrade(curriculum_grade: string): Promise<GradeSubject[]> {
+    async getGradeSubjectsByCurriculumGrade(curriculum_grade: CurriculumGrade): Promise<GradeSubject[]> {
+        if (!curriculum_grade._id) {
+            throw new Error('I told you, curriculum grade _id is required');
+        }
         const cachedData = localStorage.getItem(storageName);
         const cacheTimestamp = localStorage.getItem(cacheTimeStampName);
         const currentTime = Date.now();
         let localData: GradeSubject[] = cachedData ? JSON.parse(cachedData) : [];
-
         if (cachedData && cacheTimestamp && currentTime - parseInt(cacheTimestamp) < CACHE_EXPIRATION_TIME) {
-            const cachedItems = localData.filter(item => item.curriculum_grade === curriculum_grade);
+            const cachedItems = localData.filter(item => item.curriculum_grade === curriculum_grade._id);
             if (cachedItems.length > 0) {
                 return cachedItems;
             }
         }
-        const endpoint = `${API_CONFIG.endpoints.getGradeSubjectsByCurriculumGrade}/${curriculum_grade}`;
+        const endpoint = `${API_CONFIG.endpoints.getGradeSubjectsByCurriculumGrade}/${curriculum_grade._id}`;
         const data = await MyService.get(endpoint);
         localStorage.setItem(storageName, JSON.stringify(data));
         localStorage.setItem(cacheTimeStampName, currentTime.toString());
