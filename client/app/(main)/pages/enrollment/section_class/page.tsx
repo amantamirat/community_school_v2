@@ -77,7 +77,7 @@ const SectionClassComponent = () => {
         } catch (err) {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed to load sections',
+                summary: 'Failed to load section class',
                 detail: '' + err,
                 life: 3000
             });

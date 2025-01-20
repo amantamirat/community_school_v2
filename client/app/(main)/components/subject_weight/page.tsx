@@ -8,8 +8,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
-import { classNames } from 'primereact/utils';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface SubjectWeightProps {
     gradeSubject: GradeSubject;
@@ -17,7 +16,7 @@ interface SubjectWeightProps {
 
 const SubjectWeightComponent = (props: SubjectWeightProps) => {
     let emptySubjectWeight: SubjectWeight = {
-        grade_subject: props.gradeSubject._id,
+        grade_subject: props.gradeSubject,
         assessment_type: 'Quiz',
         assessment_weight: 5
     };
@@ -38,8 +37,8 @@ const SubjectWeightComponent = (props: SubjectWeightProps) => {
 
     const loadSubjectWeights = async () => {
         try {
-            const data = await SubjectWeightService.getSubjectWeights(props.gradeSubject._id);
-            console.log(data)
+            const data = await SubjectWeightService.getSubjectWeights(props.gradeSubject);
+            //console.log(data)
             setSubjectWeights(data);
         } catch (err) {
             toast.current?.show({
@@ -89,15 +88,17 @@ const SubjectWeightComponent = (props: SubjectWeightProps) => {
 
     const deleteWeights = async () => {
         try {
-            const deleted = await SubjectWeightService.deleteSubjectWeights(props.gradeSubject._id);
-            if (deleted) {
-                setSubjectWeights([]);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Weights Deleted',
-                    life: 3000
-                });
+            if (props.gradeSubject._id) {
+                const deleted = await SubjectWeightService.deleteSubjectWeights(props.gradeSubject._id);
+                if (deleted) {
+                    setSubjectWeights([]);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Weights Deleted',
+                        life: 3000
+                    });
+                }
             }
         } catch (error) {
             //console.error(error);
@@ -116,7 +117,7 @@ const SubjectWeightComponent = (props: SubjectWeightProps) => {
         setShowDeleteDialog(false);
     };
 
-    const confirmDeleteItem = () => {       
+    const confirmDeleteItem = () => {
         setShowDeleteDialog(true);
     };
 

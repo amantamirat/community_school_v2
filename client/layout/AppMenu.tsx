@@ -33,7 +33,8 @@ const AppMenu = () => {
                             ]
                         },
                         { label: 'Sections', icon: PrimeIcons.TH_LARGE, to: '/pages/enrollment/grade_sections' },
-                        { label: 'Class', icon: PrimeIcons.CLOCK, to: '/pages/enrollment/section_class' }
+                        { label: 'Class', icon: PrimeIcons.CLOCK, to: '/pages/enrollment/section_class' },
+                        { label: 'Result Entry', icon: PrimeIcons.STEP_FORWARD, to: '/pages/enrollment/result_entry' }
                     ]
                 },
                 { label: 'Academic Session', icon: PrimeIcons.CALENDAR, to: '/pages/academic_session' },

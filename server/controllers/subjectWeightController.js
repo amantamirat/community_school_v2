@@ -3,7 +3,6 @@ const SubjectWeight = require('../models/subject-weight');
 const SubjectWeightController = {
     // Create multiple SubjectWeight entries for a specific grade_subject
     createByGradeSubject: async (req, res) => {
-
         try {
             const subject_weights = req.body; // subject_weights should be an array of { grade_subject, assessment_type, assessment_weight }
             if (!Array.isArray(subject_weights) || subject_weights.length === 0) {

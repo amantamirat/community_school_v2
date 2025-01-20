@@ -53,7 +53,7 @@ export type GradeSubject = {
 
 export type SubjectWeight = {
     _id?: string;
-    grade_subject: string;
+    grade_subject: string|GradeSubject;
     assessment_type: 'Quiz' | 'Assignment' | 'Test' | 'Mid-Exam' | 'Final-Exam'
     assessment_weight: number;
 }

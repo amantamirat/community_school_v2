@@ -5,9 +5,9 @@ const StudentClassSchema = new mongoose.Schema({
         ref: 'SectionClass',
         required: true
     },
-    student: {
+    student_grade: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Student',
+        ref: 'StudentGrade',
         required: true
     }
 });
