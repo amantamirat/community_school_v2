@@ -38,10 +38,6 @@ const SectionClassComponent = () => {
     }, []);
 
     useEffect(() => {
-        loadSectionClasss();
-    }, [selectedGradeSection]);
-
-    useEffect(() => {
         try {
             if (selectedClassificationGrade) {
                 GradeSectionService.getGradeSectionsByClassificationGrade(selectedClassificationGrade).then((data) => {
@@ -58,8 +54,7 @@ const SectionClassComponent = () => {
         }
     }, [selectedClassificationGrade]);
 
-
-    const loadSectionClasss = async () => {
+    useEffect(() => {
         try {
             if (selectedGradeSection) {
                 SectionClassService.getSectionClasssByGradeSection(selectedGradeSection).then((data) => {
@@ -76,18 +71,19 @@ const SectionClassComponent = () => {
                 life: 3000
             });
         }
-    };
+    }, [selectedGradeSection]);
 
 
     const loadTeachers = async () => {
         try {
-            const data = await TeacherService.getTeachers();
-            setTeachers(data);
+            TeacherService.getTeachers().then((data) => {
+                setTeachers(data);
+            });
         } catch (err) {
             //console.error('Failed to load teachers:', err);
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed to load teachers',
+                summary: 'Failed to Load Teachers',
                 detail: '' + err,
                 life: 3000
             });
@@ -242,11 +238,11 @@ const SectionClassComponent = () => {
     const teacherBodyTemplate = (rowData: SectionClass) => {
         return (<>
             {typeof rowData.teacher === 'string' ? (
-                rowData.teacher || 'TBA'
+                rowData.teacher || 'N/A'
             ) : rowData.teacher && typeof rowData.teacher === 'object' ? (
-                rowData.teacher.last_name || 'TBA'
+                rowData.teacher.first_name+" "+rowData.teacher.last_name || 'N/A'
             ) : (
-                'TBA'
+                'N/A'
             )}
         </>);
     };

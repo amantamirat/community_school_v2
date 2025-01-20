@@ -1,4 +1,4 @@
-import { GradeSubjectService } from "@/services/GradeSubject";
+import { GradeSubjectService } from "@/services/GradeSubjectService";
 import { SubjectService } from "@/services/SubjectService";
 import { CurriculumGrade, GradeSubject, Subject } from "@/types/model";
 import { subjectTemplate } from "@/types/templates";
@@ -20,7 +20,6 @@ interface GradeSubjectProps {
 
 const GradeSubjectComponent = (props: GradeSubjectProps) => {
     let emptyGradeSubject: GradeSubject = {
-        _id: '',
         curriculum_grade: props.curriculumGrade._id,
         subject: '',
         optional: false
@@ -32,8 +31,6 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
     const [showRemoveDialog, setShowRemoveDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
-
-
 
     useEffect(() => {
         loadSubjects();
@@ -73,19 +70,25 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
         setSubmitted(true);
         let _gradeSubjects = [...(gradeSubjects as any)];
         try {
-            const newGradeSubject = await GradeSubjectService.createGradeSubject(selectedGradeSubject);
-            _gradeSubjects.push(newGradeSubject);
+            if (selectedGradeSubject._id) {
+                const updatedDepartment = await GradeSubjectService.updateGradeSubject(selectedGradeSubject);
+                const index = findIndexById(selectedGradeSubject._id);
+                _gradeSubjects[index] = updatedDepartment;
+            } else {
+                const newGradeSubject = await GradeSubjectService.createGradeSubject(selectedGradeSubject);
+                _gradeSubjects.push(newGradeSubject);
+            }
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
-                detail: 'Subject Added',
+                detail: `Grade Subject ${selectedGradeSubject._id ? 'Updated' : 'Added'}`,
                 life: 1500
             });
         } catch (error) {
             console.error(error);
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed to add subjects',
+                summary: `Failed to ${selectedGradeSubject._id ? 'Update' : 'Add'} subject.`,
                 detail: '' + error,
                 life: 1500
             });
@@ -96,17 +99,19 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
     }
     const deleteGradeSubject = async () => {
         try {
-            const deleted = await GradeSubjectService.deleteGradeSubject(selectedGradeSubject._id);
-            if (deleted) {
-                let _gradeSubjects = (gradeSubjects as any)?.filter((val: any) => val._id !== selectedGradeSubject._id);
-                setGradeSubjects(_gradeSubjects);
+            if (selectedGradeSubject._id) {
+                const deleted = await GradeSubjectService.deleteGradeSubject(selectedGradeSubject._id);
+                if (deleted) {
+                    let _gradeSubjects = (gradeSubjects as any)?.filter((val: any) => val._id !== selectedGradeSubject._id);
+                    setGradeSubjects(_gradeSubjects);
+                }
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: 'Subject Removed',
+                    life: 1500
+                });
             }
-            toast.current?.show({
-                severity: 'success',
-                summary: 'Successful',
-                detail: 'Subject Removed',
-                life: 1500
-            });
         } catch (error) {
             toast.current?.show({
                 severity: 'error',
@@ -118,6 +123,12 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
         setShowRemoveDialog(false);
         setSelectedGradeSubject(emptyGradeSubject);
     }
+
+    const openEditDialog = (rowData: GradeSubject) => {
+        setSelectedGradeSubject(rowData);
+        setSubmitted(false);
+        setShowAddDialog(true);
+    };
 
     const openAddDialog = () => {
         setSelectedGradeSubject(emptyGradeSubject);
@@ -132,7 +143,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
     const addDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideAddDialog} />
-            <Button label="Add" icon="pi pi-check" text onClick={saveGradeSubject} />
+            <Button label="Save" icon="pi pi-check" text onClick={saveGradeSubject} />
         </>
     );
 
@@ -159,7 +170,16 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
         );
     }
 
-
+    const findIndexById = (id: string) => {
+        let index = -1;
+        for (let i = 0; i < (gradeSubjects as any)?.length; i++) {
+            if ((gradeSubjects as any)[i]._id === id) {
+                index = i;
+                break;
+            }
+        }
+        return index;
+    };
 
     const actionBodyTemplate = (rowData: GradeSubject) => {
         const op = useRef<OverlayPanel>(null);
@@ -174,6 +194,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                         gradeSubject={rowData as GradeSubject}
                     />
                 </OverlayPanel>
+                <Button icon="pi pi-pencil" rounded severity="success" className="mr-2" onClick={() => openEditDialog(rowData)} />
                 <Button icon="pi pi-trash" rounded severity="warning" onClick={() => confirmRemoveGradeSubject(rowData)} />
             </>
         );
@@ -204,7 +225,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                     <Dialog
                         visible={showAddDialog}
                         style={{ width: '450px' }}
-                        header="Add Subject"
+                        header={selectedGradeSubject ? selectedGradeSubject._id ? "Edit Subject" : "Add Subject" : "No Grade Subject"}
                         modal
                         className="p-fluid"
                         footer={addDialogFooter}

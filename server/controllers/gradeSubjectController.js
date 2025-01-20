@@ -31,19 +31,16 @@ exports.getGradeSubjectsByCurriculumGrade = async (req, res) => {
 
 // Update a GradeSubject
 exports.updateGradeSubject = async (req, res) => {
-    try {
-        const { curriculum_grade, subject } = req.body;
-
+    try {        
+        const { curriculum_grade, subject, optional } = req.body;
         const updatedGradeSubject = await GradeSubject.findByIdAndUpdate(
             req.params.id,
-            { curriculum_grade, subject },
+            { curriculum_grade, subject, optional },
             { new: true }
         );
-
         if (!updatedGradeSubject) {
             return res.status(404).json({ message: 'GradeSubject not found' });
         }
-
         res.status(200).json(updatedGradeSubject);
     } catch (err) {
         res.status(500).json({ message: 'Error updating GradeSubject', error: err });

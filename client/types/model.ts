@@ -45,7 +45,7 @@ export type CurriculumGrade = {
 }
 
 export type GradeSubject = {
-    _id: string;
+    _id?: string;
     curriculum_grade: string;
     subject: string;
     optional: boolean;

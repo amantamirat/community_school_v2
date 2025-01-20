@@ -5,6 +5,7 @@ import { MyService } from "./MyService";
 const CACHE_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
 const storageName = 'gradeSubjects';
 const cacheTimeStampName = 'gradeSubjectsCacheTimestamp'
+const update_endpoint = '/api/grade-subject/update';
 
 export const GradeSubjectService = {
 
@@ -37,6 +38,14 @@ export const GradeSubjectService = {
             localStorage.setItem(storageName, JSON.stringify(localData));
         }
         return createdData;
+    },
+
+    async updateGradeSubject(gradeSubject: GradeSubject): Promise<GradeSubject> {
+        if (gradeSubject._id) {
+            const updatedGradeSubject = await MyService.update(gradeSubject._id, gradeSubject, update_endpoint);
+            return updatedGradeSubject;
+        }
+        throw new Error('I told you, grade subject is required');
     },
 
     async deleteGradeSubject(id: string): Promise<boolean> {
