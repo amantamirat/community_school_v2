@@ -28,6 +28,8 @@ const RegisteredStudentsComponent = () => {
     const [gradeSection, setGradeSection] = useState<GradeSection>();
     const [showSectionDialog, setShowSectionDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [showDeregisterDialog, setShowDeregisterDialog] = useState(false);
+
 
     useEffect(() => {
         try {
@@ -88,8 +90,10 @@ const RegisteredStudentsComponent = () => {
                     life: 3000
                 });
                 setSelectedRegisteredStudents([]);
+                setShowDeregisterDialog(false);
             }
         } catch (error) {
+            setShowDeregisterDialog(false);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to deregister Students',
@@ -153,6 +157,21 @@ const RegisteredStudentsComponent = () => {
         </>
     );
 
+    const openDeregisterDialog = () => {
+        setShowDeregisterDialog(true);
+    };
+
+    const hideDeregisterDialog = () => {
+        setShowDeregisterDialog(false);
+    };
+
+    const deregisterDialogFooter = (
+        <>
+            <Button label="Cancel" icon="pi pi-times" text onClick={hideDeregisterDialog} />
+            <Button label="Deregister" icon="pi pi-check" text onClick={deregisterStudents} />
+        </>
+    );
+
     const startToolbarTemplate = () => {
         return (
             <>
@@ -167,7 +186,7 @@ const RegisteredStudentsComponent = () => {
         return (
             <>
                 <div className="my-2">
-                    <Button label="Deregister" icon={PrimeIcons.TRASH} severity="danger" className="mr-2" disabled={selectedRegisteredStudents.length == 0} onClick={deregisterStudents} />
+                    <Button label="Deregister" icon={PrimeIcons.TRASH} severity="danger" className="mr-2" disabled={selectedRegisteredStudents.length == 0} onClick={openDeregisterDialog} />
                 </div>
             </>
         );
@@ -255,6 +274,23 @@ const RegisteredStudentsComponent = () => {
                                 </div>
                             </> : <></>
                         }
+                    </Dialog>
+                    <Dialog
+                        visible={showDeregisterDialog}
+                        style={{ width: '450px' }}
+                        header="Confirm-Deregister"
+                        modal
+                        footer={deregisterDialogFooter}
+                        onHide={hideDeregisterDialog}
+                    >
+                        <div className="flex align-items-center justify-content-center">
+                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
+                            {selectedRegisteredStudents.length > 0 && (
+                                <span>
+                                    Are you sure you want to deregister <b>{selectedRegisteredStudents.length}</b> students?
+                                </span>
+                            )}
+                        </div>
                     </Dialog>
                 </div>
             </div>

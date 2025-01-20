@@ -1,4 +1,4 @@
-import { ClassificationGrade, Curriculum, Department, Grade, GradeSection, Student, StudentGrade, Subject, Teacher } from "./model";
+import { ClassificationGrade, Curriculum, Department, Grade, GradeSection, GradeSubject, Student, StudentGrade, Subject, Teacher } from "./model";
 
 export const departmentTemplate = (department: Department) => {
     return (
@@ -24,6 +24,9 @@ export const gradeTemplate = (grade: Grade) => {
 };
 
 export const teacherTemplate = (teacher: Teacher) => {
+    if (!teacher) {
+        return "";
+    }
     let prefix = ""
     if (teacher.sex === "Male") {
         prefix = "Mr. "
@@ -86,10 +89,22 @@ export const studentGradeTemplate = (studentGrde: StudentGrade) => {
     );
 };
 
-
 export const gradeSectionTemplate = (gradeSection: GradeSection) => {
     if (!gradeSection) {
         return "N/A";
     }
     return ("Section-" + gradeSection.section);
+};
+
+export const gradeSubjectTemplate = (gradeSubject: GradeSubject) => {
+    if (!gradeSubject) {
+        return <span>Please Select a Subject</span>
+    }
+    const subject = gradeSubject?.subject;
+    if (typeof subject === "object" && subject !== null) {
+        return subjectTemplate(subject);
+    }
+    return (
+        <>{subject}</>
+    );
 };

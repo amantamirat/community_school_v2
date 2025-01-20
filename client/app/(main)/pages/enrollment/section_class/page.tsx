@@ -5,6 +5,7 @@ import { GradeSubjectService } from "@/services/GradeSubjectService";
 import { SectionClassService } from "@/services/SectionClassService";
 import { TeacherService } from "@/services/TeacherService";
 import { GradeSection, GradeSubject, SectionClass, Teacher } from "@/types/model";
+import { gradeSubjectTemplate, teacherTemplate } from "@/types/templates";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
@@ -48,8 +49,10 @@ const SectionClassComponent = () => {
                 if (typeof selectedClassificationGrade.curriculum_grade === 'object') {
                     GradeSubjectService.getGradeSubjectsByCurriculumGrade(selectedClassificationGrade.curriculum_grade).then((data) => {
                         setGradeSubjects(data);
-                    });;
+                        //console.log(data);
+                    });
                 }
+                setSelectedGradeSection(null);
             }
         } catch (err) {
             toast.current?.show({
@@ -66,6 +69,7 @@ const SectionClassComponent = () => {
             if (selectedGradeSection) {
                 SectionClassService.getSectionClasssByGradeSection(selectedGradeSection).then((data) => {
                     setSectionClasss(data);
+                    console.log(data);
                 });
             } else {
                 setSectionClasss([])
@@ -114,8 +118,17 @@ const SectionClassComponent = () => {
             if (selectedSectionClass._id) {
                 let id = selectedSectionClass._id;
                 const updatedClass = await SectionClassService.updateSectionClass(id, selectedSectionClass);
-                const index = findIndexById(id);
-                _sectionClasss[index] = updatedClass;
+                const teacherObject = teachers.find(
+                    (teacher) => teacher._id === updatedClass.teacher
+                );
+                if (teacherObject) {
+                    const updatedSectionClass = {
+                        ...updatedClass,
+                        teacher: teacherObject,
+                    };
+                    const index = findIndexById(id);
+                    _sectionClasss[index] = updatedSectionClass;
+                }
             } else {
                 const newSectionClass = await SectionClassService.createSectionClass(selectedSectionClass);
                 _sectionClasss.push(newSectionClass);
@@ -168,11 +181,12 @@ const SectionClassComponent = () => {
     }
 
     const openSaveDialog = () => {
-        setSelectedSectionClass({ ...emptySectionClass });
-        setSubmitted(false);
-        setShowAddDialog(true);
+        if (selectedGradeSection) {
+            setSelectedSectionClass({ ...emptySectionClass, grade_section: selectedGradeSection });
+            setSubmitted(false);
+            setShowAddDialog(true);
+        }
     };
-
 
     const openEditDialog = (sectionClass: SectionClass) => {
         setSelectedSectionClass(sectionClass);
@@ -209,7 +223,7 @@ const SectionClassComponent = () => {
 
     const startToolbarTemplate = () => {
         return (
-            <div className="field col">
+            <div className="field">
                 <div id="section">
                     <Dropdown
                         value={selectedGradeSection || null}
@@ -226,12 +240,10 @@ const SectionClassComponent = () => {
         );
     };
 
-
-
     const endToolbarTemplate = () => {
         return (
             <div className="my-2">
-                <Button label="Add Subject" icon="pi pi-plus" className="mr-2" onClick={openSaveDialog} />
+                <Button label="Add Subject" icon="pi pi-plus" className="mr-2" onClick={openSaveDialog} disabled={!selectedGradeSection} />
             </div>
         );
     };
@@ -291,7 +303,7 @@ const SectionClassComponent = () => {
                         rows={15}
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
-                        <Column field="grade_subject" header="Subject" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="grade_subject.subject.title" header="Subject" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column header="Teacher" body={teacherBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
@@ -314,6 +326,8 @@ const SectionClassComponent = () => {
                                             onChange={(e) => setSelectedSectionClass({ ...selectedSectionClass, teacher: e.value })}
                                             placeholder="Select a Teacher"
                                             optionLabel="_id"
+                                            itemTemplate={teacherTemplate}
+                                            valueTemplate={teacherTemplate}
                                             filter
                                         />
                                     </div>
@@ -328,9 +342,12 @@ const SectionClassComponent = () => {
                                             onChange={(e) => setSelectedSectionClass({ ...selectedSectionClass, grade_subject: e.value })}
                                             placeholder="Select a Subject"
                                             optionLabel="_id"
+                                            itemTemplate={gradeSubjectTemplate}
+                                            valueTemplate={gradeSubjectTemplate}
                                             filter
                                             required
                                             autoFocus
+                                            emptyMessage="No Subjects Found."
                                             className={classNames({
                                                 'p-invalid': submitted && !selectedSectionClass.grade_subject,
                                             })}

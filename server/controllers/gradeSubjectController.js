@@ -22,7 +22,7 @@ exports.createGradeSubject = async (req, res) => {
 // Get all GradeSubjects by curriculum_grade
 exports.getGradeSubjectsByCurriculumGrade = async (req, res) => {
     try {
-        const gradeSubjects = await GradeSubject.find({ curriculum_grade: req.params.curriculum_grade });
+        const gradeSubjects = await GradeSubject.find({ curriculum_grade: req.params.curriculum_grade }).populate("subject");
         res.status(200).json(gradeSubjects);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching GradeSubjects', error: err });

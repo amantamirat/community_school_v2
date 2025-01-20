@@ -26,7 +26,10 @@ const SectionClassController = {
     getAllSectionClasssBySection: async (req, res) => {
         try {
             const { grade_section } = req.params;
-            const SectionClasss = await SectionClass.find({ grade_section: grade_section }).populate('teacher');
+            const SectionClasss = await SectionClass.find({ grade_section: grade_section }).populate('teacher').populate({
+                path: 'grade_subject',
+                populate: { path: 'subject', },
+            });;
             res.status(200).json(SectionClasss);
         } catch (error) {
             res.status(500).json({ message: error + "Error fetching Classs", error });
