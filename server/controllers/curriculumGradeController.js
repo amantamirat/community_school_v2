@@ -26,13 +26,13 @@ const CurriculumGradeController = {
     },
     deleteCurriculumGrade: async (req, res) => {
         try {
-            const subjectExists = await GradeSubject.findOne({ curriculum_grade: req.params.id });
+            const subjectExists = await GradeSubject.exists({ curriculum_grade: req.params.id });
             if (subjectExists) {
                 return res.status(400).json({
                     message: "Cannot delete, Subject Exist. It is associated with one or more Subjects.",
                 });
             }
-            const gradeExists = await ClassificationGrade.findOne({ curriculum_grade: req.params.id });
+            const gradeExists = await ClassificationGrade.exists({ curriculum_grade: req.params.id });
             if (gradeExists) {
                 return res.status(400).json({
                     message: "Cannot delete, Grade Registred. It is associated with one or more classification, try by removing classification grade first.",

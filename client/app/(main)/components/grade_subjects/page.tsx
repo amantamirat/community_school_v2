@@ -224,7 +224,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                     >
                         <Column field="subject.title" header="Subject" sortable></Column>
                         <Column field="subject.load" header="Load (hrs/week)" sortable ></Column>
-                        <Column field="optional" header="Optional" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        {/*<Column field="optional" header="Optional" sortable headerStyle={{ minWidth: '10rem' }}></Column>*/}
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
                     <Dialog

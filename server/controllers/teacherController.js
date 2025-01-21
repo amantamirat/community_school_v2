@@ -74,7 +74,7 @@ const teacherController = {
     deleteTeacher: async (req, res) => {
         try {
             const { id } = req.params;
-            const teacherExists = await SectionClass.findOne({ teacher: id });
+            const teacherExists = await SectionClass.exists({ teacher: id });
             if (teacherExists) {
                 return res.status(400).json({
                     message: "Cannot delete the teacher. It is associated with one or more class.",

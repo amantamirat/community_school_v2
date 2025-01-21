@@ -1,6 +1,7 @@
 const AcademicSession = require("../models/academic-session");
+const AdmissionClassification = require("../models/admission-classification");
 
-// Controller functions
+
 const AcademicSessionController = {
     // Create a new academicSession
     createAcademicSession: async (req, res) => {
@@ -43,14 +44,15 @@ const AcademicSessionController = {
     // Delete a academicSession
     deleteAcademicSession: async (req, res) => {
         try {
-            const { id } = req.params;
-            // Check if any teacher is associated with the academicSession
-            const exists = false;
-            if (exists) {
+            const { id } = req.params;          
+
+            const admissionExists = await AdmissionClassification.findOne({ academic_session: id });
+            if (admissionExists) {
                 return res.status(400).json({
-                    message: "Cannot delete the academicSession. It is associated.",
+                    message: "Cannot delete the Academic Session. It is associated with one or more Classifcation Admission.",
                 });
             }
+
             const academicSession = await AcademicSession.findByIdAndDelete(id);
             if (!academicSession) {
                 return res.status(404).json({ message: "Academic Session not found" });

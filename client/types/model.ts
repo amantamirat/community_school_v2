@@ -59,7 +59,7 @@ export type SubjectWeight = {
 }
 
 export type AcademicSession = {
-    _id: string;
+    _id?: string;
     academic_year: number; // Year of the session, e.g., 2023
     start_date: Date | null;
     end_date: Date | null;
@@ -67,7 +67,7 @@ export type AcademicSession = {
 };
 
 export type AdmissionClassification = {
-    _id: string;
+    _id?: string;
     academic_session: AcademicSession | string;
     classification: 'REGULAR' | 'EVENING' | 'DISTANCE';
     curriculum: Curriculum | string;

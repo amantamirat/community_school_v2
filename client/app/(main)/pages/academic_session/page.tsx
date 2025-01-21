@@ -7,8 +7,7 @@ import { Calendar } from 'primereact/calendar';
 import { Column } from 'primereact/column';
 import { DataTable, DataTableExpandedRows, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
-import { InputNumber, InputNumberValueChangeEvent } from 'primereact/inputnumber';
-import { InputSwitch } from 'primereact/inputswitch';
+import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
@@ -21,7 +20,6 @@ import ClassificationComponent from '../../components/admission_classification/p
 const AcademicSessionPage = () => {
 
     let emptyAcademicSession: AcademicSession = {
-        _id: '',
         academic_year: 1970,
         start_date: null,
         end_date: null,
@@ -31,7 +29,6 @@ const AcademicSessionPage = () => {
     const [academicSessions, setAcademicSessions] = useState<AcademicSession[]>([]);
     const [selectedAcademicSession, setSelectedAcademicSession] = useState<AcademicSession>(emptyAcademicSession);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
-    const [editMode, setEditMode] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
@@ -75,9 +72,9 @@ const AcademicSessionPage = () => {
         }
         let _academicSessions = [...(academicSessions as any)];
         try {
-            if (editMode) {
-                let id = selectedAcademicSession._id || '';
-                const updatedAcademicSession = await AcademicSessionService.updateAcademicSession(id, selectedAcademicSession);
+            if (selectedAcademicSession._id) {
+                let id = selectedAcademicSession._id;
+                const updatedAcademicSession = await AcademicSessionService.updateAcademicSession(selectedAcademicSession);
                 const index = findIndexById(id);
                 _academicSessions[index] = updatedAcademicSession;
             } else {
@@ -87,21 +84,20 @@ const AcademicSessionPage = () => {
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
-                detail: `AcademicSession ${editMode ? 'Updated' : 'Created'}`,
+                detail: `AcademicSession ${selectedAcademicSession._id ? 'Updated' : 'Created'}`,
                 life: 3000
             });
 
         } catch (error) {
             toast.current?.show({
                 severity: 'error',
-                summary: `Failed to ${editMode ? 'update' : 'create'} Academic Session`,
+                summary: `Failed to ${selectedAcademicSession._id ? 'update' : 'create'} Academic Session`,
                 detail: '' + error,
                 life: 3000
             });
         }
         setAcademicSessions(_academicSessions as any);
         setShowSaveDialog(false);
-        setEditMode(false);
         setSelectedAcademicSession(emptyAcademicSession);
     };
 
@@ -119,7 +115,7 @@ const AcademicSessionPage = () => {
 
     const deleteAcademicSession = async () => {
         try {
-            const deleted = await AcademicSessionService.deleteAcademicSession(selectedAcademicSession._id || "");
+            const deleted = await AcademicSessionService.deleteAcademicSession(selectedAcademicSession);
             if (deleted) {
                 let _academicSessions = (academicSessions as any)?.filter((val: any) => val._id !== selectedAcademicSession._id);
                 setAcademicSessions(_academicSessions);
@@ -143,14 +139,12 @@ const AcademicSessionPage = () => {
         setSelectedAcademicSession(emptyAcademicSession);
     };
     const openSaveDialog = () => {
-        setEditMode(false);
         setSelectedAcademicSession(emptyAcademicSession);
         setSubmitted(false);
         setShowSaveDialog(true);
     };
 
     const openEditDialog = (academicSession: AcademicSession) => {
-        setEditMode(true);
         setSelectedAcademicSession({ ...academicSession });
         setSubmitted(false);
         setShowSaveDialog(true);
@@ -271,7 +265,7 @@ const AcademicSessionPage = () => {
                     <Dialog
                         visible={showSaveDialog}
                         style={{ width: '450px' }}
-                        header={editMode ? 'Edit AcademicSession Details' : 'New AcademicSession Details'}
+                        header={selectedAcademicSession?._id ? 'Edit AcademicSession Details' : 'New AcademicSession Details'}
                         modal
                         className="p-fluid"
                         footer={saveDialogFooter}
@@ -279,11 +273,11 @@ const AcademicSessionPage = () => {
                     >
                         {selectedAcademicSession ? <>
                             <div className="field">
-                                <label htmlFor="year">Session Year</label>
+                                <label htmlFor="year">Academic Year</label>
                                 <InputNumber
                                     id="year"
                                     value={selectedAcademicSession.academic_year}
-                                    onChange={(e) => setSelectedAcademicSession({ ...selectedAcademicSession, academic_year: e.value || 1990 })}
+                                    onChange={(e) => setSelectedAcademicSession({ ...selectedAcademicSession, academic_year: e.value || 0 })}
                                     mode="decimal" // Basic number mode
                                     useGrouping={false} // No thousand separator
                                     required

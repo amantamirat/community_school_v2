@@ -161,7 +161,7 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
     const header = () => {
         return (
             <>
-                <Button label="Add Grade" icon="pi pi-plus" severity="success" className="mr-2" onClick={openAddDialog} />
+                <Button label="Add Grade" icon="pi pi-plus" severity="help" outlined className="mr-2" onClick={openAddDialog} />
             </>
         );
     }

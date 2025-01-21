@@ -60,8 +60,8 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
                 ? props.addmission_classification.curriculum
                 : props.addmission_classification.curriculum?._id;
             if (curriculumId) {
-                const data = await CurriculumGradeService.getCurriculumGradesByCurriculum(curriculumId);
-                setCurriculumGrades(data);
+                //const data = await CurriculumGradeService.getCurriculumGradesByCurriculum(curriculumId);
+                //setCurriculumGrades(data);
             }
         } catch (err) {
             //console.error('Failed to load grades:', err);
@@ -185,7 +185,7 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
     const startToolbarTemplate = () => {
         return (
             <div className="my-2">
-                <Button label="Add Grade" icon="pi pi-plus" severity="success" className="mr-2" onClick={openAddDialog} />
+                <Button label="Add Grade" icon="pi pi-plus" raised severity="secondary" rounded className="mr-2" onClick={openAddDialog} />
             </div>
         );
     };
@@ -204,8 +204,8 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
     };
 
     const gradeBodyTemplate = (rowData: ClassificationGrade) => {
-        const grade = typeof rowData.curriculum_grade === "string" ? findGradeById(findCurriculumGradeById(rowData.curriculum_grade)?.grade || '') : '';
-        return gradeTemplate(grade as Grade);
+        //const grade = typeof rowData.curriculum_grade === "string" ? findGradeById(findCurriculumGradeById(rowData.curriculum_grade)?.grade || '') : '';
+       // return gradeTemplate(grade as Grade);
     };
 
 
@@ -238,7 +238,7 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} grades"
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
-                        <Column field="curriculum_grade" header="Curriculum Grade" body={gradeBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="_id" header="Curriculum Grade"  sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
                     <Dialog

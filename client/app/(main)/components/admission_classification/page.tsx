@@ -2,10 +2,10 @@
 import { AdmissionClassificationService } from '@/services/AdmissionClassificationService';
 import { CurriculumService } from '@/services/CurriculumService';
 import { AcademicSession, AdmissionClassification, Curriculum } from '@/types/model';
-import { FilterMatchMode } from 'primereact/api';
+import { curriculumTemplate } from '@/types/templates';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
-import { DataTable, DataTableExpandedRows, DataTableFilterMeta } from 'primereact/datatable';
+import { DataTable, DataTableExpandedRows } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { Toast } from 'primereact/toast';
@@ -13,7 +13,6 @@ import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
 import ClassificationGradeComponent from '../classification_grade/page';
-import { curriculumTemplate } from '@/types/templates';
 
 interface AdmissionClassificationProps {
     academic_session: AcademicSession;
@@ -23,7 +22,6 @@ interface AdmissionClassificationProps {
 const ClassificationComponent = (props: AdmissionClassificationProps) => {
 
     let emptyAdmissionClassification: AdmissionClassification = {
-        _id: '',
         academic_session: props.academic_session,
         classification: "REGULAR",
         curriculum: ''
@@ -32,7 +30,6 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
     const [admissionClassifications, setAdmissionClassifications] = useState<AdmissionClassification[]>([]);
     const [selectedAdmissionClassification, setSelectedAdmissionClassification] = useState<AdmissionClassification>(emptyAdmissionClassification);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
-    const [editMode, setEditMode] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
@@ -61,7 +58,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
 
     const loadAdmissionClassifications = async () => {
         try {
-            const data = await AdmissionClassificationService.getAcademicSessionClassifications(props.academic_session._id);
+            const data = await AdmissionClassificationService.getAcademicSessionClassifications(props.academic_session);
             setAdmissionClassifications(data);
         } catch (err) {
             toast.current?.show({
@@ -73,8 +70,21 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
         }
     };
 
+    const checkClassification = (classification: AdmissionClassification) => {
+        if ((classification.curriculum as Curriculum).classification !== classification.classification) {
+            toast.current?.show({
+                severity: 'error',
+                summary: `Failed to create Admission Classification`,
+                detail: 'Classification Mismatch',
+                life: 3000
+            });
+            return false;
+        }
+        return true;
+    }
+
     const validateAdmissionClassification = (classification: AdmissionClassification) => {
-        if (!classification.academic_session || !classification.curriculum) {
+        if (!checkClassification(classification) || !classification.academic_session || !classification.curriculum) {
             return false;
         }
         return true;
@@ -85,53 +95,35 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
         if (!validateAdmissionClassification(selectedAdmissionClassification)) {
             return
         }
-        //if(selectedAdmissionClassification.classification!==){}
         let _admissionClassifications = [...(admissionClassifications as any)];
         try {
-            if (editMode) {
-                let id = selectedAdmissionClassification._id || '';
-                const updatedAdmissionClassification = await AdmissionClassificationService.updateAdmissionClassification(id, selectedAdmissionClassification);
-                const index = findIndexById(id);
-                _admissionClassifications[index] = updatedAdmissionClassification;
-            } else {
-                const newAdmissionClassification = await AdmissionClassificationService.createAdmissionClassification(selectedAdmissionClassification);
-                _admissionClassifications.push(newAdmissionClassification);
-            }
+            const newAdmissionClassification = await AdmissionClassificationService.createAdmissionClassification(selectedAdmissionClassification);
+            _admissionClassifications.push(newAdmissionClassification);
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
-                detail: `AdmissionClassification ${editMode ? 'Updated' : 'Created'}`,
+                detail: `AdmissionClassification Created'}`,
                 life: 3000
             });
         } catch (error) {
             toast.current?.show({
                 severity: 'error',
-                summary: `Failed to ${editMode ? 'update' : 'create'} Admission Classification`,
+                summary: `Failed to create Admission Classification`,
                 detail: '' + error,
                 life: 3000
             });
         }
         setAdmissionClassifications(_admissionClassifications as any);
         setShowSaveDialog(false);
-        setEditMode(false);
         setSelectedAdmissionClassification(emptyAdmissionClassification);
     };
 
 
-    const findIndexById = (id: string) => {
-        let index = -1;
-        for (let i = 0; i < (admissionClassifications as any)?.length; i++) {
-            if ((admissionClassifications as any)[i]._id === id) {
-                index = i;
-                break;
-            }
-        }
-        return index;
-    };
+
 
     const deleteAdmissionClassification = async () => {
         try {
-            const deleted = await AdmissionClassificationService.deleteAdmissionClassification(selectedAdmissionClassification._id || "");
+            const deleted = await AdmissionClassificationService.deleteAdmissionClassification(selectedAdmissionClassification);
             if (deleted) {
                 let _admissionClassifications = (admissionClassifications as any)?.filter((val: any) => val._id !== selectedAdmissionClassification._id);
                 setAdmissionClassifications(_admissionClassifications);
@@ -143,7 +135,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
                 });
             }
         } catch (error) {
-            console.error(error);
+            //console.error(error);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to delete admissionClassifications',
@@ -155,20 +147,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
         setSelectedAdmissionClassification(emptyAdmissionClassification);
     };
     const openSaveDialog = () => {
-        setEditMode(false);
         setSelectedAdmissionClassification(emptyAdmissionClassification);
-        setSubmitted(false);
-        setShowSaveDialog(true);
-    };
-
-    const openEditDialog = (admissionClassification: AdmissionClassification) => {
-        setEditMode(true);
-        setSelectedAdmissionClassification({
-            ...admissionClassification,
-            curriculum: (admissionClassification.curriculum && typeof admissionClassification.curriculum === 'string')
-                ? findCurriculumById(admissionClassification.curriculum) || admissionClassification.curriculum
-                : admissionClassification.curriculum,
-        });
         setSubmitted(false);
         setShowSaveDialog(true);
     };
@@ -205,7 +184,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
         return (
             <React.Fragment>
                 <div className="my-2">
-                    <Button label="Add Classification" icon="pi pi-plus" severity="success" className="mr-2" onClick={openSaveDialog} />
+                    <Button label="Add Classification" icon="pi pi-plus"  className="mr-2" onClick={openSaveDialog} />
                 </div>
             </React.Fragment>
         );
@@ -224,13 +203,12 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
     };
     const curriculumBodyTemplate = (rowData: AdmissionClassification) => {
         const curriculum = typeof rowData.curriculum === "string" ? findCurriculumById(rowData.curriculum) : rowData.curriculum;
-        return curriculum?curriculumTemplate(curriculum as Curriculum):<></>;
+        return curriculum ? curriculumTemplate(curriculum as Curriculum) : <></>;
     };
 
     const actionBodyTemplate = (rowData: AdmissionClassification) => {
         return (
             <>
-                <Button icon="pi pi-pencil" rounded severity="success" className="mr-2" onClick={() => openEditDialog(rowData)} />
                 <Button icon="pi pi-trash" rounded severity="warning" onClick={() => confirmDeleteItem(rowData)} />
             </>
         );
@@ -272,7 +250,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
                     <Dialog
                         visible={showSaveDialog}
                         style={{ width: '450px' }}
-                        header={editMode ? 'Edit Classification Details' : 'New Classification Details'}
+                        header={'New Classification Details'}
                         modal
                         className="p-fluid"
                         footer={saveDialogFooter}

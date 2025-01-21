@@ -26,10 +26,10 @@ const GradeSubjectController = {
     },
     updateGradeSubject: async (req, res) => {
         try {
-            const { curriculum_grade, subject, optional } = req.body;
+            const { optional } = req.body;
             const updatedGradeSubject = await GradeSubject.findByIdAndUpdate(
                 req.params.id,
-                { curriculum_grade, subject, optional },
+                { optional },
                 { new: true }
             );
             if (!updatedGradeSubject) {

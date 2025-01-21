@@ -4,12 +4,14 @@ const GradeSubjectSchema = new mongoose.Schema({
     curriculum_grade: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'CurriculumGrade',
-        required: true
+        required: true,
+        immutable: true
     },
     subject: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Subject',
-        required: true
+        required: true,
+        immutable: true
     },
     optional: {
         type: Boolean,

@@ -12,18 +12,24 @@ export const AcademicSessionService = {
         return data as AcademicSession[];
     },
 
-    async createAcademicSession(academicSession: Partial<AcademicSession>): Promise<AcademicSession> {
+    async createAcademicSession(academicSession: AcademicSession): Promise<AcademicSession> {
         const createdData = await MyService.create(academicSession, create_endpoint);
         return createdData;
 
     },
-    async updateAcademicSession(id: string, academicSession: Partial<AcademicSession>): Promise<AcademicSession> {
-        const updatedAcademicSession = await MyService.update(id, academicSession, update_endpoint);
-        return updatedAcademicSession;
+    async updateAcademicSession(academicSession: Partial<AcademicSession>): Promise<AcademicSession> {
+        if (academicSession._id) {
+            const updatedAcademicSession = await MyService.update(academicSession._id, academicSession, update_endpoint);
+            return updatedAcademicSession;
+        }
+        throw new Error("_id is required.");
     },
 
-    async deleteAcademicSession(id: string): Promise<boolean> {
-        const response = await MyService.delete(id, delete_endpoint);
-        return response;
+    async deleteAcademicSession(academicSession: AcademicSession): Promise<boolean> {
+        if (academicSession._id) {
+            const response = await MyService.delete(academicSession._id, delete_endpoint);
+            return response;
+        }
+        throw new Error("_id is required.");
     },
 };

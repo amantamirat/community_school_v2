@@ -1,5 +1,5 @@
 'use client';
-import { ClassificationGradeProvider, useClassificationGrade } from '@/app/(main)/contexts/classificationGradeContext';
+import { useClassificationGrade } from '@/app/(main)/contexts/classificationGradeContext';
 import { AcademicSessionService } from '@/services/AcademicSessionService';
 import { AdmissionClassificationService } from '@/services/AdmissionClassificationService';
 import { ClassificationGradeService } from '@/services/ClassificationGradeService';
@@ -27,7 +27,18 @@ const Layout = ({ children }: ChildContainerProps) => {
 
     useEffect(() => {
         if (selectedAcademicSession) {
-            loadAdmissionClassifications();
+            try {
+                AdmissionClassificationService.getAcademicSessionClassifications(selectedAcademicSession).then((data) => {
+                    setAdmissionClassifications(data);
+                });
+            } catch (err) {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load admission Classifications',
+                    detail: '' + err,
+                    life: 3000
+                });
+            }
         }
     }, [selectedAcademicSession]);
 
@@ -57,24 +68,9 @@ const Layout = ({ children }: ChildContainerProps) => {
         }
     };
 
-    const loadAdmissionClassifications = async () => {
-        try {
-            const data = await AdmissionClassificationService.getAcademicSessionClassifications(selectedAcademicSession?._id || '');
-            setAdmissionClassifications(data); // Update state with fetched data
-        } catch (err) {
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load admission Classifications',
-                detail: '' + err,
-                life: 3000
-            });
-        }
-    };
-
     const loadClassificationGrades = async () => {
         try {
-            const data = await ClassificationGradeService.getClassificationGradesByClassification(selectedAdmissionClassification?._id ?? '');
-            //console.log(data);
+            const data = await ClassificationGradeService.getClassificationGradesByClassification(selectedAdmissionClassification?._id ?? '');           
             setClassificationGrades(data); // Update state with fetched data
         } catch (err) {
             toast.current?.show({

@@ -45,7 +45,7 @@ const departmentController = {
         try {
             const { id } = req.params;
             // Check if any teacher is associated with the department
-            const teacherExists = await Teacher.findOne({ department: id });
+            const teacherExists = await Teacher.exists({ department: id });
             if (teacherExists) {
                 return res.status(400).json({
                     message: "Cannot delete the department. It is associated with one or more teachers.",

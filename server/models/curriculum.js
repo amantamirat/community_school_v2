@@ -19,10 +19,12 @@ const CurriculumSchema = new mongoose.Schema({
     },
     maximum_point: {
         type: Number,
+        default: 100,
         required: true
     },
     minimum_pass_mark: {
         type: Number,
+        default: 50,
         required: true
     },
     

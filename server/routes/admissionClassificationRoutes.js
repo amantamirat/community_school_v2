@@ -3,9 +3,7 @@ const admissionClassificationController = require("../controllers/admissionClass
 const router = express.Router();
 
 router.post("/create", admissionClassificationController.createAdmissionClassification);
-router.get("/", admissionClassificationController.getAllAdmissionClassifications);
-router.put("/update/:id", admissionClassificationController.updateAdmissionClassification);
 router.delete("/delete/:id", admissionClassificationController.deleteAdmissionClassification);
-router.get("/findByAcademicSession/:id", admissionClassificationController.getAcademicSessionClassifications);
+router.get("/academic_session/:academic_session", admissionClassificationController.getAcademicSessionClassifications);
 
 module.exports = router;
