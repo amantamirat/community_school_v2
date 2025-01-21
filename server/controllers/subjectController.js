@@ -1,5 +1,5 @@
 const Subject = require("../models/subject");
-const Curriculum = require("../models/curriculum");
+const GradeSubject = require('../models/grade-subject');
 
 // Controller functions
 const subjectController = {
@@ -30,10 +30,10 @@ const subjectController = {
     updateSubject: async (req, res) => {
         try {
             const { id } = req.params;
-            const isReferenced = await Curriculum.findOne({ 'grades.subjects.subject': id });
+            const isReferenced = await GradeSubject.findOne({ 'subject': id });
             if (isReferenced) {
                 return res.status(400).json({
-                    message: "Cannot delete subject as it is referenced in a curriculum.",
+                    message: "Cannot update subject as it is referenced in a curriculum.",
                 });
             }
             const { title, load } = req.body;
@@ -51,7 +51,7 @@ const subjectController = {
     deleteSubject: async (req, res) => {
         try {
             const { id } = req.params;
-            const isReferenced = await Curriculum.findOne({ 'grades.subjects.subject': id });
+            const isReferenced = await GradeSubject.findOne({ 'subject': id });
             if (isReferenced) {
                 return res.status(400).json({
                     message: "Cannot delete subject as it is referenced in a curriculum.",

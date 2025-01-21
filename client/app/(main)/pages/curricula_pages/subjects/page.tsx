@@ -25,7 +25,6 @@ const SubjectPage = () => {
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [selectedSubject, setSelectedSubject] = useState<Subject>(emptySubject);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
-    const [editMode, setEditMode] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
@@ -69,51 +68,32 @@ const SubjectPage = () => {
             return;
         }
         let _subjects = [...(subjects as any)];
-        if (editMode) {
-            try {
-                let id = selectedSubject._id || '';
-                const updatedSubject = await SubjectService.updateSubject(id, selectedSubject);
-                const index = findIndexById(id);
+        try {
+            if (selectedSubject._id) {
+                const updatedSubject = await SubjectService.updateSubject(selectedSubject);
+                const index = findIndexById(selectedSubject._id);
                 _subjects[index] = updatedSubject;
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Subject Updated',
-                    life: 3000
-                });
-            } catch (error) {
-                console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to update subject',
-                    detail: '' + error,
-                    life: 3000
-                });
-            }
-        } else {
-            try {
+            } else {
                 const newSubject = await SubjectService.createSubject(selectedSubject);
-                console.log("Created Subject:", newSubject);
                 _subjects.push(newSubject);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Subject Created',
-                    life: 3000
-                });
-            } catch (error) {
-                console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to create subjects',
-                    detail: '' + error,
-                    life: 3000
-                });
             }
+            toast.current?.show({
+                severity: 'success',
+                summary: 'Successful',
+                detail: `Subject ${selectedSubject._id ? "updated" : 'created'}`,
+                life: 3000
+            });
+        } catch (error) {
+            //console.error(error);
+            toast.current?.show({
+                severity: 'error',
+                summary: `Failed to ${selectedSubject._id ? "update" : 'create'} subject`,
+                detail: '' + error,
+                life: 3000
+            });
         }
-        setSubjects(_subjects as any);
+        setSubjects(_subjects);
         setShowSaveDialog(false);
-        setEditMode(false);
         setSelectedSubject(emptySubject);
     };
 
@@ -131,16 +111,18 @@ const SubjectPage = () => {
 
     const deleteSubject = async () => {
         try {
-            const deleted = await SubjectService.deleteSubject(selectedSubject._id || "");
-            if (deleted) {
-                let _subjects = (subjects as any)?.filter((val: any) => val._id !== selectedSubject._id);
-                setSubjects(_subjects);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Subject Deleted',
-                    life: 3000
-                });
+            if (selectedSubject._id) {
+                const deleted = await SubjectService.deleteSubject(selectedSubject);
+                if (deleted) {
+                    let _subjects = (subjects as any)?.filter((val: any) => val._id !== selectedSubject._id);
+                    setSubjects(_subjects);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Subject Deleted',
+                        life: 3000
+                    });
+                }
             }
         } catch (error) {
             console.error(error);
@@ -155,14 +137,12 @@ const SubjectPage = () => {
         setSelectedSubject(emptySubject);
     };
     const openSaveDialog = () => {
-        setEditMode(false);
         setSelectedSubject(emptySubject);
         setSubmitted(false);
         setShowSaveDialog(true);
     };
 
     const openEditDialog = (subject: Subject) => {
-        setEditMode(true);
         setSelectedSubject({ ...subject });
         setSubmitted(false);
         setShowSaveDialog(true);
@@ -274,7 +254,7 @@ const SubjectPage = () => {
                     <Dialog
                         visible={showSaveDialog}
                         style={{ width: '450px' }}
-                        header={editMode ? 'Edit Subject Details' : 'New Subject Details'}
+                        header={selectedSubject?._id ? 'Edit Subject Details' : 'New Subject Details'}
                         modal
                         className="p-fluid"
                         footer={saveDialogFooter}
