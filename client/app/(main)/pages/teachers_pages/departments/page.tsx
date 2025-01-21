@@ -21,7 +21,6 @@ const DepartmentPage = () => {
     const [departments, setDepartments] = useState<Department[] | null>(null);
     const [selectedDepartment, setSelectedDepartment] = useState<Department>(emptyDepartment);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
-    const [editMode, setEditMode] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
@@ -36,10 +35,11 @@ const DepartmentPage = () => {
 
     const loadDepartments = async () => {
         try {
-            const data = await DepartmentService.getDepartments();
-            setDepartments(data); // Update state with fetched data
+            DepartmentService.getDepartments().then((data) => {
+                setDepartments(data);
+            });
         } catch (err) {
-            console.error('Failed to load departments:', err);
+            //console.error('Failed to load departments:', err);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to load departments',
@@ -49,12 +49,9 @@ const DepartmentPage = () => {
         }
     };
 
-    const validateDepartment = (department: any) => {
-        const requiredFields = ['name'];
-        for (const field of requiredFields) {
-            if (!department[field] || department[field].trim() === '') {
-                return false;
-            }
+    const validateDepartment = (department: Department) => {
+        if (department.name.trim() === "") {
+            return false;
         }
         return true;
     };
@@ -65,51 +62,33 @@ const DepartmentPage = () => {
             return;
         }
         let _departments = [...(departments as any)];
-        if (editMode) {
-            try {
-                let id = selectedDepartment._id || '';
-                const updatedDepartment = await DepartmentService.updateDepartment(id, selectedDepartment);
-                const index = findIndexById(id);
+        try {
+            if (selectedDepartment._id) {
+                const updatedDepartment = await DepartmentService.updateDepartment(selectedDepartment);
+                const index = findIndexById(selectedDepartment._id);
                 _departments[index] = updatedDepartment;
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Department Updated',
-                    life: 3000
-                });
-            } catch (error) {
-                console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to update department',
-                    detail: '' + error,
-                    life: 3000
-                });
-            }
-        } else {
-            try {
+            } else {
                 const newDepartment = await DepartmentService.createDepartment(selectedDepartment);
-                //console.log("Created Department:", newDepartment);
                 _departments.push(newDepartment);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Department Created',
-                    life: 3000
-                });
-            } catch (error) {
-                //console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to create departments',
-                    detail: '' + error,
-                    life: 3000
-                });
             }
+            toast.current?.show({
+                severity: 'success',
+                summary: 'Successful',
+                detail: `Department ${selectedDepartment._id ? "updated" : 'created'}`,
+                life: 3000
+            });
+        } catch (error) {
+            console.error(error);
+            toast.current?.show({
+                severity: 'error',
+                summary: `Failed to ${selectedDepartment._id ? "update" : 'create'} department`,
+                detail: '' + error,
+                life: 3000
+            });
         }
+
         setDepartments(_departments as any);
         setShowSaveDialog(false);
-        setEditMode(false);
         setSelectedDepartment(emptyDepartment);
 
     };
@@ -128,16 +107,18 @@ const DepartmentPage = () => {
 
     const deleteDepartment = async () => {
         try {
-            const deleted = await DepartmentService.deleteDepartment(selectedDepartment._id || "");
-            if (deleted) {
-                let _departments = (departments as any)?.filter((val: any) => val._id !== selectedDepartment._id);
-                setDepartments(_departments);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Department Deleted',
-                    life: 3000
-                });
+            if (selectedDepartment._id) {
+                const deleted = await DepartmentService.deleteDepartment(selectedDepartment);
+                if (deleted) {
+                    let _departments = (departments as any)?.filter((val: any) => val._id !== selectedDepartment._id);
+                    setDepartments(_departments);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Department Deleted',
+                        life: 3000
+                    });
+                }
             }
         } catch (error) {
             console.error(error);
@@ -153,14 +134,12 @@ const DepartmentPage = () => {
     };
 
     const openSaveDialog = () => {
-        setEditMode(false);
         setSelectedDepartment(emptyDepartment);
         setSubmitted(false);
         setShowSaveDialog(true);
     };
 
     const openEditDialog = (department: Department) => {
-        setEditMode(true);
         setSelectedDepartment({ ...department });
         setSubmitted(false);
         setShowSaveDialog(true);
@@ -226,7 +205,7 @@ const DepartmentPage = () => {
             <h5 className="m-0">Manage Departments</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <i className="pi pi-search" />
-                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search Dep't..." className="w-full md:w-1/3"/>
+                <InputText type="search" value={globalFilter} onChange={onGlobalFilterChange} placeholder="Search Dep't..." className="w-full md:w-1/3" />
             </span>
         </div>
     );
@@ -285,7 +264,7 @@ const DepartmentPage = () => {
                     <Dialog
                         visible={showSaveDialog}
                         style={{ width: '450px' }}
-                        header={editMode ? 'Edit Department Details' : 'New Department Details'}
+                        header={selectedDepartment?._id ? 'Edit Department Details' : 'New Department Details'}
                         modal
                         className="p-fluid"
                         footer={saveDialogFooter}

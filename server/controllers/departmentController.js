@@ -15,10 +15,8 @@ const departmentController = {
         }
     },
 
-    // Get all departments
     getAllDepartments: async (req, res) => {
         try {
-            //console.log("request for department");
             const departments = await Department.find();
             res.status(200).json(departments);
         } catch (error) {

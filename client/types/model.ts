@@ -1,6 +1,6 @@
 export type Department = {
     _id?: string;
-    name: string;
+    name: string;//change to department_name
 };
 
 export type Teacher = {

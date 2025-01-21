@@ -25,7 +25,7 @@ const teacherController = {
    
     getAllTeachers: async (req, res) => {
         try {
-            const teachers = await Teacher.find();
+            const teachers = await Teacher.find().populate('department');
             res.status(200).json(teachers);
         } catch (error) {
             res.status(500).json({ message: "Error fetching teachers", error });

@@ -1,7 +1,7 @@
 'use client';
 import { DepartmentService } from '@/services/DepartmentService';
 import { TeacherService } from '@/services/TeacherService';
-import { Teacher, Department } from '@/types/model'; // Define Teacher type in types/model.ts
+import { Teacher, Department } from '@/types/model';
 import { departmentTemplate } from '@/types/templates';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
@@ -28,7 +28,6 @@ const TeacherPage = () => {
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher>(emptyTeacher);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
-    const [editMode, setEditMode] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
@@ -41,37 +40,6 @@ const TeacherPage = () => {
         loadDepartments();
         loadTeachers();
     }, []);
-
-    const loadDepartments = async () => {
-        try {
-            const data = await DepartmentService.getDepartments();
-            setDepartments(data); // Update state with fetched data
-        } catch (err) {
-            console.error('Failed to load departments:', err);
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load departments',
-                detail: '' + err,
-                life: 3000
-            });
-        }
-    };
-
-    const loadTeachers = async () => {
-        try {
-            const data = await TeacherService.getTeachers();
-            //const populatedTeachers = data.map(teacher => populateDepartment(teacher));           
-            setTeachers(data);
-        } catch (err) {
-            //console.error('Failed to load teachers:', err);
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load teachers',
-                detail: '' + err,
-                life: 3000
-            });
-        }
-    };
 
     const initFilters = () => {
         setFilters({
@@ -88,6 +56,38 @@ const TeacherPage = () => {
         setGlobalFilter(value);
     };
 
+    const loadDepartments = async () => {
+        try {
+            DepartmentService.getDepartments().then((data) => {
+                setDepartments(data);
+            });
+        } catch (err) {
+            console.error('Failed to load departments:', err);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load departments',
+                detail: '' + err,
+                life: 3000
+            });
+        }
+    };
+
+    const loadTeachers = async () => {
+        try {
+            TeacherService.getTeachers().then((data) => {
+                setTeachers(data);
+            });
+        } catch (err) {
+            //console.error('Failed to load teachers:', err);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load teachers',
+                detail: '' + err,
+                life: 3000
+            });
+        }
+    };
+
     const validateTeacher = (teacher: Teacher) => {
         if (teacher.first_name.trim() === '' || teacher.last_name.trim() === '' || teacher.middle_name.trim() === '' || !teacher.department) {
             return false;
@@ -101,50 +101,39 @@ const TeacherPage = () => {
         if (!validateTeacher(selectedTeacher)) {
             return;
         }
-        if (editMode) {
-            try {
-                let id = selectedTeacher._id || '';
-                const updatedTeacher = await TeacherService.updateTeacher(id, selectedTeacher);
-                const index = findIndexById(id);
-                _teachers[index] = updatedTeacher;
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Teacher Updated',
-                    life: 3000
+        try {
+            if (selectedTeacher._id) {
+                TeacherService.updateTeacher(selectedTeacher).then((updatedTeacher) => {
+                    if (updatedTeacher._id) {
+                        const teacher = { ...selectedTeacher }
+                        const index = findIndexById(updatedTeacher._id);
+                        _teachers[index] = teacher;
+                        setTeachers(_teachers);
+                    }
                 });
-            } catch (error) {
-                //console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to update teacher',
-                    detail: '' + error,
-                    life: 3000
+            } else {
+                TeacherService.createTeacher(selectedTeacher).then((newTeacher) => {
+                    const teacher = { ...selectedTeacher, _id: newTeacher._id }
+                    _teachers.push(teacher);
+                    setTeachers(_teachers);
                 });
             }
-        } else {
-            try {
-                const newTeacher = await TeacherService.createTeacher(selectedTeacher);
-                _teachers.push(newTeacher);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Teacher Created',
-                    life: 3000
-                });
-            } catch (error) {
-                //console.error(error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to create teacher',
-                    detail: '' + error,
-                    life: 3000
-                });
-            }
+            toast.current?.show({
+                severity: 'success',
+                summary: 'Successful',
+                detail: `Teacher ${selectedTeacher._id ? "updated" : 'created'}`,
+                life: 3000
+            });
+        } catch (error) {
+            //console.error(error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to update teacher',
+                detail: '' + error,
+                life: 3000
+            });
         }
-        setTeachers(_teachers);
         setShowSaveDialog(false);
-        setEditMode(false);
         setSelectedTeacher(emptyTeacher);
     };
 
@@ -161,16 +150,18 @@ const TeacherPage = () => {
 
     const deleteTeacher = async () => {
         try {
-            const deleted = await TeacherService.deleteTeacher(selectedTeacher._id || "");
-            if (deleted) {
-                let _teachers = (teachers as any)?.filter((val: any) => val._id !== selectedTeacher._id);
-                setTeachers(_teachers);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Teacher Deleted',
-                    life: 3000
-                });
+            if (selectedTeacher._id) {
+                const deleted = await TeacherService.deleteTeacher(selectedTeacher);
+                if (deleted) {
+                    let _teachers = (teachers as any)?.filter((val: any) => val._id !== selectedTeacher._id);
+                    setTeachers(_teachers);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Teacher Deleted',
+                        life: 3000
+                    });
+                }
             }
         } catch (error) {
             console.error(error);
@@ -186,20 +177,20 @@ const TeacherPage = () => {
     };
 
     const openSaveDialog = () => {
-        setEditMode(false);
         setSelectedTeacher(emptyTeacher);
         setSubmitted(false);
         setShowSaveDialog(true);
     };
 
     const openEditDialog = (teacher: Teacher) => {
-        setEditMode(true);
+        /*
         setSelectedTeacher({
             ...teacher,
             department: (teacher.department && typeof teacher.department === 'string')
                 ? findDepartmentById(teacher.department) || teacher.department
                 : teacher.department
-        });
+        });*/
+        setSelectedTeacher(teacher);
         setSubmitted(false);
         setShowSaveDialog(true);
     };
@@ -261,13 +252,17 @@ const TeacherPage = () => {
         );
     };
 
-    const findDepartmentById = (id: string): Department | undefined => {
+
+    {/*
+        const findDepartmentById = (id: string): Department | undefined => {
         return departments.find(department => department._id === id);
     };
     const departmentBodyTemplate = (rowData: Teacher) => {
         const department = typeof rowData.department === "string" ? findDepartmentById(rowData.department) : rowData.department;
-        return department?departmentTemplate(department as Department):<></>;
+        return department ? departmentTemplate(department as Department) : <></>;
     };
+        <Column header="Department" body={departmentBodyTemplate} sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                        */}
 
     return (
         <div className="grid">
@@ -302,97 +297,97 @@ const TeacherPage = () => {
                         <Column field="first_name" header="First Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="last_name" header="Last Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="sex" header="Sex" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column header="Department" body={departmentBodyTemplate} sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="department.name" header="Department" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
                     <Dialog
                         visible={showSaveDialog}
                         style={{ width: '450px' }}
-                        header={editMode ? 'Edit Teacher Details' : 'New Teacher Details'}
+                        header={selectedTeacher?._id ? 'Edit Teacher Details' : 'New Teacher Details'}
                         modal
                         className="p-fluid"
                         footer={saveDialogFooter}
                         onHide={hideSaveDialog}
                     >
-                        <div className="field">
-                            <label htmlFor="first_name">First Name</label>
-                            <InputText
-                                id="first_name"
-                                value={selectedTeacher.first_name}
-                                onChange={(e) => setSelectedTeacher({ ...selectedTeacher, first_name: e.target.value })}
-                                required
-                                autoFocus
-                                className={classNames({
-                                    'p-invalid': submitted && !selectedTeacher.first_name,
-                                })}
-                            />
-                            {submitted && !selectedTeacher.first_name && <small className="p-invalid">First Name is required.</small>}
-                        </div>
-                        <div className="field">
-                            <label htmlFor="middle_name">Middle Name</label>
-                            <InputText
-                                id="middle_name"
-                                value={selectedTeacher.middle_name}
-                                onChange={(e) => setSelectedTeacher({ ...selectedTeacher, middle_name: e.target.value })}
-                                required
-                                className={classNames({
-                                    'p-invalid': submitted && !selectedTeacher.middle_name,
-                                })}
-                            />
-                            {submitted && !selectedTeacher.middle_name && <small className="p-invalid">Middle Name is required.</small>}
-                        </div>
-                        <div className="field">
-                            <label htmlFor="last_name">Last Name</label>
-                            <InputText
-                                id="last_name"
-                                value={selectedTeacher.last_name}
-                                onChange={(e) => setSelectedTeacher({ ...selectedTeacher, last_name: e.target.value })}
-                                required
-                                className={classNames({
-                                    'p-invalid': submitted && !selectedTeacher.last_name,
-                                })}
-                            />
-                            {submitted && !selectedTeacher.last_name && <small className="p-invalid">Last Name is required.</small>}
-                        </div>
+                        {selectedTeacher ? (<>
+                            <div className="field">
+                                <label htmlFor="first_name">First Name</label>
+                                <InputText
+                                    id="first_name"
+                                    value={selectedTeacher.first_name}
+                                    onChange={(e) => setSelectedTeacher({ ...selectedTeacher, first_name: e.target.value })}
+                                    required
+                                    autoFocus
+                                    className={classNames({
+                                        'p-invalid': submitted && !selectedTeacher.first_name,
+                                    })}
+                                />
+                                {submitted && !selectedTeacher.first_name && <small className="p-invalid">First Name is required.</small>}
+                            </div>
+                            <div className="field">
+                                <label htmlFor="middle_name">Middle Name</label>
+                                <InputText
+                                    id="middle_name"
+                                    value={selectedTeacher.middle_name}
+                                    onChange={(e) => setSelectedTeacher({ ...selectedTeacher, middle_name: e.target.value })}
+                                    required
+                                    className={classNames({
+                                        'p-invalid': submitted && !selectedTeacher.middle_name,
+                                    })}
+                                />
+                                {submitted && !selectedTeacher.middle_name && <small className="p-invalid">Middle Name is required.</small>}
+                            </div>
+                            <div className="field">
+                                <label htmlFor="last_name">Last Name</label>
+                                <InputText
+                                    id="last_name"
+                                    value={selectedTeacher.last_name}
+                                    onChange={(e) => setSelectedTeacher({ ...selectedTeacher, last_name: e.target.value })}
+                                    required
+                                    className={classNames({
+                                        'p-invalid': submitted && !selectedTeacher.last_name,
+                                    })}
+                                />
+                                {submitted && !selectedTeacher.last_name && <small className="p-invalid">Last Name is required.</small>}
+                            </div>
 
-                        <div className="field">
-                            <label className="mb-3">Sex</label>
-                            <div className="formgrid grid">
-                                <div className="field-radiobutton col-4">
-                                    <RadioButton inputId="sex1" name="sex" value="Male" onChange={(e) => setSelectedTeacher({ ...selectedTeacher, sex: "Male" })} checked={selectedTeacher.sex === 'Male'} />
-                                    <label htmlFor="sex1">Male</label>
-                                </div>
-                                <div className="field-radiobutton col-4">
-                                    <RadioButton inputId="sex2" name="sex" value="Female" onChange={(e) => setSelectedTeacher({ ...selectedTeacher, sex: "Female" })} checked={selectedTeacher.sex === 'Female'} />
-                                    <label htmlFor="sex2">Female</label>
+                            <div className="field">
+                                <label className="mb-3">Sex</label>
+                                <div className="formgrid grid">
+                                    <div className="field-radiobutton col-4">
+                                        <RadioButton inputId="sex1" name="sex" value="Male" onChange={(e) => setSelectedTeacher({ ...selectedTeacher, sex: "Male" })} checked={selectedTeacher.sex === 'Male'} />
+                                        <label htmlFor="sex1">Male</label>
+                                    </div>
+                                    <div className="field-radiobutton col-4">
+                                        <RadioButton inputId="sex2" name="sex" value="Female" onChange={(e) => setSelectedTeacher({ ...selectedTeacher, sex: "Female" })} checked={selectedTeacher.sex === 'Female'} />
+                                        <label htmlFor="sex2">Female</label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="field">
-                            <label htmlFor="department">Department</label>
-                            <Dropdown
-                                id="department"
-                                value={selectedTeacher.department}
-                                onChange={(e) =>
-                                    setSelectedTeacher({
-                                        ...selectedTeacher,
-                                        department: e.value,
-                                    })
-                                }
-                                options={departments}
-                                optionLabel="_id"
-                                itemTemplate={departmentTemplate}
-                                valueTemplate={selectedTeacher.department ? departmentTemplate : ""}
-                                placeholder="Select Department"
-                                className={classNames({
-                                    'p-invalid': submitted && !selectedTeacher.department,
-                                })}
-                            />
+                            <div className="field">
+                                <label htmlFor="department">Department</label>
+                                <Dropdown
+                                    id="department"
+                                    value={selectedTeacher.department}
+                                    onChange={(e) =>
+                                        setSelectedTeacher({
+                                            ...selectedTeacher,
+                                            department: e.value,
+                                        })
+                                    }
+                                    options={departments}
+                                    optionLabel="name"
+                                    placeholder="Select Department"
+                                    className={classNames({
+                                        'p-invalid': submitted && !selectedTeacher.department,
+                                    })}
+                                />
 
-                            {submitted && !selectedTeacher.department && <small className="p-invalid">Department is required.</small>}
-                        </div>
+                                {submitted && !selectedTeacher.department && <small className="p-invalid">Department is required.</small>}
+                            </div>
+                        </>) : <></>}
                     </Dialog>
 
                     <Dialog

@@ -1,121 +1,69 @@
 import { Department } from "@/types/model";
-import { API_CONFIG } from "./apiConfig";
+import { MyService } from "./MyService";
 
 const CACHE_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
 const storageName = 'departments';
-const cacheTimeStampName = 'departmentsCacheTimestamp'
+const cacheTimeStampName = 'departmentsCacheTimestamp';
+const get_endpoint = '/api/departments/';
+const create_endpoint = '/api/departments/create';
+const update_endpoint = '/api/departments/update';
+const delete_endpoint = '/api/departments/delete';
 
 export const DepartmentService = {
     async getDepartments(): Promise<Department[]> {
-
         const cachedData = localStorage.getItem(storageName);
         const cacheTimestamp = localStorage.getItem(cacheTimeStampName);
         const currentTime = Date.now();
-
-        // If cached data exists and is still valid
         if (cachedData && cacheTimestamp && currentTime - parseInt(cacheTimestamp) < CACHE_EXPIRATION_TIME) {
-            console.log("Returning cached data from localStorage");
             return JSON.parse(cachedData) as Department[];
         }
-
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.getDepartments}`;
-        try {
-            const response = await fetch(url, {
-                headers: {
-                    'Cache-Control': 'no-cache',
-                    'Content-Type': 'application/json',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch departments: ${response.statusText}`);
-            }
-            const data = await response.json();
-            localStorage.setItem(storageName, JSON.stringify(data));
-            localStorage.setItem(cacheTimeStampName, currentTime.toString());
-            return data as Department[];
-        } catch (error) {
-            console.error('Error fetching department data:', error);
-            throw error;
-        }
+        const data = await MyService.get(get_endpoint);
+        localStorage.setItem(storageName, JSON.stringify(data));
+        localStorage.setItem(cacheTimeStampName, currentTime.toString());
+        return data as Department[];
     },
 
     // Create a new department
-    async createDepartment(department: Partial<Department>): Promise<Department> {
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.createDepartment}`;
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(department),
-        });
-        if (!response.ok) {
-            return response.json().then(data => {
-                throw new Error(data.message || 'Failed to delete department');
-            });
-        }
-        const createdDepartment = await response.json();
-        // Update localStorage to include the newly created department
+    async createDepartment(department: Department): Promise<Department> {
+        const createdData = await MyService.create(department, create_endpoint);
         const cachedData = localStorage.getItem(storageName);
         if (cachedData) {
             const departments = JSON.parse(cachedData) as Department[];
-            departments.push(createdDepartment);  // Add the new department to the cached list
-            localStorage.setItem(storageName, JSON.stringify(departments));  // Save the updated list back to localStorage
-        }
-
-        return createdDepartment;
-    },
-
-    async updateDepartment(id: string, department: Partial<Department>): Promise<Department> {
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.updateDepartment}`;
-        const response = await fetch(`${url}/${id}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(department),
-        });
-        if (!response.ok) {
-            return response.json().then(data => {
-                throw new Error(data.message || 'Failed to update department');
-            });
-        }
-        const updatedData = await response.json();
-
-        // Update localStorage to reflect the changes
-        const cachedData = localStorage.getItem('departments');
-        if (cachedData) {
-            let departments = JSON.parse(cachedData) as Department[];
-            // Find the department by ID and update it
-            departments = departments.map(department =>
-                department._id === updatedData._id ? updatedData : department
-            );
-            // Save the updated list back to localStorage
+            departments.push(createdData);
             localStorage.setItem(storageName, JSON.stringify(departments));
         }
-        return updatedData;
+        return createdData;
+
     },
 
-    async deleteDepartment(id: string): Promise<boolean> {
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.deleteDepartment}`;
-        const response = await fetch(`${url}/${id}`, {
-            method: "DELETE",
-        });
-        if (!response.ok) {
-            return response.json().then(data => {
-                throw new Error(data.message || "Failed to delete department");
-            });
+    // Update department
+    async updateDepartment(department: Department): Promise<Department> {
+        if (department._id) {
+            const updatedData = await MyService.update(department._id, department, update_endpoint);
+            const cachedData = localStorage.getItem('departments');
+            if (cachedData) {
+                let departments = JSON.parse(cachedData) as Department[];
+                departments = departments.map(department =>
+                    department._id === updatedData._id ? updatedData : department
+                );
+                localStorage.setItem(storageName, JSON.stringify(departments));// Save the updated list back to localStorage
+            }
+            return updatedData;
         }
+        throw new Error("_id is required.");
+    },
 
-        const cachedData = localStorage.getItem(storageName);
-        if (cachedData) {
-            let departments = JSON.parse(cachedData) as Department[];
-            // Filter out the deleted department by ID
-            departments = departments.filter(department => department._id !== id);
-            // Update the localStorage with the new list of departments
-            localStorage.setItem(storageName, JSON.stringify(departments));
+    async deleteDepartment(department: Department): Promise<boolean> {
+        if (department._id) {
+            const response = await MyService.delete(department._id, delete_endpoint);
+            const cachedData = localStorage.getItem(storageName);
+            if (cachedData) {
+                let departments = JSON.parse(cachedData) as Department[];
+                departments = departments.filter(dept => dept._id !== department._id);
+                localStorage.setItem(storageName, JSON.stringify(departments));
+            }
+            return response;
         }
-        return response.status === 200;
+        throw new Error("_id is required.");
     },
 };
