@@ -2,6 +2,7 @@ import { Teacher } from "@/types/model";
 import { MyService } from "./MyService";
 
 
+const get_all_endpoint = '/api/teachers/all';
 const get_endpoint = '/api/teachers/';
 const create_endpoint = '/api/teachers/create';
 const update_endpoint = '/api/teachers/update';
@@ -9,6 +10,10 @@ const delete_endpoint = '/api/teachers/delete';
 
 export const TeacherService = {
 
+    async getPopulatedTeachers(): Promise<Teacher[]> {
+        const data = await MyService.get(get_all_endpoint);
+        return data as Teacher[];
+    },
     async getTeachers(): Promise<Teacher[]> {
         const data = await MyService.get(get_endpoint);
         return data as Teacher[];

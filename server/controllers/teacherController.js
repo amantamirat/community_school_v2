@@ -32,6 +32,15 @@ const teacherController = {
         }
     },
 
+    getTeachers: async (req, res) => {
+        try {
+            const teachers = await Teacher.find();
+            res.status(200).json(teachers);
+        } catch (error) {
+            res.status(500).json({ message: "Error fetching teachers", error });
+        }
+    },
+
     
     updateTeacher: async (req, res) => {
         try {

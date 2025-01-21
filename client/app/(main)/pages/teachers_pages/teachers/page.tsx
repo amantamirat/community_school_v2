@@ -1,8 +1,7 @@
 'use client';
 import { DepartmentService } from '@/services/DepartmentService';
 import { TeacherService } from '@/services/TeacherService';
-import { Teacher, Department } from '@/types/model';
-import { departmentTemplate } from '@/types/templates';
+import { Department, Teacher } from '@/types/model';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -74,7 +73,7 @@ const TeacherPage = () => {
 
     const loadTeachers = async () => {
         try {
-            TeacherService.getTeachers().then((data) => {
+            TeacherService.getPopulatedTeachers().then((data) => {
                 setTeachers(data);
             });
         } catch (err) {
