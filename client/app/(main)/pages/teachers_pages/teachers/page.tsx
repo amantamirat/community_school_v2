@@ -96,10 +96,10 @@ const TeacherPage = () => {
 
     const saveTeacher = async () => {
         setSubmitted(true);
-        let _teachers = [...(teachers as any)];
         if (!validateTeacher(selectedTeacher)) {
             return;
         }
+        let _teachers = [...(teachers as any)];
         try {
             if (selectedTeacher._id) {
                 TeacherService.updateTeacher(selectedTeacher).then((updatedTeacher) => {

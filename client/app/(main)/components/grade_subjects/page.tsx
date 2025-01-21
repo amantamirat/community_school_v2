@@ -4,15 +4,15 @@ import { CurriculumGrade, GradeSubject, Subject } from "@/types/model";
 import { subjectTemplate } from "@/types/templates";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
-import { DataTable, DataTableExpandedRows } from "primereact/datatable";
+import { DataTable } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
+import { InputSwitch } from "primereact/inputswitch";
+import { OverlayPanel } from "primereact/overlaypanel";
 import { Toast } from "primereact/toast";
 import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
 import SubjectWeightComponent from "../subject_weight/page";
-import { OverlayPanel } from "primereact/overlaypanel";
-import { InputSwitch } from "primereact/inputswitch";
 
 interface GradeSubjectProps {
     curriculumGrade: CurriculumGrade;
@@ -42,7 +42,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
             const data = await SubjectService.getSubjects();
             setSubjects(data); // Update state with fetched data
         } catch (err) {
-            console.error('Failed to load subjects:', err);
+            //console.error('Failed to load subjects:', err);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to load subjects',
@@ -71,12 +71,16 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
         let _gradeSubjects = [...(gradeSubjects as any)];
         try {
             if (selectedGradeSubject._id) {
-                const updatedDepartment = await GradeSubjectService.updateGradeSubject(selectedGradeSubject);
-                const index = findIndexById(selectedGradeSubject._id);
-                _gradeSubjects[index] = updatedDepartment;
+                const updatedGradeSubject = await GradeSubjectService.updateGradeSubject(selectedGradeSubject);
+                if (updatedGradeSubject) {
+                    const gradeSubject = { ...selectedGradeSubject }
+                    const index = findIndexById(selectedGradeSubject._id);
+                    _gradeSubjects[index] = gradeSubject;
+                }
             } else {
                 const newGradeSubject = await GradeSubjectService.createGradeSubject(selectedGradeSubject);
-                _gradeSubjects.push(newGradeSubject);
+                const gradeSubject = { ...selectedGradeSubject, _id: newGradeSubject._id }
+                _gradeSubjects.push(gradeSubject);
             }
             toast.current?.show({
                 severity: 'success',
@@ -100,7 +104,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
     const deleteGradeSubject = async () => {
         try {
             if (selectedGradeSubject._id) {
-                const deleted = await GradeSubjectService.deleteGradeSubject(selectedGradeSubject._id);
+                const deleted = await GradeSubjectService.deleteGradeSubject(selectedGradeSubject);
                 if (deleted) {
                     let _gradeSubjects = (gradeSubjects as any)?.filter((val: any) => val._id !== selectedGradeSubject._id);
                     setGradeSubjects(_gradeSubjects);
@@ -218,7 +222,8 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                         dataKey="_id"
                         emptyMessage={`No subject found.`}
                     >
-                        <Column field="subject" header="Subject" body={subjectBodyTemplete} ></Column>
+                        <Column field="subject.title" header="Subject" sortable></Column>
+                        <Column field="subject.load" header="Load (hrs/week)" sortable ></Column>
                         <Column field="optional" header="Optional" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
@@ -232,34 +237,42 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                         onHide={hideAddDialog}
                     >
                         {selectedGradeSubject ? <>
-                            <div className="field">
-                                <label htmlFor="subject">Subject</label>
-                                <div id="subject">
-                                    <Dropdown
-                                        value={subjects.find(subject => subject._id === selectedGradeSubject.subject) || null}
-                                        onChange={(e) => setSelectedGradeSubject({ ...selectedGradeSubject, subject: e.value ? e.value._id : "" })}
-                                        options={subjects.filter(subject =>
-                                            !gradeSubjects.some(gradeSubject => gradeSubject.subject === subject._id)
-                                        )}
-                                        itemTemplate={subjectTemplate}
-                                        valueTemplate={selectedGradeSubject.subject ? subjectTemplate : ""}
-                                        placeholder="Select a Subject"
-                                        optionLabel="_id"
-                                        filter
-                                        className={classNames({
-                                            'p-invalid': submitted && !selectedGradeSubject.subject,
-                                        })}
-                                    />
+                            {!selectedGradeSubject._id ? <>
+                                <div className="field">
+                                    <label htmlFor="subject">Subject</label>
+                                    <div id="subject">
+                                        <Dropdown
+                                            value={selectedGradeSubject.subject}
+                                            onChange={(e) => setSelectedGradeSubject({ ...selectedGradeSubject, subject: e.value })}
+                                            options={subjects.filter(subject =>
+                                                !gradeSubjects.some(gradeSubject => {
+                                                    // Check if gradeSubject.subject is a string or a Subject object
+                                                    const gradeSubjectId = typeof gradeSubject.subject === 'string'
+                                                        ? gradeSubject.subject // If it's a string, use it directly
+                                                        : gradeSubject.subject._id; // If it's an object, use its _id property
+                                                    return gradeSubjectId === subject._id; // Compare with subject._id
+                                                })
+                                            )}
+                                            itemTemplate={subjectTemplate}
+                                            valueTemplate={selectedGradeSubject.subject ? subjectTemplate : ""}
+                                            placeholder="Select a Subject"
+                                            optionLabel="_id"
+                                            emptyMessage="No Subjects Found."
+                                            className={classNames({
+                                                'p-invalid': submitted && !selectedGradeSubject.subject,
+                                            })}
+                                        />
+                                    </div>
+                                    {submitted && !selectedGradeSubject.subject && <small className="p-invalid">Subject is required.</small>}
                                 </div>
-                                {submitted && !selectedGradeSubject.subject && <small className="p-invalid">Subject is required.</small>}
-                            </div>
+                            </> : <></>}
                             <div className="field">
                                 <label htmlFor="optional">Optional</label>
                                 <div id="optional">
                                     <InputSwitch
                                         checked={selectedGradeSubject.optional}
                                         onChange={(e) => setSelectedGradeSubject({ ...selectedGradeSubject, optional: !selectedGradeSubject.optional })}
-                                    />
+                                        disabled />
                                 </div>
                             </div>
                         </> : <></>}

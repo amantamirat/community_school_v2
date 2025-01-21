@@ -1,5 +1,5 @@
 const SubjectWeight = require('../models/subject-weight');
-
+const StudentResult = require('../models/student-result');
 const SubjectWeightController = {
     // Create multiple SubjectWeight entries for a specific grade_subject
     createByGradeSubject: async (req, res) => {
@@ -7,6 +7,15 @@ const SubjectWeightController = {
             const subject_weights = req.body; // subject_weights should be an array of { grade_subject, assessment_type, assessment_weight }
             if (!Array.isArray(subject_weights) || subject_weights.length === 0) {
                 return res.status(400).json({ message: 'Invalid input data. subject_weights must be a non-empty array.' });
+            }
+            // Calculate the sum of assessment_weight
+            const totalWeight = subject_weights.reduce((sum, weight) => {
+                return sum + (weight.assessment_weight || 0); // Add weight or default to 0 if undefined
+            }, 0);
+
+            // Check if the total weight is 100
+            if (totalWeight !== 100) {
+                return res.status(404).json({ message: 'The total assessment weight must be 100.' });
             }
             const createdEntries = await SubjectWeight.insertMany(subject_weights);
             return res.status(201).json(createdEntries);
@@ -17,12 +26,23 @@ const SubjectWeightController = {
     },
 
     // Delete all SubjectWeight entries for a specific grade_subject
-    deleteByGradeSubject: async (req, res) => {      
+    deleteByGradeSubject: async (req, res) => {
         try {
             const { grade_subject } = req.params;
 
             if (!grade_subject) {
                 return res.status(400).json({ message: 'grade_subject is required.' });
+            }
+            const subjectWeights = await SubjectWeight.find({ grade_subject });
+
+            const referencedSubjectWeight = await StudentResult.findOne({
+                subject_weight: { $in: subjectWeights.map(sw => sw._id) }
+            });
+
+            if (referencedSubjectWeight) {
+                return res.status(400).json({
+                    message: 'Deletion denied. One or more SubjectWeight entries are referenced in StudentResult.'
+                });
             }
             const deletedCount = await SubjectWeight.deleteMany({ grade_subject });
             return res.status(200).json({ message: `Deleted ${deletedCount.deletedCount} entries.` });

@@ -1,110 +1,72 @@
 import { Curriculum } from "@/types/model";
 import { API_CONFIG } from "./apiConfig";
+import { MyService } from "./MyService";
 
 const CACHE_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
 const storageName = 'curriculums';
 const cacheTimeStampName = 'curriculumsCacheTimestamp'
+const get_endpoint = '/api/curricula/';
+const create_endpoint = '/api/curricula/create';
+const update_endpoint = '/api/curricula/update';
+const delete_endpoint = '/api/curricula/delete';
 
 export const CurriculumService = {
-    async getCurriculums(): Promise<Curriculum[]> {
 
+    async getCurriculums(): Promise<Curriculum[]> {
         const cachedData = localStorage.getItem(storageName);
         const cacheTimestamp = localStorage.getItem(cacheTimeStampName);
         const currentTime = Date.now();
-        // If cached data exists and is still valid
         if (cachedData && cacheTimestamp && currentTime - parseInt(cacheTimestamp) < CACHE_EXPIRATION_TIME) {
-            //console.log("Returning cached data from localStorage");
             return JSON.parse(cachedData) as Curriculum[];
         }
-
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.getCurricula}`;
-        try {
-            const response = await fetch(url, {
-                headers: {
-                    'Cache-Control': 'no-cache',
-                    'Content-Type': 'application/json',
-                },
-            });
-            if (!response.ok) {
-                throw new Error(`Failed to fetch curriculums: ${response.statusText}`);
-            }
-            const data = await response.json();
-
-            localStorage.setItem(storageName, JSON.stringify(data));
-            localStorage.setItem(cacheTimeStampName, currentTime.toString());
-
-            return data as Curriculum[];
-        } catch (error) {
-            console.error('Error fetching curriculum data:', error);
-            throw error;
-        }
+        const data = await MyService.get(get_endpoint);
+        localStorage.setItem(storageName, JSON.stringify(data));
+        localStorage.setItem(cacheTimeStampName, currentTime.toString());
+        return data as Curriculum[];
     },
 
     // Create a new curriculum
-    async createCurriculum(curriculum: Partial<Curriculum>): Promise<Curriculum> {
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.createCurriculum}`;
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(curriculum),
-        });
-        if (!response.ok) {
-            throw new Error("Failed to create curriculum");
-        }
-        const createdCurriculum = await response.json();
-        // Update localStorage to include the newly created subject
+    async createCurriculum(curriculum: Curriculum): Promise<Curriculum> {
+        const createdData = await MyService.create(curriculum, create_endpoint);
         const cachedData = localStorage.getItem(storageName);
         if (cachedData) {
-            const localData = JSON.parse(cachedData) as Curriculum[];
-            localData.push(createdCurriculum);
-            localStorage.setItem(storageName, JSON.stringify(localData));
+            const curriculums = JSON.parse(cachedData) as Curriculum[];
+            curriculums.push(createdData);
+            localStorage.setItem(storageName, JSON.stringify(curriculums));
         }
-        return createdCurriculum;
+        return createdData;
 
     },
 
-    async updateCurriculum(id: string, curriculum: Partial<Curriculum>): Promise<Curriculum> {
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.updateCurriculum}`;
-        const response = await fetch(`${url}/${id}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(curriculum),
-        });
-        if (!response.ok) {
-            throw new Error("Failed to update curriculum");
+    // Update curriculum
+    async updateCurriculum(curriculum: Curriculum): Promise<Curriculum> {
+        if (curriculum._id) {
+            const updatedData = await MyService.update(curriculum._id, curriculum, update_endpoint);
+            const cachedData = localStorage.getItem('curriculums');
+            if (cachedData) {
+                let curriculums = JSON.parse(cachedData) as Curriculum[];
+                curriculums = curriculums.map(curriculum =>
+                    curriculum._id === updatedData._id ? updatedData : curriculum
+                );
+                localStorage.setItem(storageName, JSON.stringify(curriculums));// Save the updated list back to localStorage
+            }
+            return updatedData;
         }
-        const updatedData = await response.json();
-        // Update localStorage to reflect the changes
-        const cachedData = localStorage.getItem(storageName);
-        if (cachedData) {
-            let localData = JSON.parse(cachedData) as Curriculum[];
-            localData = localData.map(data =>
-                data._id === updatedData._id ? updatedData : data
-            );
-            localStorage.setItem(storageName, JSON.stringify(localData));
-        }
-        return updatedData;
+        throw new Error("_id is required.");
     },
 
-    async deleteCurriculum(id: string): Promise<boolean> {
-        const url = `${API_CONFIG.baseURL}${API_CONFIG.endpoints.deleteCurriculum}`;
-        const response = await fetch(`${url}/${id}`, {
-            method: "DELETE",
-        });
-        if (!response.ok) {
-            throw new Error("Failed to delete curriculum");
+    async deleteCurriculum(curriculum: Curriculum): Promise<boolean> {
+        if (curriculum._id) {
+            const response = await MyService.delete(curriculum._id, delete_endpoint);
+            const cachedData = localStorage.getItem(storageName);
+            if (cachedData) {
+                let curriculums = JSON.parse(cachedData) as Curriculum[];
+                curriculums = curriculums.filter(dept => dept._id !== curriculum._id);
+                localStorage.setItem(storageName, JSON.stringify(curriculums));
+            }
+            return response;
         }
-        const cachedData = localStorage.getItem(storageName);
-        if (cachedData) {
-            let localData = JSON.parse(cachedData) as Curriculum[];
-            localData = localData.filter(data => data._id !== id);
-            localStorage.setItem(storageName, JSON.stringify(localData));
-        }
-        return response.status === 200;
+        throw new Error("_id is required.");
     },
 
     async addGrade(curriculumId: string, grade: string): Promise<Curriculum> {

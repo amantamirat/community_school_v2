@@ -1,20 +1,17 @@
 'use client';
 import CurriculumGradeComponent from '@/app/(main)/components/curriculum_grades/page';
 import { CurriculumService } from '@/services/CurriculumService';
-import { GradeService } from '@/services/GradeService';
-import { Curriculum, Grade } from '@/types/model';
-import { gradeTemplate } from '@/types/templates';
+import { Curriculum } from '@/types/model';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable, DataTableExpandedRows, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
-import { Dropdown } from 'primereact/dropdown';
-import { InputNumber, InputNumberValueChangeEvent } from 'primereact/inputnumber';
+import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
-import { MultiSelect } from 'primereact/multiselect';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
+import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
 
 
@@ -29,12 +26,9 @@ const CurriculumPage = () => {
         minimum_pass_mark: 50
     };
 
-    const [grades, setGrades] = useState<Grade[]>([]);
-    const [selectedGrades, setSelectedGrades] = useState<Grade[] | null>(null);
     const [curriculums, setCurriculums] = useState<Curriculum[]>([]);
     const [selectedCurriculum, setSelectedCurriculum] = useState<Curriculum>(emptyCurriculum);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
-    const [editMode, setEditMode] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
@@ -46,24 +40,9 @@ const CurriculumPage = () => {
 
     useEffect(() => {
         initFilters();
-        loadGrades();
         loadCurriculums();
     }, []);
 
-    const loadGrades = async () => {
-        try {
-            const data = await GradeService.getGrades();
-            setGrades(data); // Update state with fetched data
-        } catch (err) {
-            console.error('Failed to load grades:', err);
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load grades',
-                detail: '' + err,
-                life: 3000
-            });
-        }
-    };
 
     const loadCurriculums = async () => {
         try {
@@ -80,13 +59,23 @@ const CurriculumPage = () => {
         }
     };
 
+    const validateCurriculum = (curriculum: Curriculum) => {
+        if (isNaN(curriculum.number_of_terms) || curriculum.title.trim() === "" || isNaN(curriculum.minimum_pass_mark)) {
+            return false;
+        }
+        return true;
+    };
+
     const saveCurriculum = async () => {
         setSubmitted(true);
+        if (!validateCurriculum(selectedCurriculum)) {
+            return;
+        }
         let _curriculums = [...(curriculums as any)];
         try {
-            if (editMode) {
-                let id = selectedCurriculum._id || '';
-                const updatedCurriculum = await CurriculumService.updateCurriculum(id, selectedCurriculum);
+            if (selectedCurriculum._id) {
+                let id = selectedCurriculum._id;
+                const updatedCurriculum = await CurriculumService.updateCurriculum(selectedCurriculum);
                 const index = findIndexById(id);
                 _curriculums[index] = updatedCurriculum;
             } else {
@@ -96,21 +85,20 @@ const CurriculumPage = () => {
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
-                detail: `Curriculum ${editMode ? 'Updated' : 'Created'}`,
+                detail: `Curriculum ${selectedCurriculum._id ? 'Updated' : 'Created'}`,
                 life: 3000
             });
 
         } catch (error) {
             toast.current?.show({
                 severity: 'error',
-                summary: `Failed to ${editMode ? 'update' : 'create'} Curriculum`,
+                summary: `Failed to ${selectedCurriculum._id ? 'update' : 'create'} Curriculum`,
                 detail: '' + error,
                 life: 3000
             });
         }
         setCurriculums(_curriculums as any);
         setShowSaveDialog(false);
-        setEditMode(false);
         setSelectedCurriculum(emptyCurriculum);
     };
 
@@ -127,7 +115,7 @@ const CurriculumPage = () => {
 
     const deleteCurriculum = async () => {
         try {
-            const deleted = await CurriculumService.deleteCurriculum(selectedCurriculum._id || "");
+            const deleted = await CurriculumService.deleteCurriculum(selectedCurriculum);
             if (deleted) {
                 let _curriculums = (curriculums as any)?.filter((val: any) => val._id !== selectedCurriculum._id);
                 setCurriculums(_curriculums);
@@ -139,7 +127,7 @@ const CurriculumPage = () => {
                 });
             }
         } catch (error) {
-            console.error(error);
+            //console.error(error);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to delete curriculums',
@@ -153,15 +141,12 @@ const CurriculumPage = () => {
 
 
     const openSaveDialog = () => {
-        setEditMode(false);
-        setSelectedGrades([]);
         setSelectedCurriculum(emptyCurriculum);
         setSubmitted(false);
         setShowSaveDialog(true);
     };
 
     const openEditDialog = (curriculum: Curriculum) => {
-        setEditMode(true);
         setSelectedCurriculum({ ...curriculum });
         setSubmitted(false);
         setShowSaveDialog(true);
@@ -264,7 +249,7 @@ const CurriculumPage = () => {
                         onRowToggle={(e) => setExpandedGradeRows(e.data)}
                         rowExpansionTemplate={(data) => (
                             <CurriculumGradeComponent
-                                curriculum={data as Curriculum}                               
+                                curriculum={data as Curriculum}
                             />
                         )}
                     >
@@ -280,7 +265,7 @@ const CurriculumPage = () => {
                     <Dialog
                         visible={showSaveDialog}
                         style={{ width: '450px' }}
-                        header={editMode ? 'Edit Curriculum Details' : 'New Curriculum Details'}
+                        header={selectedCurriculum?._id ? 'Edit Curriculum Details' : 'New Curriculum Details'}
                         modal
                         className="p-fluid"
                         footer={saveDialogFooter}
@@ -295,6 +280,9 @@ const CurriculumPage = () => {
                                     onChange={(e) => setSelectedCurriculum({ ...selectedCurriculum, title: e.target.value })}
                                     required
                                     autoFocus
+                                    className={classNames({
+                                        'p-invalid': submitted && !selectedCurriculum.title,
+                                    })}
                                 />
                                 {submitted && !selectedCurriculum.title && <small className="p-invalid">Curriculum Title is required.</small>}
                             </div>
@@ -306,6 +294,7 @@ const CurriculumPage = () => {
                                     value={selectedCurriculum.number_of_terms}
                                     onValueChange={(e) => setSelectedCurriculum({ ...selectedCurriculum, number_of_terms: e.value || 2 })}
                                     required
+                                    disabled
                                 />
                                 {submitted && selectedCurriculum.number_of_terms <= 0 && <small className="p-invalid">Semesters must be greater than 0.</small>}
                             </div>
@@ -330,27 +319,10 @@ const CurriculumPage = () => {
                                     max={100}
                                     onValueChange={(e) => setSelectedCurriculum({ ...selectedCurriculum, minimum_pass_mark: e.value || 50 })}
                                     required
+                                    disabled
                                 />
                                 {submitted && selectedCurriculum.minimum_pass_mark <= 0 && <small className="p-invalid">Minimum Pass Mark must be greater than 0.</small>}
                             </div>
-                            {editMode ? <></> : <>
-                                <div className="field">
-                                    <label htmlFor="grades">Grades</label>
-                                    <div id="grades">
-                                        <MultiSelect
-                                            value={selectedGrades}
-                                            onChange={(e) => setSelectedGrades(e.value)}
-                                            options={grades}
-                                            itemTemplate={gradeTemplate}
-                                            optionLabel="level"
-                                            placeholder="Select Grades"
-                                            filter
-                                            className="multiselect-custom"
-                                            display="chip"
-                                        />
-                                    </div>
-                                </div>
-                            </>}
                         </>) : (<></>)}
                     </Dialog>
                     <Dialog

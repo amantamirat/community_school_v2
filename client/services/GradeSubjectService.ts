@@ -1,10 +1,11 @@
 import { CurriculumGrade, GradeSubject } from "@/types/model";
-import { API_CONFIG } from "./apiConfig";
 import { MyService } from "./MyService";
-
 const CACHE_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
 const storageName = 'gradeSubjects';
 const cacheTimeStampName = 'gradeSubjectsCacheTimestamp'
+const get_endpoint = '/api/grade-subject/curriculum-grade';
+const create_endpoint = '/api/grade-subject/create';
+const delete_endpoint = '/api/grade-subject/delete';
 const update_endpoint = '/api/grade-subject/update';
 
 export const GradeSubjectService = {
@@ -23,7 +24,7 @@ export const GradeSubjectService = {
                 return cachedItems;
             }
         }
-        const endpoint = `${API_CONFIG.endpoints.getGradeSubjectsByCurriculumGrade}/${curriculum_grade._id}`;
+        const endpoint = `${get_endpoint}/${curriculum_grade._id}`;
         const data = await MyService.get(endpoint);
         localStorage.setItem(storageName, JSON.stringify(data));
         localStorage.setItem(cacheTimeStampName, currentTime.toString());
@@ -31,8 +32,7 @@ export const GradeSubjectService = {
 
     },
     async createGradeSubject(gradeSubject: Partial<GradeSubject>): Promise<GradeSubject> {
-        const endpoint = `${API_CONFIG.endpoints.createGradeSubject}`;
-        const createdData = await MyService.create(gradeSubject, endpoint);
+        const createdData = await MyService.create(gradeSubject, create_endpoint);
         const cachedData = localStorage.getItem(storageName);
         if (cachedData) {
             const localData = JSON.parse(cachedData) as GradeSubject[];
@@ -50,15 +50,17 @@ export const GradeSubjectService = {
         throw new Error('I told you, grade subject is required');
     },
 
-    async deleteGradeSubject(id: string): Promise<boolean> {
-        const endpoint = `${API_CONFIG.endpoints.deleteGradeSubject}`;
-        const response = await MyService.delete(id, endpoint);
-        const cachedData = localStorage.getItem(storageName);
-        if (cachedData) {
-            let localData = JSON.parse(cachedData) as GradeSubject[];
-            localData = localData.filter(data => data._id !== id);
-            localStorage.setItem(storageName, JSON.stringify(localData));
+    async deleteGradeSubject(gradeSubject: GradeSubject): Promise<boolean> {
+        if (gradeSubject._id) {
+            const response = await MyService.delete(gradeSubject._id, delete_endpoint);
+            const cachedData = localStorage.getItem(storageName);
+            if (cachedData) {
+                let localData = JSON.parse(cachedData) as GradeSubject[];
+                localData = localData.filter(data => data._id !== gradeSubject._id);
+                localStorage.setItem(storageName, JSON.stringify(localData));
+            }
+            return response;
         }
-        return response;
+        throw new Error("_id is required.");
     },
 };

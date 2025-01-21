@@ -11,10 +11,10 @@ const TeacherMainPage = () => {
             <div className="col-12">
                 <div className="card">
                     <TabView>
-                        <TabPanel header="Teachers" leftIcon={PrimeIcons.USERS}>
+                        <TabPanel header="Teachers" leftIcon="pi pi-users ml-2">
                             <TeachersPage />
                         </TabPanel>
-                        <TabPanel header="Departments">
+                        <TabPanel header="Departments" leftIcon="pi pi-clone ml-2">
                             <DepartmentsPage />
                         </TabPanel>
                     </TabView>

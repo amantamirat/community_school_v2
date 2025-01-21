@@ -52,12 +52,9 @@ const SubjectPage = () => {
         }
     };
 
-    const validateSubject = (subject: any) => {
-        const requiredFields = ['title'];
-        for (const field of requiredFields) {
-            if (!subject[field] || subject[field].trim() === '') {
-                return false;
-            }
+    const validateSubject = (subject: Subject) => {
+        if (isNaN(subject.load) || subject.title.trim() === "") {
+            return false;
         }
         return true;
     };

@@ -10,10 +10,10 @@ const CurriculumMainPage = () => {
             <div className="col-12">
                 <div className="card">
                     <TabView>
-                        <TabPanel header="Curricula">
+                        <TabPanel header="Curricula" leftIcon="pi pi-ticket ml-2">
                             <CurriculumsPage />
                         </TabPanel>
-                        <TabPanel header="Subjects">
+                        <TabPanel header="Subjects" leftIcon="pi pi-book ml-2">
                             <SubjectsPage />
                         </TabPanel>
                     </TabView>

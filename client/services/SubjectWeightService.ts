@@ -21,8 +21,11 @@ export const SubjectWeightService = {
 
     },
 
-    async deleteSubjectWeights(grade_subject: string): Promise<boolean> {
-        const response = await MyService.delete(grade_subject, delete_endpoint);
-        return response;
+    async deleteSubjectWeights(grade_subject: GradeSubject): Promise<boolean> {
+        if (grade_subject._id) {
+            const response = await MyService.delete(grade_subject._id, delete_endpoint);
+            return response;
+        }
+        throw new Error("_id is required.");
     },
 };

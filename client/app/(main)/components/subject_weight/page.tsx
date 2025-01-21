@@ -22,6 +22,7 @@ const SubjectWeightComponent = (props: SubjectWeightProps) => {
     };
 
     const [subjectWeights, setSubjectWeights] = useState<SubjectWeight[]>([]);
+    const [loading, setLoading] = useState(false);
     const [totalWeight, setTotalWeight] = useState<number>(0);
     const toast = useRef<Toast>(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -68,6 +69,7 @@ const SubjectWeightComponent = (props: SubjectWeightProps) => {
         }
         try {
             //console.log(subjectWeights);
+            setLoading(true);
             const newSubjectWeights = await SubjectWeightService.createSubjectWeights(subjectWeights);
             setSubjectWeights(newSubjectWeights);
             toast.current?.show({
@@ -76,7 +78,9 @@ const SubjectWeightComponent = (props: SubjectWeightProps) => {
                 detail: 'Subject Weight Setted',
                 life: 1500
             });
+            setLoading(false);
         } catch (error) {
+            setLoading(false);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to add subjects',
@@ -88,18 +92,18 @@ const SubjectWeightComponent = (props: SubjectWeightProps) => {
 
     const deleteWeights = async () => {
         try {
-            if (props.gradeSubject._id) {
-                const deleted = await SubjectWeightService.deleteSubjectWeights(props.gradeSubject._id);
-                if (deleted) {
-                    setSubjectWeights([]);
-                    toast.current?.show({
-                        severity: 'success',
-                        summary: 'Successful',
-                        detail: 'Weights Deleted',
-                        life: 3000
-                    });
-                }
+            setLoading(true);
+            const deleted = await SubjectWeightService.deleteSubjectWeights(props.gradeSubject);
+            if (deleted) {
+                setSubjectWeights([]);
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: 'Weights Deleted',
+                    life: 3000
+                });
             }
+            setLoading(false);
         } catch (error) {
             //console.error(error);
             toast.current?.show({
@@ -172,18 +176,16 @@ const SubjectWeightComponent = (props: SubjectWeightProps) => {
         return (
             <>
                 {hasValidId() ? (
-                    <Button label='Delete' severity="danger" className="mr-2" onClick={confirmDeleteItem} />
+                    <Button label='Delete' severity="danger" className="mr-2" onClick={confirmDeleteItem} loading={loading} />
                 ) : (
-                    <Button label='Save' severity="success" className="mr-2" onClick={saveSubjectWeights} />
+                    <Button label='Save' severity="success" className="mr-2" onClick={saveSubjectWeights} loading={loading} />
                 )}
 
             </>
         );
     }
 
-    const allowEdit = (rowData: SubjectWeight) => {
-        return !rowData._id
-    };
+
 
     return (
         <div className="grid">

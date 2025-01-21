@@ -19,8 +19,7 @@ interface CurriculumGradeProps {
 
 const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
     let emptyCurriculumGrade: CurriculumGrade = {
-        _id: '',
-        curriculum: props.curriculum._id ?? '',
+        curriculum: props.curriculum,
         grade: ''
     };
     const [grades, setGrades] = useState<Grade[]>([]);
@@ -54,7 +53,7 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
 
     const loadCurriculumGrades = async () => {
         try {
-            const data = await CurriculumGradeService.getCurriculumGradesByCurriculum(props.curriculum._id ?? '');
+            const data = await CurriculumGradeService.getCurriculumGradesByCurriculum(props.curriculum);
             setCurriculumGrades(data);
         } catch (err) {
             toast.current?.show({
@@ -66,8 +65,18 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
         }
     };
 
+    const validateCurriculumGrade = (curriculumGrade: CurriculumGrade) => {
+        if (!curriculumGrade.grade) {
+            return false;
+        }
+        return true;
+    };
+
     const saveCurriculumGrade = async () => {
         setSubmitted(true);
+        if (!validateCurriculumGrade(selectedCurriculumGrade)) {
+            return;
+        }
         let _curriculumGrades = [...(curriculumGrades as any)];
         try {
             const newCurriculumGrade = await CurriculumGradeService.createCurriculumGrade(selectedCurriculumGrade);
@@ -79,7 +88,7 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
                 life: 1500
             });
         } catch (error) {
-            console.error(error);
+            //console.error(error);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to add grade',
@@ -93,8 +102,7 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
     }
     const deleteCurriculumGrade = async () => {
         try {
-
-            const deleted = await CurriculumGradeService.deleteCurriculumGrade(selectedCurriculumGrade._id);
+            const deleted = await CurriculumGradeService.deleteCurriculumGrade(selectedCurriculumGrade);
             if (deleted) {
                 let _curriculumGrades = (curriculumGrades as any)?.filter((val: any) => val._id !== selectedCurriculumGrade._id);
                 setCurriculumGrades(_curriculumGrades);
@@ -198,7 +206,7 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
                     <Dialog
                         visible={showAddDialog}
                         style={{ width: '450px' }}
-                        header="Add Grade"
+                        header="Add Curriculum Grade"
                         modal
                         className="p-fluid"
                         footer={addDialogFooter}
@@ -209,8 +217,8 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
                                 <label htmlFor="grade">Grade</label>
                                 <div id="grade">
                                     <Dropdown
-                                        value={grades.find(grade => grade._id === selectedCurriculumGrade.grade) || null}
-                                        onChange={(e) => setSelectedCurriculumGrade({ ...selectedCurriculumGrade, grade: e.value ? e.value._id : "" })}
+                                        value={selectedCurriculumGrade.grade}
+                                        onChange={(e) => setSelectedCurriculumGrade({ ...selectedCurriculumGrade, grade: e.value })}
                                         options={grades.filter(grade =>
                                             !curriculumGrades.some(curriculumGrade => curriculumGrade.grade === grade._id)
                                         )}

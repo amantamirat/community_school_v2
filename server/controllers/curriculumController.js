@@ -1,27 +1,29 @@
 const Curriculum = require('../models/curriculum');
 const AdmissionClassification = require("../models/admission-classification");
+const CurriculumGrade = require('../models/curriculum-grade');
 
 // Controller methods
 const CurriculumController = {
     // Create a new curriculum
     createCurriculum: async (req, res) => {
         try {
-            const curriculum = new Curriculum(req.body);
+            const { title, classification, number_of_terms, maximum_point, minimum_pass_mark } = req.body;
+            const curriculum = new Curriculum({ title, classification, number_of_terms, maximum_point, minimum_pass_mark });
             const savedCurriculum = await curriculum.save();
             res.status(201).json(savedCurriculum);
         } catch (error) {
-            res.status(400).json({ error: error.message });
-            console.log(error);
+            res.status(400).json({ message: error.message });
+            //console.log(error);
         }
     },
 
     // Get all curriculums
-    getAllCurriculums: async (req, res) => {
+    getCurriculums: async (req, res) => {
         try {
             const curriculums = await Curriculum.find();
             res.status(200).json(curriculums);
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ message: error.message });
         }
     },
 
@@ -29,11 +31,10 @@ const CurriculumController = {
     updateCurriculum: async (req, res) => {
         try {
             const { id } = req.params;
-            //extract except grades from req.body-to prevent grades being updated
-            const { updateData } = req.body;
+            const { title, classification, number_of_terms, maximum_point, minimum_pass_mark } = req.body;
             const updatedCurriculum = await Curriculum.findByIdAndUpdate(
                 id,
-                updateData,
+                { title, classification, number_of_terms, maximum_point, minimum_pass_mark },
                 { new: true, runValidators: true }
             );
             if (!updatedCurriculum) {
@@ -41,7 +42,7 @@ const CurriculumController = {
             }
             res.status(200).json(updatedCurriculum);
         } catch (error) {
-            res.status(400).json({ error: error.message });
+            res.status(400).json({ message: error.message });
         }
     },
 
@@ -49,11 +50,16 @@ const CurriculumController = {
     deleteCurriculum: async (req, res) => {
         try {
             const { id } = req.params;
-            // Check if any classification is associated with the currcilum
-            const classificationExists = await AdmissionClassification.findOne({ curriculum: id });
-            if (classificationExists) {
+            const gradeExist = await CurriculumGrade.findOne({ curriculum: id });
+            if (gradeExist) {
                 return res.status(400).json({
-                    message: "Cannot delete, classification Exists. It is associated with one or more classification.",
+                    message: "Cannot delete, grade exist. It is associated with one or more admission curriculum grades.",
+                });
+            }
+            const classificationExist = await AdmissionClassification.findOne({ curriculum: id });
+            if (classificationExist) {
+                return res.status(400).json({
+                    message: "Cannot delete, classification Exists. It is associated with one or more admission classification.",
                 });
             }
             const deletedCurriculum = await Curriculum.findByIdAndDelete(id);
@@ -62,9 +68,9 @@ const CurriculumController = {
             }
             res.status(200).json({ message: 'Curriculum deleted successfully' });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ message: error.message });
         }
-    },    
+    },
 };
 
 module.exports = CurriculumController;
