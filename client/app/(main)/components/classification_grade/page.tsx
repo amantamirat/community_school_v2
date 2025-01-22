@@ -1,17 +1,13 @@
-import { GradeService } from "@/services/GradeService";
-import { ClassificationGrade, Grade, AdmissionClassification, CurriculumGrade } from "@/types/model";
+import { ClassificationGradeService } from "@/services/ClassificationGradeService";
+import { AdmissionClassification, ClassificationGrade } from "@/types/model";
+import { classificationGradeTemplate } from "@/types/templates";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
-import { Dropdown } from "primereact/dropdown";
 import { Toast } from "primereact/toast";
-import { classNames } from "primereact/utils";
-import { useEffect, useRef, useState } from "react";
-import { ClassificationGradeService } from "@/services/ClassificationGradeService";
-import { CurriculumGradeService } from "@/services/CurriculumGradeService";
 import { Toolbar } from "primereact/toolbar";
-import { gradeTemplate } from "@/types/templates";
+import { useEffect, useRef, useState } from "react";
 
 interface ClassificationGradeProps {
     addmission_classification: AdmissionClassification;
@@ -24,60 +20,22 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
         curriculum_grade: ''
     };
 
-    const [grades, setGrades] = useState<Grade[]>([]);
-    const [curriculumGrades, setCurriculumGrades] = useState<CurriculumGrade[]>([]);
     const [classificationGrades, setClassificationGrades] = useState<ClassificationGrade[]>([]);
     const [selectedClassificationGrade, setSelectedClassificationGrade] = useState<ClassificationGrade>(emptyClassificationGrade);
-    const [showAddDialog, setShowAddDialog] = useState(false);
     const [showRemoveDialog, setShowRemoveDialog] = useState(false);
-    const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        loadGrades();
-        loadCurriculumGrades();
         loadClassificationGrades();
     }, []);
 
-    const loadGrades = async () => {
-        try {
-            const data = await GradeService.getGrades();
-            setGrades(data); // Update state with fetched data
-        } catch (err) {
-            //console.error('Failed to load grades:', err);
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load grades',
-                detail: '' + err,
-                life: 3000
-            });
-        }
-    };
-
-    const loadCurriculumGrades = async () => {
-        try {
-            const curriculumId = typeof props.addmission_classification.curriculum === 'string'
-                ? props.addmission_classification.curriculum
-                : props.addmission_classification.curriculum?._id;
-            if (curriculumId) {
-                //const data = await CurriculumGradeService.getCurriculumGradesByCurriculum(curriculumId);
-                //setCurriculumGrades(data);
-            }
-        } catch (err) {
-            //console.error('Failed to load grades:', err);
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load curriculum grades',
-                detail: '' + err,
-                life: 3000
-            });
-        }
-    };
 
     const loadClassificationGrades = async () => {
         try {
-            const data = await ClassificationGradeService.getClassificationGradesByClassification(props.addmission_classification._id ?? '');
-            setClassificationGrades(data);
+            ClassificationGradeService.getClassificationGradesByClassification(props.addmission_classification).then((data) => {
+                setClassificationGrades(data);
+            });
         } catch (err) {
             toast.current?.show({
                 severity: 'error',
@@ -88,53 +46,56 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
         }
     };
 
-    const validateClassificationGrade = (classGrade: ClassificationGrade) => {
-        if (!classGrade.admission_classification || !classGrade.curriculum_grade) {
-            return false;
+    const syncCurriculumGrades = async () => {
+        if (props.addmission_classification) {
+            setLoading(true);
+            try {
+                const sync_grades: ClassificationGrade[] = await ClassificationGradeService.syncCurriculumGrades(props.addmission_classification);
+                if (sync_grades.length > 0) {
+                    setClassificationGrades(prevGrades => [...prevGrades, ...sync_grades]);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: `${sync_grades.length} curriculum grades added.`,
+                        life: 3000
+                    });
+                } else {
+                    //console.log('nothing sync');
+                    toast.current?.show({
+                        severity: 'info',
+                        summary: 'Updated Grades',
+                        detail: "Nothing sync, Everything is Up to date.",
+                        life: 3000
+                    });
+                }
+            } catch (error) {
+                //console.error('Error syncing curriculum grades:', error);
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to sync curriculum grades',
+                    detail: 'Error syncing curriculum grades:' + error,
+                    life: 3000
+                });
+            } finally {
+                setLoading(false);
+            }
         }
-        return true;
-    };
-
-    const saveClassificationGrade = async () => {
-        setSubmitted(true);
-        if (!validateClassificationGrade(selectedClassificationGrade)) {
-            return
-        }
-        let _classificationGrades = [...(classificationGrades as any)];
-        try {
-            const newClassificationGrade = await ClassificationGradeService.createClassificationGrade(selectedClassificationGrade);
-            _classificationGrades.push(newClassificationGrade);
-            toast.current?.show({
-                severity: 'success',
-                summary: 'Successful',
-                detail: 'Grade Added',
-                life: 1500
-            });
-        } catch (error) {
-            //console.error(error);
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to add grade',
-                detail: '' + error,
-                life: 1500
-            });
-        }
-        setClassificationGrades(_classificationGrades);
-        setShowAddDialog(false);
-        setSelectedClassificationGrade(emptyClassificationGrade);
     }
+
     const deleteClassificationGrade = async () => {
         try {
-            const deleted = await ClassificationGradeService.deleteClassificationGrade(selectedClassificationGrade._id ?? '');
-            if (deleted) {
-                let _classificationGrades = (classificationGrades as any)?.filter((val: any) => val._id !== selectedClassificationGrade._id);
-                setClassificationGrades(_classificationGrades);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Grade Deleted',
-                    life: 1500
-                });
+            if (selectedClassificationGrade) {
+                const deleted = await ClassificationGradeService.deleteClassificationGrade(selectedClassificationGrade);
+                if (deleted) {
+                    let _classificationGrades = (classificationGrades as any)?.filter((val: any) => val._id !== selectedClassificationGrade._id);
+                    setClassificationGrades(_classificationGrades);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Grade Deleted',
+                        life: 1500
+                    });
+                }
             }
         } catch (error) {
             //console.error(error);
@@ -149,22 +110,6 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
         setSelectedClassificationGrade(emptyClassificationGrade);
     }
 
-    const openAddDialog = () => {
-        setSelectedClassificationGrade(emptyClassificationGrade);
-        setSubmitted(false);
-        setShowAddDialog(true);
-    };
-
-    const hideAddDialog = () => {
-        setSubmitted(false);
-        setShowAddDialog(false);
-    };
-    const addDialogFooter = (
-        <>
-            <Button label="Cancel" icon="pi pi-times" text onClick={hideAddDialog} />
-            <Button label="Add" icon="pi pi-check" text onClick={saveClassificationGrade} />
-        </>
-    );
 
     const confirmRemoveClassificationGrade = (classificationGrade: ClassificationGrade) => {
         setSelectedClassificationGrade(classificationGrade);
@@ -185,7 +130,7 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
     const startToolbarTemplate = () => {
         return (
             <div className="my-2">
-                <Button label="Add Grade" icon="pi pi-plus" raised severity="secondary" rounded className="mr-2" onClick={openAddDialog} />
+                <Button label="Sync Grades" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncCurriculumGrades} />
             </div>
         );
     };
@@ -196,19 +141,6 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
         </div>
     );
 
-    const findGradeById = (id: string): Grade | undefined => {
-        return grades.find(grade => grade._id === id);
-    };
-    const findCurriculumGradeById = (id: string): CurriculumGrade | undefined => {
-        return curriculumGrades.find(curr_grade => curr_grade._id === id);
-    };
-
-    const gradeBodyTemplate = (rowData: ClassificationGrade) => {
-        //const grade = typeof rowData.curriculum_grade === "string" ? findGradeById(findCurriculumGradeById(rowData.curriculum_grade)?.grade || '') : '';
-       // return gradeTemplate(grade as Grade);
-    };
-
-
     const actionBodyTemplate = (rowData: ClassificationGrade) => {
         return (
             <>
@@ -216,8 +148,7 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
             </>
         );
     };
-    //<Column field="grade" body={(rowData) => gradeTemplate(grades.find(grade => grade._id === rowData.grade) as Grade)} header='Grade'></Column>
-
+    
     return (
         <div className="grid">
             <div className="col-12">
@@ -238,40 +169,9 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} grades"
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
-                        <Column field="_id" header="Curriculum Grade"  sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column header="Classfication Grade" body={classificationGradeTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
-                    <Dialog
-                        visible={showAddDialog}
-                        style={{ width: '450px' }}
-                        header="Add Grade"
-                        modal
-                        className="p-fluid"
-                        footer={addDialogFooter}
-                        onHide={hideAddDialog}
-                    >
-                        {selectedClassificationGrade ? <>
-                            <div className="field">
-                                <label htmlFor="grade">Grade (Curriculum Grade)</label>
-                                <div id="grade">
-                                    <Dropdown
-                                        value={selectedClassificationGrade.curriculum_grade || null}
-                                        onChange={(e) => setSelectedClassificationGrade({ ...selectedClassificationGrade, curriculum_grade: e.value })}
-                                        options={curriculumGrades.filter(curr_grade =>
-                                            !classificationGrades.some(classificationGrade => classificationGrade.curriculum_grade === curr_grade._id)
-                                        )}
-                                        placeholder="Select a Grade"
-                                        optionLabel="_id"
-                                        filter
-                                        className={classNames({
-                                            'p-invalid': submitted && !selectedClassificationGrade.curriculum_grade,
-                                        })}
-                                    />
-                                </div>
-                                {submitted && !selectedClassificationGrade.curriculum_grade && <small className="p-invalid">Grade is required.</small>}
-                            </div>
-                        </> : <></>}
-                    </Dialog>
 
                     <Dialog
                         visible={showRemoveDialog}

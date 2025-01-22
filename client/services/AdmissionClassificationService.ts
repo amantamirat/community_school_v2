@@ -37,17 +37,15 @@ export const AdmissionClassificationService = {
 
     // Create a new admissionClassification
     async createAdmissionClassification(admissionClassification: AdmissionClassification): Promise<AdmissionClassification> {
-        const createdData = await MyService.create(admissionClassification, create_endpoint) as AdmissionClassification;
+        const createdData = await MyService.create(sanitize(admissionClassification), create_endpoint) as AdmissionClassification;
         const cachedData = localStorage.getItem(storageName);
         if (cachedData) {
             const localData = JSON.parse(cachedData) as AdmissionClassification[];
-            localData.push({ ...admissionClassification, _id: createdData._id });//
+            localData.push({ ...admissionClassification, _id: createdData._id });
             localStorage.setItem(storageName, JSON.stringify(localData));
         }
         return createdData;
     },
-
-
 
     async deleteAdmissionClassification(admissionClassification: AdmissionClassification): Promise<boolean> {
         if (admissionClassification._id) {

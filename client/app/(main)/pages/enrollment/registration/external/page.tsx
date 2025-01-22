@@ -2,7 +2,7 @@
 import { useClassificationGrade } from '@/app/(main)/contexts/classificationGradeContext';
 import { ExternalStudentInfoService } from '@/services/ExternalStudentInfoService';
 import { StudentGradeService } from '@/services/StudentGradeService';
-import { ClassificationGrade, ExternalStudentInfo, StudentGrade } from '@/types/model';
+import {ExternalStudentInfo, StudentGrade } from '@/types/model';
 import { FilterMatchMode, PrimeIcons } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';

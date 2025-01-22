@@ -16,7 +16,8 @@ export type Teacher = {
 
 export type Grade = {
     _id?: string;
-    stage: string;
+    stage: 'KG' | 'PRM_MID' | 'PREP';
+    stage_name: 'KG' | "GRADE";
     level: number;
     specialization: string;
 };
@@ -53,7 +54,7 @@ export type GradeSubject = {
 
 export type SubjectWeight = {
     _id?: string;
-    grade_subject: string|GradeSubject;
+    grade_subject: string | GradeSubject;
     assessment_type: 'Quiz' | 'Assignment' | 'Test' | 'Mid-Exam' | 'Final-Exam'
     assessment_weight: number;
 }

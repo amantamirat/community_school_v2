@@ -44,15 +44,22 @@ const Layout = ({ children }: ChildContainerProps) => {
 
     useEffect(() => {
         if (selectedAdmissionClassification) {
-            loadClassificationGrades();
+            try {
+                ClassificationGradeService.getClassificationGradesByClassification(selectedAdmissionClassification).then((data) => {
+                    setClassificationGrades(data); // Update state with fetched data
+                });
+            } catch (err) {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load Classification Grades',
+                    detail: '' + err,
+                    life: 3000
+                });
+            }
         }
     }, [selectedAdmissionClassification]);
 
-    useEffect(() => {
-        if (selectedAdmissionClassification) {
-            loadClassificationGrades();
-        }
-    }, [selectedAdmissionClassification]);
+
 
     const loadAcademicSessions = async () => {
         try {
@@ -62,20 +69,6 @@ const Layout = ({ children }: ChildContainerProps) => {
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to load academicSessions',
-                detail: '' + err,
-                life: 3000
-            });
-        }
-    };
-
-    const loadClassificationGrades = async () => {
-        try {
-            const data = await ClassificationGradeService.getClassificationGradesByClassification(selectedAdmissionClassification?._id ?? '');           
-            setClassificationGrades(data); // Update state with fetched data
-        } catch (err) {
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load Classification Grades',
                 detail: '' + err,
                 life: 3000
             });

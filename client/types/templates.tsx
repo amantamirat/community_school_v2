@@ -57,7 +57,7 @@ export const curriculumTemplate = (curriculum: Curriculum) => {
 
 export const classificationGradeTemplate = (classificationGrade: ClassificationGrade) => {
     if (!classificationGrade) {
-        return <span>Please select a grade</span>;
+        return <span>Please provide a grade</span>;
     }
     const curriculumGrade = classificationGrade?.curriculum_grade;
     if (typeof curriculumGrade === "object" && curriculumGrade !== null) {
