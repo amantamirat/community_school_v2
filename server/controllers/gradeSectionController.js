@@ -17,14 +17,14 @@ const GradeSectionController = {
             const gradeSection = new GradeSection({ classification_grade, section });
             const savedGradeSection = await gradeSection.save();
 
-            const subjectGrades = await GradeSubject.find({ curriculum_grade: class_grade.curriculum_grade });
-            for (const subjectGrade of subjectGrades) {
-                const newSubjectClass = new SectionClass({
-                    grade_section: savedGradeSection._id,
-                    grade_subject: subjectGrade._id
-                });
-                await newSubjectClass.save();
-            }
+            const subjectGrades = await GradeSubject.find({ curriculum_grade: class_grade.curriculum_grade, optional: false });
+            const sectionClasses = subjectGrades.map(subjectGrade => ({
+                grade_section: savedGradeSection._id,
+                grade_subject: subjectGrade._id
+            }));
+
+            await SectionClass.insertMany(sectionClasses);
+
             res.status(201).json(savedGradeSection);
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -46,13 +46,24 @@ const GradeSectionController = {
     deleteGradeSection: async (req, res) => {
         try {
             const { id } = req.params;
-            const isReferenced = await StudentGrade.findOne({ grade_section: id });
-
+            const isReferenced = await StudentGrade.exists({ grade_section: id });
             if (isReferenced) {
                 return res.status(400).json({
                     success: false,
                     message: 'Cannot delete GradeSection because it is referenced in StudentGrade.',
                 });
+            }
+            const sectionClasses = await SectionClass.find({ grade_section: id });
+            if (sectionClasses.length) {
+                for (const cls of sectionClasses) {
+                    if (cls.teacher) {
+                        return res.status(400).json({
+                            message: 'Cannot delete GradeSection because one of its class is assigned for a teacher.'
+                        });
+                    }
+                }
+                const ack = await SectionClass.deleteMany({ grade_section: id });
+                //console.log(ack, "class of sections cleared");
             }
             // If not referenced, proceed with deletion    
             const deletedGradeSection = await GradeSection.findByIdAndDelete(id);

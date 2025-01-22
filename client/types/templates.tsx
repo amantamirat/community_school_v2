@@ -25,7 +25,7 @@ export const gradeTemplate = (grade: Grade) => {
 
 export const teacherTemplate = (teacher: Teacher) => {
     if (!teacher) {
-        return "";
+        return <>Please Provide a Teacher</>;
     }
     let prefix = ""
     if (teacher.sex === "Male") {
@@ -91,7 +91,7 @@ export const studentGradeTemplate = (studentGrde: StudentGrade) => {
 
 export const gradeSectionTemplate = (gradeSection: GradeSection) => {
     if (!gradeSection) {
-        return "N/A";
+        return <>Select a Section</>;
     }
     return ("Section-" + gradeSection.section);
 };
@@ -108,3 +108,4 @@ export const gradeSubjectTemplate = (gradeSubject: GradeSubject) => {
         <>{subject}</>
     );
 };
+

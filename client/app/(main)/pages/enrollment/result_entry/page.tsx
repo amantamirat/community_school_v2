@@ -4,6 +4,7 @@ import { GradeSectionService } from '@/services/GradeSectionService';
 import { SectionClassService } from '@/services/SectionClassService';
 import { SubjectWeightService } from '@/services/SubjectWeightService';
 import { GradeSection, SectionClass, SubjectWeight } from '@/types/model';
+import { gradeSectionTemplate } from '@/types/templates';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dropdown } from 'primereact/dropdown';
@@ -99,8 +100,17 @@ const ResultEntryPage = () => {
                     <div className="col-12">
                         <div className="formgrid grid">
                             <div className="field col">
+                                <label htmlFor="term">Term (Semester)</label>
+                                <div id="term">
+                                    <Dropdown
+                                        options={[1, 2]}
+                                        placeholder="Select Curriculum Term"
+                                    />
+                                </div>
+                            </div>
+                            <div className="field col">
                                 <label htmlFor="section">Section</label>
-                                <div id="v">
+                                <div id="section">
                                     <Dropdown
                                         value={selectedGradeSection || null}
                                         onChange={(e) =>
@@ -109,6 +119,8 @@ const ResultEntryPage = () => {
                                         options={gradeSections}
                                         optionLabel="_id"
                                         placeholder="Select Section"
+                                        itemTemplate={gradeSectionTemplate}
+                                        valueTemplate={gradeSectionTemplate}
                                     />
                                 </div>
                             </div>
@@ -121,21 +133,13 @@ const ResultEntryPage = () => {
                                             setSelectedSectionClass(e.value)
                                         }
                                         options={sectionClasss}
-                                        optionLabel="_id"
+                                        optionLabel="grade_subject.subject.title"
                                         placeholder="Select Class"
                                     />
                                 </div>
                             </div>
 
-                            <div className="field col">
-                                <label htmlFor="term">Term(Semester)</label>
-                                <div id="term">
-                                    <Dropdown
-                                        options={[1, 2]}
-                                        placeholder="Select Curriculum Term"
-                                    />
-                                </div>
-                            </div>
+
                         </div>
                     </div>
                 </div>

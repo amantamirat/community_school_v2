@@ -4,12 +4,14 @@ const SectionClassSchema = new mongoose.Schema({
     grade_section: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'GradeSection',
-        required: true
+        required: true,
+        immutable: true,
     },
     grade_subject: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'GradeSubject',
-        required: true
+        required: true,
+        immutable: true
     },
     teacher: {
         type: mongoose.Schema.Types.ObjectId,

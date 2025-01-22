@@ -5,7 +5,7 @@ import { GradeSubjectService } from "@/services/GradeSubjectService";
 import { SectionClassService } from "@/services/SectionClassService";
 import { TeacherService } from "@/services/TeacherService";
 import { GradeSection, GradeSubject, SectionClass, Teacher } from "@/types/model";
-import { gradeSubjectTemplate, teacherTemplate } from "@/types/templates";
+import { gradeSectionTemplate, gradeSubjectTemplate, teacherTemplate } from "@/types/templates";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
@@ -34,6 +34,7 @@ const SectionClassComponent = () => {
     const toast = useRef<Toast>(null);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [gradeSubjects, setGradeSubjects] = useState<GradeSubject[]>([]);
+    const [loading, setLoading] = useState(false);
 
 
     useEffect(() => {
@@ -69,7 +70,7 @@ const SectionClassComponent = () => {
             if (selectedGradeSection) {
                 SectionClassService.getSectionClasssByGradeSection(selectedGradeSection).then((data) => {
                     setSectionClasss(data);
-                    console.log(data);
+                    //console.log(data);
                 });
             } else {
                 setSectionClasss([])
@@ -101,8 +102,17 @@ const SectionClassComponent = () => {
         }
     };
 
+    const syncSubjects = async () => { }
+
     const validateSectionClass = (section_class: SectionClass) => {
         if (!section_class.grade_section || !section_class.grade_subject) {
+            return false;
+        }
+        return true;
+    };
+
+    const validateSectionClassTeacher = (section_class: SectionClass) => {
+        if (!section_class.teacher) {
             return false;
         }
         return true;
@@ -116,6 +126,9 @@ const SectionClassComponent = () => {
         let _sectionClasss = [...(sectionClasss as any)];
         try {
             if (selectedSectionClass._id) {
+                if (!validateSectionClassTeacher(selectedSectionClass)) {
+                    return
+                }
                 let id = selectedSectionClass._id;
                 const updatedClass = await SectionClassService.updateSectionClass(id, selectedSectionClass);
                 const teacherObject = teachers.find(
@@ -123,7 +136,7 @@ const SectionClassComponent = () => {
                 );
                 if (teacherObject) {
                     const updatedSectionClass = {
-                        ...updatedClass,
+                        ...selectedSectionClass,
                         teacher: teacherObject,
                     };
                     const index = findIndexById(id);
@@ -131,9 +144,12 @@ const SectionClassComponent = () => {
                 }
             } else {
                 const newSectionClass = await SectionClassService.createSectionClass(selectedSectionClass);
-                _sectionClasss.push(newSectionClass);
-            }
+                if (newSectionClass) {
+                    const sectionclass = { ...selectedSectionClass, _id: newSectionClass._id }
+                    _sectionClasss.push(sectionclass);
+                }
 
+            }
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
@@ -226,11 +242,13 @@ const SectionClassComponent = () => {
             <div className="field">
                 <div id="section">
                     <Dropdown
-                        value={selectedGradeSection || null}
+                        value={selectedGradeSection}
                         onChange={(e) =>
                             setSelectedGradeSection(e.value)
                         }
                         options={gradeSections}
+                        itemTemplate={gradeSectionTemplate}
+                        valueTemplate={gradeSectionTemplate}
                         optionLabel="section"
                         placeholder="Select Section"
                     />
@@ -244,6 +262,7 @@ const SectionClassComponent = () => {
         return (
             <div className="my-2">
                 <Button label="Add Subject" icon="pi pi-plus" className="mr-2" onClick={openSaveDialog} disabled={!selectedGradeSection} />
+                <Button label="Sync" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncSubjects} />
             </div>
         );
     };
@@ -280,7 +299,7 @@ const SectionClassComponent = () => {
     const actionBodyTemplate = (rowData: SectionClass) => {
         return (
             <>
-                <Button type="button" label={rowData.teacher ? 'Change Teacher' : 'Assign Teacher'} outlined rounded style={{ marginRight: '10px' }} onClick={() => openEditDialog(rowData)} />
+                <Button icon="pi pi-user" rounded severity="info" style={{ marginRight: '10px' }} onClick={() => openEditDialog(rowData)} />
                 <Button icon="pi pi-trash" rounded severity="warning" onClick={() => confirmRemoveSectionClass(rowData)} />
             </>
         );
@@ -329,7 +348,13 @@ const SectionClassComponent = () => {
                                             itemTemplate={teacherTemplate}
                                             valueTemplate={teacherTemplate}
                                             filter
+                                            required
+                                            emptyMessage="No Teachers Found."
+                                            className={classNames({
+                                                'p-invalid': submitted && !selectedSectionClass.teacher,
+                                            })}
                                         />
+                                        {submitted && !selectedSectionClass.teacher && <small className="p-invalid">Teacher is required.</small>}
                                     </div>
                                 </div>
                             </> :
@@ -352,6 +377,7 @@ const SectionClassComponent = () => {
                                                 'p-invalid': submitted && !selectedSectionClass.grade_subject,
                                             })}
                                         />
+                                        {submitted && !selectedSectionClass.grade_subject && <small className="p-invalid">Subject is required.</small>}
                                     </div>
                                 </div>
                             : <></>

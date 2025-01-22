@@ -172,6 +172,19 @@ const RegisteredStudentsComponent = () => {
         </>
     );
 
+    const sectionTemplate = (studentGrde: StudentGrade) => {
+        if (!studentGrde) {
+            return <>N/A</>
+        }
+        const section = studentGrde?.grade_section;
+        if (typeof section === "object" && section !== null) {
+            return <>Section {section.section}</>
+        }
+        return (
+            <>N/A</>
+        );
+    };
+
     const startToolbarTemplate = () => {
         return (
             <>
@@ -235,7 +248,7 @@ const RegisteredStudentsComponent = () => {
                         />
                         <Column header="Student" body={studentGradeTemplate} sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="student.sex" header="Gender" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="grade_section.section" header="Section" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="grade_section.section" header="Section" body={sectionTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="student.birth_date" header="Birth Date" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="status" header="Status" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                     </DataTable>
