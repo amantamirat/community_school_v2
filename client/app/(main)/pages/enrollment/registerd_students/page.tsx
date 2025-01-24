@@ -1,13 +1,14 @@
 'use client';
+import StudentClassComponent from '@/app/(main)/components/student_classes/page';
 import { useClassificationGrade } from '@/app/(main)/contexts/classificationGradeContext';
 import { GradeSectionService } from '@/services/GradeSectionService';
 import { StudentGradeService } from '@/services/StudentGradeService';
-import { ClassificationGrade, GradeSection, StudentGrade } from '@/types/model';
-import { studentGradeTemplate } from '@/types/templates';
+import { GradeSection, StudentGrade } from '@/types/model';
+import { gradeSectionTemplate, studentGradeTemplate } from '@/types/templates';
 import { FilterMatchMode, PrimeIcons } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
-import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
+import { DataTable, DataTableExpandedRows, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
@@ -28,32 +29,11 @@ const RegisteredStudentsComponent = () => {
     const [gradeSection, setGradeSection] = useState<GradeSection>();
     const [showSectionDialog, setShowSectionDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [selectedGradeSection, setSelectedGradeSection] = useState<GradeSection | null>(null);
     const [showDeregisterDialog, setShowDeregisterDialog] = useState(false);
+    const [showDetachSectionDialog, setShowDetachSectionDialog] = useState(false);
+    const [expandedClassRows, setExpandedClassRows] = useState<any[] | DataTableExpandedRows>([]);
 
-
-    useEffect(() => {
-        try {
-            if (selectedClassificationGrade) {
-                setLoading(true);
-                setSelectedRegisteredStudents([]);
-                StudentGradeService.getRegisteredStudents(selectedClassificationGrade).then((data) => {
-                    setRegisteredStudents(data);
-                    setLoading(false);
-                });
-                GradeSectionService.getGradeSectionsByClassificationGrade(selectedClassificationGrade).then((data) => {
-                    setGradeSections(data);
-                });
-            }
-        } catch (error) {
-            setLoading(false);
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed Load Registred Students',
-                detail: '' + error,
-                life: 3000
-            });
-        }
-    }, [selectedClassificationGrade]);
 
     useEffect(() => {
         initFilters();
@@ -73,6 +53,58 @@ const RegisteredStudentsComponent = () => {
         setFilters(_filters);
         setGlobalFilter(value);
     };
+
+    useEffect(() => {
+        try {
+            if (selectedClassificationGrade) {
+                setLoading(true);
+                setSelectedRegisteredStudents([]);
+                StudentGradeService.getRegisteredStudents(selectedClassificationGrade).then((data) => {
+                    setRegisteredStudents(data);
+                    setLoading(false);
+                });
+                GradeSectionService.getGradeSectionsByClassificationGrade(selectedClassificationGrade).then((data) => {
+                    const nullOption: GradeSection = {
+                        _id: undefined, // Optional
+                        classification_grade: selectedClassificationGrade, // Use the current grade for context
+                        section_number: NaN, // Or any value indicating "None"
+                    };
+                    setGradeSections([nullOption, ...data]);
+                    //setGradeSections(data);
+                });
+            }
+        } catch (error) {
+            setLoading(false);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed Load Registred Students',
+                detail: '' + error,
+                life: 3000
+            });
+        }
+    }, [selectedClassificationGrade]);
+
+
+    useEffect(() => {
+        try {
+            if (selectedGradeSection) {
+                setLoading(true);
+                setSelectedRegisteredStudents([]);
+                StudentGradeService.getSectionedRegisteredStudents(selectedGradeSection).then((data) => {
+                    setRegisteredStudents(data);
+                    setLoading(false);
+                });
+            }
+        } catch (error) {
+            setLoading(false);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed Load Registred Students',
+                detail: '' + error,
+                life: 3000
+            });
+        }
+    }, [selectedGradeSection]);
 
     const deregisterStudents = async () => {
         try {
@@ -110,8 +142,18 @@ const RegisteredStudentsComponent = () => {
             return
         }
         try {
-            const updatedData = await StudentGradeService.assignSectionStudents(gradeSection, selectedRegisteredStudents);
-            setRegisteredStudents((prev) =>
+            setLoading(true);
+            const data = await StudentGradeService.assignSectionStudents(gradeSection, selectedRegisteredStudents);
+            if (data.acknowledged) {
+                let _data = registeredStudents.filter(student =>
+                    !selectedRegisteredStudents.some(
+                        selected => selected._id && selected._id.toString() === student._id && student._id.toString()
+                    )
+                );
+                setRegisteredStudents(_data);
+                setSelectedRegisteredStudents([]);
+            }
+            /*setRegisteredStudents((prev) =>
                 prev.map((student) => {
                     const selectedStudent = selectedRegisteredStudents.find(
                         (selStudent) => selStudent._id === student._id
@@ -121,7 +163,7 @@ const RegisteredStudentsComponent = () => {
                     }
                     return student;
                 })
-            );
+            );*/
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
@@ -136,12 +178,53 @@ const RegisteredStudentsComponent = () => {
                 detail: '' + error,
                 life: 1500
             });
+        } finally {
+            setLoading(false);
         }
         setShowSectionDialog(false);
     }
 
+
+    const detachSectionStudents = async () => {
+        setSubmitted(true);
+        if (!selectedGradeSection?._id || selectedRegisteredStudents.length == 0) {
+            return
+        }
+        try {
+            setLoading(true);
+            StudentGradeService.detachSectionStudents(selectedGradeSection, selectedRegisteredStudents).then((data) => {
+                if (data.acknowledged) {
+                    let _data = registeredStudents.filter(student =>
+                        !selectedRegisteredStudents.some(
+                            selected => selected._id && selected._id.toString() === student._id && student._id.toString()
+                        )
+                    );
+                    setRegisteredStudents(_data);
+                    setSelectedRegisteredStudents([]);
+                }
+            });
+            toast.current?.show({
+                severity: 'success',
+                summary: 'Successful',
+                detail: 'Section Removed!',
+                life: 1500
+            });
+        } catch (error) {
+            //console.error(error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to remove section',
+                detail: '' + error,
+                life: 1500
+            });
+        } finally {
+            setLoading(false);
+        }
+        setShowDetachSectionDialog(false);
+    }
+
     const openSectionDialog = () => {
-        //setSubmitted(false);
+        setSubmitted(false);
         setShowSectionDialog(true);
     };
 
@@ -154,6 +237,21 @@ const RegisteredStudentsComponent = () => {
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideSectionDialog} />
             <Button label="Assign" icon="pi pi-check" text onClick={assignSectionStudents} />
+        </>
+    );
+
+    const openDetachSectionDialog = () => {
+        setShowDetachSectionDialog(true);
+    };
+
+    const hideDetachSectionDialog = () => {
+        setShowDetachSectionDialog(false);
+    };
+
+    const detachSectionDialogFooter = (
+        <>
+            <Button label="Cancel" icon="pi pi-times" text onClick={hideDetachSectionDialog} />
+            <Button label="Detach" icon="pi pi-check" text onClick={detachSectionStudents} />
         </>
     );
 
@@ -187,11 +285,23 @@ const RegisteredStudentsComponent = () => {
 
     const startToolbarTemplate = () => {
         return (
-            <>
-                <div className="my-2">
-                    <Button label="Assign Section" icon={PrimeIcons.TAG} severity="info" className="mr-2" disabled={selectedRegisteredStudents.length == 0} onClick={openSectionDialog} />
+            <div className="field">
+                <div id="section">
+                    <Dropdown
+                        value={selectedGradeSection}
+                        onChange={(e) =>
+                            setSelectedGradeSection(e.value)
+                        }
+                        options={gradeSections}
+                        itemTemplate={gradeSectionTemplate}
+                        valueTemplate={gradeSectionTemplate}
+                        optionLabel="section"
+                        placeholder="Select Section"
+                        className="mr-2"
+                    />
                 </div>
-            </>
+            </div>
+
         );
     };
 
@@ -199,7 +309,15 @@ const RegisteredStudentsComponent = () => {
         return (
             <>
                 <div className="my-2">
-                    <Button label="Deregister" icon={PrimeIcons.TRASH} severity="danger" className="mr-2" disabled={selectedRegisteredStudents.length == 0} onClick={openDeregisterDialog} />
+                    {selectedGradeSection?._id ?
+                        <>
+                            <Button label="Detach Section" icon="pi pi-fw pi-times-circle" severity="danger" className="mr-2" disabled={selectedRegisteredStudents.length === 0} onClick={openDetachSectionDialog} />
+                        </> :
+                        <>
+                            <Button label="Allocate Section" icon={PrimeIcons.TAG} severity="info" className="mr-2" disabled={selectedRegisteredStudents.length === 0} onClick={openSectionDialog} loading={loading} />
+                            <Button label="Deregister" icon={PrimeIcons.TRASH} severity="danger" className="mr-2" disabled={selectedRegisteredStudents.length === 0} onClick={openDeregisterDialog} />
+                        </>
+                    }
                 </div>
             </>
         );
@@ -239,13 +357,18 @@ const RegisteredStudentsComponent = () => {
                         globalFilterFields={['student.first_name', 'student.birth_date']}
                         filters={filters}
                         loading={loading}
-                        onSelectionChange={(e) => setSelectedRegisteredStudents(e.value as any)}>
-                        <Column selectionMode="multiple" headerStyle={{ width: '4rem' }}></Column>
-                        <Column
-                            header="#"
-                            body={(rowData, options) => options.rowIndex + 1}
-                            style={{ width: '50px' }}
-                        />
+                        onSelectionChange={(e) => setSelectedRegisteredStudents(e.value as any)}
+                        expandedRows={expandedClassRows}
+                        onRowToggle={(e) => setExpandedClassRows(e.data)}
+                        rowExpansionTemplate={(data) => (
+                            <StudentClassComponent
+                                student_grade={data as StudentGrade}
+                            />
+                        )}
+                    >
+                        <Column expander style={{ width: '4em' }} />
+                        <Column selectionMode="multiple" headerStyle={{ width: '4rem' }} />
+                        <Column header="#" body={(rowData, options) => options.rowIndex + 1} style={{ width: '50px' }} />
                         <Column header="Student" body={studentGradeTemplate} sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="student.sex" header="Gender" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="grade_section.section" header="Section" body={sectionTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
@@ -287,6 +410,23 @@ const RegisteredStudentsComponent = () => {
                                 </div>
                             </> : <></>
                         }
+                    </Dialog>
+                    <Dialog
+                        visible={showDetachSectionDialog}
+                        style={{ width: '450px' }}
+                        header="Confirm-Detach Section"
+                        modal
+                        footer={detachSectionDialogFooter}
+                        onHide={hideDetachSectionDialog}
+                    >
+                        <div className="flex align-items-center justify-content-center">
+                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
+                            {selectedRegisteredStudents.length > 0 && (
+                                <span>
+                                    Are you sure you want to detach section for <b>{selectedRegisteredStudents.length}</b> students?
+                                </span>
+                            )}
+                        </div>
                     </Dialog>
                     <Dialog
                         visible={showDeregisterDialog}

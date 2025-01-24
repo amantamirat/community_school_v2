@@ -6,7 +6,9 @@ const studentGradeController = require('../controllers/studentGradeController');
 router.post("/register_external_students/:classification_grade", studentGradeController.registerExternalStudents);
 router.post("/register_first_level_students/:classification_grade", studentGradeController.registerFirstLevelStudents);
 router.put("/allocate_section/:grade_section", studentGradeController.allocateSection);
-router.get('/registered_students/:classification_grade', studentGradeController.getRegisteredStudentsByClassificationGrade); 
+router.put("/detach_section/:grade_section", studentGradeController.detachSection);
+router.get('/nan_section_registered_students/:classification_grade', studentGradeController.getSectionedRegisteredStudents); 
+router.get('/sectioned_registered_students/:grade_section', studentGradeController.getSectionedRegisteredStudents); 
 router.delete("/deregister_students/:classification_grade", studentGradeController.deregisterStudents);
 
 

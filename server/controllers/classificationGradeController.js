@@ -5,19 +5,7 @@ const AdmissionClassification = require("../models/admission-classification");
 const CurriculumGrade = require('../models/curriculum-grade');
 
 // Controller methods
-const ClassificationGradeController = {
-    // Create a new classificationGrade
-    createClassificationGrade: async (req, res) => {
-        try {
-            const { admission_classification, curriculum_grade } = req.body;
-            const classificationGrade = new ClassificationGrade({ admission_classification, curriculum_grade });
-            const savedClassificationGrade = await classificationGrade.save();
-            res.status(201).json(savedClassificationGrade);
-        } catch (error) {
-            res.status(400).json({ message: error.message });
-            //console.log(error);
-        }
-    },
+const ClassificationGradeController = {    
 
     syncCurriculumGrades: async (req, res) => {
         try {

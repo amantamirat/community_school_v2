@@ -122,5 +122,10 @@ export type StudentGrade = {
     grade_section?: GradeSection | string;
 };
 
+export type StudentClass = {
+    _id?: string;
+    student_grade: StudentGrade | string;
+    section_class: SectionClass | string;
+};
 
 

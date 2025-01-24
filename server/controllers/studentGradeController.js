@@ -5,6 +5,8 @@ const Student = require("../models/student");
 const GradeSection = require('../models/grade-sections');
 const SectionClass = require("../models/section-class");
 const StudentClass = require("../models/student-class");
+const StudentResult = require("../models/student-result");
+
 const gradeController = require('../controllers/gradeController');
 const studentGradeController = {
     registerExternalStudents: async (req, res) => {
@@ -113,14 +115,26 @@ const studentGradeController = {
         }
     },
 
-    getRegisteredStudentsByClassificationGrade: async (req, res) => {
+    getSectionedRegisteredStudents: async (req, res) => {
+        try {
+            const { grade_section } = req.params;
+            const registered_students = await StudentGrade.find({ grade_section: grade_section }).populate('student').populate('grade_section');
+            res.status(200).json(registered_students);
+        } catch (error) {
+            //console.log(error);
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    getNaNSectionRegisteredStudents: async (req, res) => {
         try {
             const { classification_grade } = req.params;
-            const classificationGrade = await ClassificationGrade.findById(classification_grade);
-            if (!classificationGrade) {
-                return res.status(404).json({ message: "Classification Grade not found" });
-            }
-            const registered_students = await StudentGrade.find({ classification_grade: classification_grade }).populate('student').populate('grade_section');
+            const registered_students = await StudentGrade.find({
+                classification_grade: classification_grade,
+                grade_section: { $exists: false },
+            })
+                .populate('student')
+                .populate('grade_section');
             res.status(200).json(registered_students);
         } catch (error) {
             //console.log(error);
@@ -137,7 +151,7 @@ const studentGradeController = {
             }
             const selected_registered_students = req.body;
             if (!Array.isArray(selected_registered_students)) {
-                res.status(404).json({ message: "data protocol error array students required for deregistering students" });
+                return res.status(404).json({ message: "data protocol error array students required for deregistering students" });
             }
             const dereg_new_students = [];
             const external_students_info = [];
@@ -147,8 +161,11 @@ const studentGradeController = {
                     return res.status(404).json({ message: "Non Registred Student Information Found (Invalid ID Data)." });
                 }
                 if (!reg_student.classification_grade.equals(classificationGrade._id)) {
-                    res.status(404).json({ message: "some students are not belongs to the selected grade" });
+                    return res.status(404).json({ message: "Some students are not belongs to the selected grade" });
                 }
+                if(reg_student.grade_section){
+                    return res.status(400).json({ message: `Sectioned student ${reg_student._id} can not be derigistered!` });                   
+                } 
                 if (reg_student.external_student_prior_info) {
                     external_students_info.push(reg_student.external_student_prior_info);
                 } else if (!reg_student.previous_student_grade) {
@@ -170,6 +187,7 @@ const studentGradeController = {
             res.status(500).json({ message: error.message });
         }
     },
+
     allocateSection: async (req, res) => {
         try {
             const { grade_section } = req.params;
@@ -179,32 +197,31 @@ const studentGradeController = {
             }
             const selected_students = req.body;
             if (!Array.isArray(selected_students)) {
-                res.status(404).json({ message: "error array students required" });
+                return res.status(404).json({ message: "error array students required" });
             }
             const section_students = [];
-            for (const student_grade of selected_students) {
-                const grade_student = await StudentGrade.findById(student_grade);
-                if (!grade_student) {
+            for (const student_grade_id of selected_students) {
+                const student_grade = await StudentGrade.findById(student_grade_id);
+                if (!student_grade) {
                     return res.status(404).json({ message: "Non Registred Student Information Found (Invalid ID Data)." });
                 }
-                if (!grade_student.classification_grade.equals(gradeSection.classification_grade)) {
-                    return res.status(400).json({ message: `Student ${student_grade} does not belong to the selected grade` });
+                if (!student_grade.classification_grade.equals(gradeSection.classification_grade)) {
+                    return res.status(404).json({ message: `Student ${student_grade_id} does not belong to the selected grade` });
                 }
-                section_students.push(student_grade);
+
+                if(student_grade.grade_section){
+                    return res.status(400).json({ message: `Student ${student_grade_id} is sectioned student!` });                   
+                }                
+                section_students.push(student_grade_id);
             }
             const result = await StudentGrade.updateMany(
                 { _id: { $in: section_students } },
                 { $set: { grade_section: gradeSection._id } }
             );
-
-            await StudentClass.deleteMany({
-                student_grade: { $in: section_students }
-            });
             const sectionClasses = await SectionClass.find({ grade_section: grade_section });
             if (sectionClasses.length !== 0) {
                 const studentClassData = [];
-                for (const student_grade of section_students) {
-                    //await StudentClass.deleteMany({student_grade:student_grade});                                
+                for (const student_grade of section_students) {                               
                     for (const sectionClass of sectionClasses) {
                         studentClassData.push({
                             student_grade: student_grade,
@@ -214,6 +231,45 @@ const studentGradeController = {
                 }
                 const createdStudentClasses = await StudentClass.insertMany(studentClassData);
             }
+            res.status(200).json(result);
+        } catch (error) {
+            //console.log(error);
+            res.status(500).json({ message: error.message });
+        }
+    },
+    detachSection: async (req, res) => {
+        try {
+            const { grade_section } = req.params;
+            const selected_students = req.body;
+            if (!Array.isArray(selected_students)) {
+                return res.status(404).json({ message: "error array students required" });
+            }
+            const section_students = [];
+            for (const student_grade_id of selected_students) {
+                const student_grade = await StudentGrade.findById(student_grade_id);
+                if (!student_grade) {
+                    return res.status(404).json({ message: "Non Registred Student Information Found (Invalid ID Data)." });
+                }
+                if (!student_grade.grade_section.equals(grade_section)) {
+                    return res.status(404).json({ message: "Non Sectioned Student Information Found (Invalid Section Data)." });
+                }
+                const studentClassDocs = await StudentClass.find({ student_grade: student_grade_id })
+                    .select('_id')
+                    .lean();
+                const studentClassIds = studentClassDocs.map(doc => doc._id);
+                const resultsExist = await StudentResult.exists({ student_class: { $in: studentClassIds } });
+                if (resultsExist) {
+                    return res.status(404).json({ message: "Some students have results" });
+                }
+                section_students.push(student_grade_id);
+            }
+            await StudentClass.deleteMany({
+                student_grade: { $in: section_students }
+            });
+            const result = await StudentGrade.updateMany(
+                { _id: { $in: section_students } },
+                { $unset: { grade_section: 1 } }
+            );           
             res.status(200).json(result);
         } catch (error) {
             //console.log(error);

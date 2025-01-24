@@ -39,18 +39,7 @@ export const ClassificationGradeService = {
 
     },
 
-    /*
-    async createClassificationGrade(classificationGrade: ClassificationGrade): Promise<ClassificationGrade> {
-        const createdData = await MyService.create(sanitize(classificationGrade), create_endpoint);
-        const cachedData = localStorage.getItem(storageName);
-        if (cachedData) {
-            const localData = JSON.parse(cachedData) as ClassificationGrade[];
-            //localData.push(createdData);
-            localData.push({ ...classificationGrade, _id: createdData._id });
-            localStorage.setItem(storageName, JSON.stringify(localData));
-        }
-        return createdData;
-    },*/
+   
 
     async syncCurriculumGrades(admission_classification: AdmissionClassification): Promise<ClassificationGrade[]> {
         const createdData = await MyService.create({}, `${sync_endpoint}/${admission_classification._id}`) as ClassificationGrade[];

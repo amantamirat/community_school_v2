@@ -23,7 +23,7 @@ const AppMenu = () => {
                     label: 'Enrollment',
                     icon: PrimeIcons.SYNC,
                     items: [
-                        { label: 'Registered', icon: PrimeIcons.USERS, to: '/pages/enrollment/registerd_students' },
+                        { label: 'Registered', icon: PrimeIcons.ID_CARD, to: '/pages/enrollment/registerd_students' },
                         {
                             label: 'Registration',
                             icon: PrimeIcons.SIGN_IN,
@@ -40,7 +40,7 @@ const AppMenu = () => {
                 { label: 'Academic Session', icon: PrimeIcons.CALENDAR, to: '/pages/academic_session' },
                 { label: 'Curricula', icon: PrimeIcons.BOOK, to: '/pages/curricula_pages' },
                 { label: 'Teachers', icon: PrimeIcons.USER_PLUS, to: '/pages/teachers_pages' },
-                { label: 'Students', icon: PrimeIcons.ID_CARD, to: '/pages/students' }
+                { label: 'Students', icon:"pi pi-fw pi-graduation-cap", to: '/pages/students' }
             ]
         },
         {
