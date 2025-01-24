@@ -93,7 +93,7 @@ export const gradeSectionTemplate = (gradeSection: GradeSection) => {
     if (!gradeSection) {
         return <>Select a Section</>;
     }
-    return ("Section-" + gradeSection.section);
+    return ("Section-" + gradeSection.section_number);
 };
 
 export const gradeSubjectTemplate = (gradeSubject: GradeSubject) => {

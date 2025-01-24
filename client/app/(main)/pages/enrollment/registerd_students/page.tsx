@@ -178,7 +178,7 @@ const RegisteredStudentsComponent = () => {
         }
         const section = studentGrde?.grade_section;
         if (typeof section === "object" && section !== null) {
-            return <>Section {section.section}</>
+            return <>Section {section.section_number}</>
         }
         return (
             <>N/A</>
@@ -275,7 +275,7 @@ const RegisteredStudentsComponent = () => {
                                             options={gradeSections}
                                             onChange={(e) => setGradeSection(e.value)}
                                             placeholder="Select a Section"
-                                            optionLabel="section"
+                                            optionLabel="section_number"
                                             required
                                             autoFocus
                                             emptyMessage="No Section Found."

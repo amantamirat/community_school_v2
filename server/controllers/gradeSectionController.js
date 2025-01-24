@@ -9,12 +9,13 @@ const GradeSectionController = {
 
     createGradeSection: async (req, res) => {
         try {
-            const { classification_grade, section } = req.body;
+            const { classification_grade, section_number } = req.body;
             const class_grade = await ClassificationGrade.findById(classification_grade);
             if (!class_grade) {
                 return res.status(404).json({ message: 'Classification grade not found' });
             }
-            const gradeSection = new GradeSection({ classification_grade, section });
+            //console.log(req.body);
+            const gradeSection = new GradeSection({ classification_grade, section_number });
             const savedGradeSection = await gradeSection.save();
 
             const subjectGrades = await GradeSubject.find({ curriculum_grade: class_grade.curriculum_grade, optional: false });

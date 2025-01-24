@@ -7,7 +7,6 @@ const SectionClassController = {
     createSectionClass: async (req, res) => {
         try {
             const { grade_section, grade_subject } = req.body;
-
             //make sure grade_section and grade_subject are in the same curriculum_grade
             const section = await GradeSection.findById(grade_section).populate('classification_grade');
             if (!section) {

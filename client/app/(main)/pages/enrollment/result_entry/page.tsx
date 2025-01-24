@@ -8,6 +8,7 @@ import { gradeSectionTemplate } from '@/types/templates';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dropdown } from 'primereact/dropdown';
+import { InputNumber } from 'primereact/inputnumber';
 import { Toast } from 'primereact/toast';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -20,6 +21,7 @@ const ResultEntryPage = () => {
     const [selectedSectionClass, setSelectedSectionClass] = useState<SectionClass | null>(null);
     const [subjectWeights, setSubjectWeights] = useState<SubjectWeight[]>([]);
     const [columns, setColumns] = useState<any[]>([]);
+    const [term, setTerm] = useState(1);
 
     useEffect(() => {
         try {
@@ -44,7 +46,6 @@ const ResultEntryPage = () => {
             if (selectedGradeSection) {
                 SectionClassService.getSectionClasssByGradeSection(selectedGradeSection).then((data) => {
                     setSectionClasss(data);
-                    //console.log(data);
                 });
             } else {
                 setSectionClasss([])
@@ -68,8 +69,13 @@ const ResultEntryPage = () => {
                         setSubjectWeights(data);
                         //console.log(data);
                         const dynamicColumns = data.map((weight) => ({
-                            field: weight.assessment_type,
-                            header: weight.assessment_type,
+                            header: `${weight.assessment_type} (${weight.assessment_weight}%)`, // Display assessment type with weight
+                            field: weight.assessment_type, // Field for data mapping
+                            editor: (options: any) =>
+                                resultEditor({
+                                    ...options,
+                                    max: weight.assessment_weight, // Pass max value to the editor
+                                }),
                         }));
                         setColumns(dynamicColumns);
                     });
@@ -84,6 +90,18 @@ const ResultEntryPage = () => {
             });
         }
     }, [selectedSectionClass]);
+
+    const resultEditor = (options: any) => {
+        const maxValue = options.max || 100;
+        return <InputNumber value={options.value} onValueChange={(e) => options.editorCallback(e.value)} mode="decimal" min={0} max={maxValue} maxFractionDigits={5} useGrouping={false} className="p-inputnumber-sm block mb-2" />
+    }
+
+    const calculateRowTotal = (rowData: any) => {
+        return Object.keys(rowData)
+            .filter((key) => key !== '_id' && key !== 'total') // Exclude non-assessment keys
+            .reduce((sum, key) => sum + (rowData[key] || 0), 0); // Sum up all assessment weights
+    };
+
 
 
     // Prepare data for the DataTable
@@ -103,6 +121,8 @@ const ResultEntryPage = () => {
                                 <label htmlFor="term">Term (Semester)</label>
                                 <div id="term">
                                     <Dropdown
+                                        value={term}
+                                        onChange={(e) => setTerm(e.value)}
                                         options={[1, 2]}
                                         placeholder="Select Curriculum Term"
                                     />
@@ -138,8 +158,6 @@ const ResultEntryPage = () => {
                                     />
                                 </div>
                             </div>
-
-
                         </div>
                     </div>
                 </div>
@@ -147,12 +165,15 @@ const ResultEntryPage = () => {
             <div className="grid">
                 <div className="col-12">
                     <div className="card">
-                        <h5>Empty Page</h5>
-                        <p>subject weight {subjectWeights.length}</p>
                         <DataTable value={tableData}>
                             {columns.map((col, index) => (
-                                <Column key={index} field={col.field} header={col.header} />
+                                <Column key={index} field={col.field} header={col.header} editor={col.editor} />
                             ))}
+                            <Column
+                                header="Total"
+                                body={(rowData) => calculateRowTotal(rowData)} // Function to calculate and display the total
+                                style={{ fontWeight: 'bold', textAlign: 'right' }}
+                            />
                         </DataTable>
                     </div>
                 </div>

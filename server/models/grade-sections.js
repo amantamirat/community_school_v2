@@ -4,14 +4,16 @@ const GradeSectionSchema = new mongoose.Schema({
     classification_grade: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ClassificationGrade',
-        required: true
+        required: true,
+        immutable:true,
     },
-    section: {
+    section_number: {
         type: Number,
-        required: true
+        required: true,
+        immutable: true
     }
 });
 
-GradeSectionSchema.index({ classification_grade: 1, section: 1 }, { unique: true });
+GradeSectionSchema.index({ classification_grade: 1, section_number: 1 }, { unique: true });
 const GradeSection = mongoose.model('GradeSection', GradeSectionSchema);
 module.exports = GradeSection;

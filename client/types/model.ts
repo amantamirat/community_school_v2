@@ -83,7 +83,7 @@ export type ClassificationGrade = {
 export type GradeSection = {
     _id?: string;
     classification_grade: ClassificationGrade | string;
-    section: number;
+    section_number: number;
 };
 
 export type SectionClass = {

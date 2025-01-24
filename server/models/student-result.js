@@ -5,6 +5,12 @@ const StudentResultSchema = new mongoose.Schema({
         ref: 'StudentClass',
         required: true
     },
+    term: {
+        type: Number,
+        min: 1,
+        max: 4,
+        required: true
+    },
     subject_weight: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'SubjectWeight',

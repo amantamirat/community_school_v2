@@ -16,7 +16,7 @@ const GradeSectionComponent = () => {
 
     let emptyGradeSection: GradeSection = {
         classification_grade: '',
-        section: 0
+        section_number: 0
     };
     const { selectedClassificationGrade } = useClassificationGrade();
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
@@ -45,7 +45,7 @@ const GradeSectionComponent = () => {
 
 
     const validateGradeSection = (section: GradeSection) => {
-        if (!section.classification_grade || isNaN(section.section) || section.section <= 0) {
+        if (!section.classification_grade || isNaN(section.section_number) || section.section_number <= 0) {
             return false;
         }
         return true;
@@ -107,12 +107,12 @@ const GradeSectionComponent = () => {
     const openAddDialog = () => {
         let max_section = 0;
         for (let i = 0; i < gradeSections?.length; i++) {
-            if ((gradeSections)[i].section > max_section) {
-                max_section = gradeSections[i].section;
+            if ((gradeSections)[i].section_number > max_section) {
+                max_section = gradeSections[i].section_number;
             }
         }
         if (selectedClassificationGrade) {
-            setSelectedGradeSection({ ...emptyGradeSection, classification_grade: selectedClassificationGrade, section: max_section + 1 });
+            setSelectedGradeSection({ ...emptyGradeSection, classification_grade: selectedClassificationGrade, section_number: max_section + 1 });
             setSubmitted(false);
             setShowAddDialog(true);
         }
@@ -188,7 +188,7 @@ const GradeSectionComponent = () => {
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} grades"
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
-                        <Column field="section" header="Section" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="section_number" header="Section" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
                     <Dialog
@@ -205,18 +205,18 @@ const GradeSectionComponent = () => {
                                 <div id="section">
                                     <InputNumber
                                         id="section"
-                                        value={selectedGradeSection.section}
-                                        onChange={(e) => setSelectedGradeSection({ ...selectedGradeSection, section: e.value || 1 })}
+                                        value={selectedGradeSection.section_number}
+                                        onChange={(e) => setSelectedGradeSection({ ...selectedGradeSection, section_number: e.value || 1 })}
                                         mode="decimal" // Basic number mode
                                         useGrouping={false} // No thousand separator
                                         required
                                         autoFocus
                                         className={classNames({
-                                            'p-invalid': submitted && !selectedGradeSection.section,
+                                            'p-invalid': submitted && !selectedGradeSection.section_number,
                                         })}
                                     />
                                 </div>
-                                {submitted && !selectedGradeSection.section && <small className="p-invalid">Section Number is required.</small>}
+                                {submitted && !selectedGradeSection.section_number && <small className="p-invalid">Section Number is required.</small>}
                             </div>
                         </> : <></>}
                     </Dialog>
