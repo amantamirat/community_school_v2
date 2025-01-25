@@ -19,6 +19,7 @@ const GradeSectionController = {
             const savedGradeSection = await gradeSection.save();
 
             const subjectGrades = await GradeSubject.find({ curriculum_grade: class_grade.curriculum_grade, optional: false });
+            //console.log(subjectGrades);
             const sectionClasses = subjectGrades.map(subjectGrade => ({
                 grade_section: savedGradeSection._id,
                 grade_subject: subjectGrade._id

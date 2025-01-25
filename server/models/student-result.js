@@ -4,13 +4,7 @@ const StudentResultSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'StudentClass',
         required: true
-    },
-    term: {
-        type: Number,
-        min: 1,
-        max: 4,
-        required: true
-    },
+    },    
     subject_weight: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'SubjectWeight',
@@ -21,8 +15,14 @@ const StudentResultSchema = new mongoose.Schema({
         min: 0,
         max: 100,
         required: true
+    },
+    term: {
+        type: Number,
+        min: 1,
+        max: 4,
+        required: true
     }
 });
-
+StudentResultSchema.index({ student_class: 1, subject_weight: 1 }, { unique: true });
 const StudentResult = mongoose.model('StudentResult', StudentResultSchema);
 module.exports = StudentResult

@@ -2,8 +2,9 @@
 import { useClassificationGrade } from '@/app/(main)/contexts/classificationGradeContext';
 import { GradeSectionService } from '@/services/GradeSectionService';
 import { SectionClassService } from '@/services/SectionClassService';
+import { StudentClassService } from '@/services/StudentClassService';
 import { SubjectWeightService } from '@/services/SubjectWeightService';
-import { GradeSection, SectionClass, SubjectWeight } from '@/types/model';
+import { GradeSection, SectionClass, StudentClass, SubjectWeight } from '@/types/model';
 import { gradeSectionTemplate } from '@/types/templates';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
@@ -20,6 +21,7 @@ const ResultEntryPage = () => {
     const [selectedGradeSection, setSelectedGradeSection] = useState<GradeSection | null>(null);
     const [selectedSectionClass, setSelectedSectionClass] = useState<SectionClass | null>(null);
     const [subjectWeights, setSubjectWeights] = useState<SubjectWeight[]>([]);
+    const [studentClasses, setStudentClasses] = useState<StudentClass[]>([]);
     const [columns, setColumns] = useState<any[]>([]);
     const [term, setTerm] = useState(1);
 
@@ -67,7 +69,6 @@ const ResultEntryPage = () => {
                 if (typeof selectedSectionClass.grade_subject === "object") {
                     SubjectWeightService.getSubjectWeights(selectedSectionClass.grade_subject).then((data) => {
                         setSubjectWeights(data);
-                        //console.log(data);
                         const dynamicColumns = data.map((weight) => ({
                             header: `${weight.assessment_type} (${weight.assessment_weight}%)`, // Display assessment type with weight
                             field: weight.assessment_type, // Field for data mapping
@@ -78,6 +79,11 @@ const ResultEntryPage = () => {
                                 }),
                         }));
                         setColumns(dynamicColumns);
+                    });
+
+                    StudentClassService.getStudentClasssBySectionClass(selectedSectionClass).then((data)=>{
+                        setStudentClasses(data);
+                        //console.log(data);
                     });
                 }
             }

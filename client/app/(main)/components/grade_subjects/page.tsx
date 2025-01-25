@@ -245,11 +245,11 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                                             value={selectedGradeSubject.subject}
                                             onChange={(e) => setSelectedGradeSubject({ ...selectedGradeSubject, subject: e.value })}
                                             options={subjects.filter(subject =>
-                                                !gradeSubjects.some(gradeSubject => {
+                                                !gradeSubjects?.some(gradeSubject => {
                                                     // Check if gradeSubject.subject is a string or a Subject object
-                                                    const gradeSubjectId = typeof gradeSubject.subject === 'string'
-                                                        ? gradeSubject.subject // If it's a string, use it directly
-                                                        : gradeSubject.subject._id; // If it's an object, use its _id property
+                                                    const gradeSubjectId = typeof gradeSubject?.subject === 'string'
+                                                        ? gradeSubject?.subject // If it's a string, use it directly
+                                                        : gradeSubject?.subject?._id; // If it's an object, use its _id property
                                                     return gradeSubjectId === subject._id; // Compare with subject._id
                                                 })
                                             )}

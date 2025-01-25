@@ -18,13 +18,27 @@ const StudentClassController = {
         }
     },
 
-    getStudentClasses: async (req, res) => {
+    getStudentClassesByStudentGrade: async (req, res) => {
         try {
             const { student_grade } = req.params;
             //console.log("**")
             const studentClasss = await StudentClass.find({ student_grade: student_grade }).populate({
                 path: 'section_class',
                 populate: { path: 'grade_subject', populate: { path: 'subject' } },
+            });
+            res.status(200).json(studentClasss);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    getStudentClassesBySectionClass: async (req, res) => {
+        try {
+            const { section_class } = req.params;
+            //console.log("**")
+            const studentClasss = await StudentClass.find({ section_class: section_class }).populate({
+                path: 'student_grade',
+                populate: { path: 'student' },
             });
             res.status(200).json(studentClasss);
         } catch (error) {

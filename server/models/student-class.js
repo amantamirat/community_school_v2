@@ -13,6 +13,6 @@ const StudentClassSchema = new mongoose.Schema({
         immutable: true
     }    
 });
-
+StudentClassSchema.index({ student_grade: 1, section_class: 1 }, { unique: true });
 const StudentClass = mongoose.model('StudentClass', StudentClassSchema);
 module.exports = StudentClass

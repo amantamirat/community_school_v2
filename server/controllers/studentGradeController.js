@@ -209,7 +209,6 @@ const studentGradeController = {
                 if (!student_grade.classification_grade.equals(gradeSection.classification_grade)) {
                     return res.status(404).json({ message: `Student ${student_grade_id} does not belong to the selected grade` });
                 }
-
                 if(student_grade.grade_section){
                     return res.status(400).json({ message: `Student ${student_grade_id} is sectioned student!` });                   
                 }                
@@ -219,7 +218,7 @@ const studentGradeController = {
                 { _id: { $in: section_students } },
                 { $set: { grade_section: gradeSection._id } }
             );
-            const sectionClasses = await SectionClass.find({ grade_section: grade_section });
+            const sectionClasses = await SectionClass.find({ grade_section: grade_section });            
             if (sectionClasses.length !== 0) {
                 const studentClassData = [];
                 for (const student_grade of section_students) {                               
