@@ -128,4 +128,12 @@ export type StudentClass = {
     section_class: SectionClass | string;
 };
 
+export type StudentResult = {
+    _id?: string;
+    student_class: StudentClass | string;
+    subject_weight: SubjectWeight | string;
+    result:number;
+    term:number;
+};
+
 

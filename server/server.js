@@ -22,6 +22,8 @@ const studentGradeRoutes = require("./routes/studentGradeRoutes");//the registre
 app.use("/api/student-grades", studentGradeRoutes);
 const studentClassRoutes = require("./routes/studentClassRoutes");
 app.use("/api/student-classes", studentClassRoutes);
+const studentResultRoutes = require("./routes/studentResultRoutes");
+app.use("/api/student-results", studentResultRoutes);
 
 const curriculumRoutes = require("./routes/curriculumRoutes");
 app.use("/api/curricula", curriculumRoutes);

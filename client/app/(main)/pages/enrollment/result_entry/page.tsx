@@ -3,15 +3,24 @@ import { useClassificationGrade } from '@/app/(main)/contexts/classificationGrad
 import { GradeSectionService } from '@/services/GradeSectionService';
 import { SectionClassService } from '@/services/SectionClassService';
 import { StudentClassService } from '@/services/StudentClassService';
+import { StudentResultService } from '@/services/StudentResultService';
 import { SubjectWeightService } from '@/services/SubjectWeightService';
-import { GradeSection, SectionClass, StudentClass, SubjectWeight } from '@/types/model';
+import { GradeSection, SectionClass, StudentClass, StudentResult, SubjectWeight } from '@/types/model';
 import { gradeSectionTemplate } from '@/types/templates';
+import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Toast } from 'primereact/toast';
 import React, { useEffect, useRef, useState } from 'react';
+
+
+type ResultEntry = {
+    student_class: StudentClass;
+} & {
+    [weight_id: string]: number | null | StudentClass;
+};
 
 const ResultEntryPage = () => {
     const toast = useRef<Toast>(null);
@@ -22,8 +31,10 @@ const ResultEntryPage = () => {
     const [selectedSectionClass, setSelectedSectionClass] = useState<SectionClass | null>(null);
     const [subjectWeights, setSubjectWeights] = useState<SubjectWeight[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClass[]>([]);
+    const [studentResults, setStudentResults] = useState<StudentResult[]>([]);
+    const [resultEntries, setResultEntries] = useState<ResultEntry[]>([]);
     const [columns, setColumns] = useState<any[]>([]);
-    const [term, setTerm] = useState(1);
+    const [selectedTerm, setSelectedTerm] = useState(1);
 
     useEffect(() => {
         try {
@@ -83,8 +94,15 @@ const ResultEntryPage = () => {
 
                     StudentClassService.getStudentClasssBySectionClass(selectedSectionClass).then((data) => {
                         setStudentClasses(data);
-                        console.log(data);
+                        //console.log(data);
                     });
+
+                    StudentResultService.getStudentResultsBySectionClass(selectedTerm, selectedSectionClass).then((data) => {
+                        setStudentResults(data);
+                        //console.log(data);
+                    });
+
+                    setResultEntries(prepareResultEntries(studentClasses, subjectWeights, studentResults));
                 }
             }
         } catch (err) {
@@ -116,10 +134,45 @@ const ResultEntryPage = () => {
 
 
     // Prepare data for the DataTable
-    const tableData = subjectWeights.map((weight) => ({
-        ...weight,
-        [weight.assessment_type]: weight.assessment_weight,
-    }));
+    const prepareResultEntries = (
+        studentClasses: StudentClass[],
+        subjectWeights: SubjectWeight[],
+        studentResults: StudentResult[]
+    ): ResultEntry[] => {
+        return studentClasses.map(studentClass => {
+            // Filter results for this student_class
+            const resultsForStudent = studentResults.filter(
+                result => result.student_class === studentClass._id
+            );
+
+            // Create an entry for this student_class
+            const entry: ResultEntry = {
+                student_class: studentClass,
+            };
+
+            // Map subject weights to their results
+            subjectWeights.forEach(weight => {
+                const result = resultsForStudent.find(
+                    res => res.subject_weight === weight._id
+                );
+                entry[weight._id || "unknown_weight_id"] = result ? result.result : null;
+            });
+
+            return entry;
+        });
+    };
+
+
+
+
+    const header = (
+        <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+            <h5 className="m-0">Student Results</h5>
+            <span className="block mt-2">
+                <Button label='Save All' text />
+            </span>
+        </div>
+    );
 
     return (
         <>
@@ -132,8 +185,8 @@ const ResultEntryPage = () => {
                                 <label htmlFor="term">Term (Semester)</label>
                                 <div id="term">
                                     <Dropdown
-                                        value={term}
-                                        onChange={(e) => setTerm(e.value)}
+                                        value={selectedTerm}
+                                        onChange={(e) => setSelectedTerm(e.value)}
                                         options={[1, 2]}
                                         placeholder="Select Curriculum Term"
                                     />
@@ -176,13 +229,14 @@ const ResultEntryPage = () => {
             <div className="grid">
                 <div className="col-12">
                     <div className="card">
-                        <DataTable value={studentClasses}>
+                        <DataTable value={resultEntries} header={header} editMode="row">
                             <Column
+                                //field='student_class.student_grade.student.first_name'
                                 header="Student"
-                                body={(rowData) => `${rowData.student_grade.student.first_name} ${rowData.student_grade.student.last_name}`}
+                                body={(rowData) => `${rowData.student_class.student_grade.student.first_name} ${rowData.student_class.student_grade.student.last_name}`}
                                 sortable
                                 headerStyle={{ minWidth: '15rem' }}
-                            />                            
+                            />
                             {columns.map((col, index) => (
                                 <Column key={index} field={col.field} header={col.header} editor={col.editor} headerStyle={{ minWidth: '10rem' }} />
                             ))}
@@ -191,6 +245,7 @@ const ResultEntryPage = () => {
                                 body={(rowData) => calculateRowTotal(rowData)} // Function to calculate and display the total
                                 style={{ fontWeight: 'bold', textAlign: 'right' }}
                             />
+                            <Column rowEditor headerStyle={{ width: '10%', minWidth: '8rem' }} bodyStyle={{ textAlign: 'center' }} />
                         </DataTable>
                     </div>
                 </div>

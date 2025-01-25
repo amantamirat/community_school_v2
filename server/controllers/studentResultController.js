@@ -1,20 +1,19 @@
 const StudentClass = require('../models/student-class');
-const StudentGrade = require("../models/student-grade");
 const StudentResult = require("../models/student-result");
 
 const StudentResultController = {
 
-    getStudentResultsBySectionClass : async (req, res) => {
+    getStudentResultsBySectionClass: async (req, res) => {
         try {
-            const { section_class } = req.params;            
-            const studentClasses = await StudentClass.find({ section_class: section_class });
+            const { section_class, term } = req.params;
+            const studentClasses = await StudentClass.find({ section_class: section_class});
             const studentClassIds = studentClasses.map((studentClass) => studentClass._id);
-            const studentResults = await StudentResult.find({ student_class: { $in: studentClassIds } });     
+            const studentResults = await StudentResult.find({ student_class: { $in: studentClassIds }, term: term  });
             return res.status(200).json(studentResults);;
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
-    },  
+    },
 
     // Delete a studentClass by ID
     deleteStudentClass: async (req, res) => {
