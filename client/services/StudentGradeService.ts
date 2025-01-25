@@ -34,8 +34,7 @@ export const StudentGradeService = {
             const data = await MyService.get(`${get_sectioned_registered_students_endpoint}/${grade_section._id}`);
             return data as StudentGrade[];
         }
-        const data = await MyService.get(`${get_nan_section_registered_students_endpoint}/${grade_section.classification_grade}`);
-        return data as StudentGrade[];
+        return this.getRegisteredStudents(grade_section.classification_grade as ClassificationGrade);
     },
 
     async deRegisterStudents(classification_grade: Partial<ClassificationGrade>, registred_students: Partial<StudentGrade[]>): Promise<any> {

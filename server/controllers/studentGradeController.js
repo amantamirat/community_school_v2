@@ -9,6 +9,32 @@ const StudentResult = require("../models/student-result");
 
 const gradeController = require('../controllers/gradeController');
 const studentGradeController = {
+    
+    getSectionedRegisteredStudents: async (req, res) => {
+        try {
+            const { grade_section } = req.params;
+            const registered_students = await StudentGrade.find({ grade_section: grade_section }).populate('student').populate('grade_section');
+            res.status(200).json(registered_students);
+        } catch (error) {
+            //console.log(error);
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    getNaNSectionRegisteredStudents: async (req, res) => {
+        try {
+            const { classification_grade } = req.params;
+            const registered_students = await StudentGrade.find({
+                classification_grade: classification_grade,
+                grade_section: { $exists: false },
+            })
+                .populate('student');
+            res.status(200).json(registered_students);
+        } catch (error) {
+            //console.log(error);
+            res.status(500).json({ message: error.message });
+        }
+    },
     registerExternalStudents: async (req, res) => {
         try {
             const { classification_grade } = req.params;
@@ -115,32 +141,7 @@ const studentGradeController = {
         }
     },
 
-    getSectionedRegisteredStudents: async (req, res) => {
-        try {
-            const { grade_section } = req.params;
-            const registered_students = await StudentGrade.find({ grade_section: grade_section }).populate('student').populate('grade_section');
-            res.status(200).json(registered_students);
-        } catch (error) {
-            //console.log(error);
-            res.status(500).json({ message: error.message });
-        }
-    },
-
-    getNaNSectionRegisteredStudents: async (req, res) => {
-        try {
-            const { classification_grade } = req.params;
-            const registered_students = await StudentGrade.find({
-                classification_grade: classification_grade,
-                grade_section: { $exists: false },
-            })
-                .populate('student')
-                .populate('grade_section');
-            res.status(200).json(registered_students);
-        } catch (error) {
-            //console.log(error);
-            res.status(500).json({ message: error.message });
-        }
-    },
+    
 
     deregisterStudents: async (req, res) => {
         try {
@@ -161,7 +162,7 @@ const studentGradeController = {
                     return res.status(404).json({ message: "Non Registred Student Information Found (Invalid ID Data)." });
                 }
                 if (!reg_student.classification_grade.equals(classificationGrade._id)) {
-                    return res.status(404).json({ message: "Some students are not belongs to the selected grade" });
+                    //return res.status(404).json({ message: "Some students are not belongs to the selected grade" });
                 }
                 if(reg_student.grade_section){
                     return res.status(400).json({ message: `Sectioned student ${reg_student._id} can not be derigistered!` });                   
