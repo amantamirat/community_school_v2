@@ -251,7 +251,7 @@ const studentGradeController = {
                 if (!student_grade) {
                     return res.status(404).json({ message: "Non Registred Student Information Found (Invalid ID Data)." });
                 }
-                if (!student_grade.grade_section.equals(grade_section)) {
+                if (!student_grade?.grade_section?.equals(grade_section)) {
                     return res.status(404).json({ message: "Non Sectioned Student Information Found (Invalid Section Data)." });
                 }
                 const studentClassDocs = await StudentClass.find({ student_grade: student_grade_id })

@@ -15,7 +15,7 @@ import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 const RegisteredStudentsComponent = () => {
     const toast = useRef<Toast>(null);
@@ -69,6 +69,7 @@ const RegisteredStudentsComponent = () => {
                         classification_grade: selectedClassificationGrade, // Use the current grade for context
                         section_number: NaN, // Or any value indicating "None"
                     };
+                    setSelectedGradeSection(nullOption);
                     setGradeSections([nullOption, ...data]);
                     //setGradeSections(data);
                 });
@@ -96,13 +97,15 @@ const RegisteredStudentsComponent = () => {
                 });
             }
         } catch (error) {
-            setLoading(false);
+            //setLoading(false);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed Load Registred Students',
                 detail: '' + error,
                 life: 3000
             });
+        } finally {
+            setLoading(false);
         }
     }, [selectedGradeSection]);
 
@@ -192,17 +195,16 @@ const RegisteredStudentsComponent = () => {
         }
         try {
             setLoading(true);
-            StudentGradeService.detachSectionStudents(selectedGradeSection, selectedRegisteredStudents).then((data) => {
-                if (data.acknowledged) {
-                    let _data = registeredStudents.filter(student =>
-                        !selectedRegisteredStudents.some(
-                            selected => selected._id && selected._id.toString() === student._id && student._id.toString()
-                        )
-                    );
-                    setRegisteredStudents(_data);
-                    setSelectedRegisteredStudents([]);
-                }
-            });
+            const data = await StudentGradeService.detachSectionStudents(selectedGradeSection, selectedRegisteredStudents);
+            if (data.acknowledged) {
+                let _data = registeredStudents.filter(student =>
+                    !selectedRegisteredStudents.some(
+                        selected => selected._id && selected._id.toString() === student._id && student._id.toString()
+                    )
+                );
+                setRegisteredStudents(_data);
+                setSelectedRegisteredStudents([]);
+            }
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
@@ -305,23 +307,42 @@ const RegisteredStudentsComponent = () => {
         );
     };
 
-    const endToolbarTemplate = () => {
+    const endToolbarTemplate = useMemo(() => {
         return (
-            <>
-                <div className="my-2">
-                    {selectedGradeSection?._id ?
-                        <>
-                            <Button label="Detach Section" icon="pi pi-fw pi-times-circle" severity="danger" className="mr-2" disabled={selectedRegisteredStudents.length === 0} onClick={openDetachSectionDialog} />
-                        </> :
-                        <>
-                            <Button label="Allocate Section" icon={PrimeIcons.TAG} severity="info" className="mr-2" disabled={selectedRegisteredStudents.length === 0} onClick={openSectionDialog} loading={loading} />
-                            <Button label="Deregister" icon={PrimeIcons.TRASH} severity="danger" className="mr-2" disabled={selectedRegisteredStudents.length === 0} onClick={openDeregisterDialog} />
-                        </>
-                    }
-                </div>
-            </>
+            <div className="my-2">
+                {selectedGradeSection?._id ? (
+                    <Button
+                        label="Detach Section"
+                        icon="pi pi-fw pi-times-circle"
+                        severity="danger"
+                        className="mr-2"
+                        disabled={selectedRegisteredStudents.length === 0}
+                        onClick={openDetachSectionDialog}
+                    />
+                ) : (
+                    <>
+                        <Button
+                            label="Allocate Section"
+                            icon={PrimeIcons.TAG}
+                            severity="info"
+                            className="mr-2"
+                            disabled={selectedRegisteredStudents.length === 0}
+                            onClick={openSectionDialog}
+                            loading={loading}
+                        />
+                        <Button
+                            label="Deregister"
+                            icon={PrimeIcons.TRASH}
+                            severity="danger"
+                            className="mr-2"
+                            disabled={selectedRegisteredStudents.length === 0}
+                            onClick={openDeregisterDialog}
+                        />
+                    </>
+                )}
+            </div>
         );
-    };
+    }, [selectedGradeSection, selectedRegisteredStudents]);
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
