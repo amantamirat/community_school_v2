@@ -102,10 +102,15 @@ const ResultEntryPage = () => {
         return <InputNumber value={options.value} onValueChange={(e) => options.editorCallback(e.value)} mode="decimal" min={0} max={maxValue} maxFractionDigits={5} useGrouping={false} className="p-inputnumber-sm block mb-2" />
     }
 
-    const calculateRowTotal = (rowData: any) => {
-        return Object.keys(rowData)
-            .filter((key) => key !== '_id' && key !== 'total') // Exclude non-assessment keys
-            .reduce((sum, key) => sum + (rowData[key] || 0), 0); // Sum up all assessment weights
+    const calculateRowTotal = (rowData: any): number => {
+        const values = Object.values(rowData);
+        const total = values.reduce((sum: number, value) => {
+            if (typeof value === "number" && !isNaN(value)) {
+                return sum + value;
+            }
+            return sum;
+        }, 0);
+        return total;
     };
 
 
@@ -179,7 +184,7 @@ const ResultEntryPage = () => {
                                 headerStyle={{ minWidth: '15rem' }}
                             />                            
                             {columns.map((col, index) => (
-                                <Column key={index} field={col.field} header={col.header} editor={col.editor} />
+                                <Column key={index} field={col.field} header={col.header} editor={col.editor} headerStyle={{ minWidth: '10rem' }} />
                             ))}
                             <Column
                                 header="Total"
