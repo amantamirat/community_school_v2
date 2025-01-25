@@ -81,9 +81,9 @@ const ResultEntryPage = () => {
                         setColumns(dynamicColumns);
                     });
 
-                    StudentClassService.getStudentClasssBySectionClass(selectedSectionClass).then((data)=>{
+                    StudentClassService.getStudentClasssBySectionClass(selectedSectionClass).then((data) => {
                         setStudentClasses(data);
-                        //console.log(data);
+                        console.log(data);
                     });
                 }
             }
@@ -171,7 +171,13 @@ const ResultEntryPage = () => {
             <div className="grid">
                 <div className="col-12">
                     <div className="card">
-                        <DataTable value={tableData}>
+                        <DataTable value={studentClasses}>
+                            <Column
+                                header="Student"
+                                body={(rowData) => `${rowData.student_grade.student.first_name} ${rowData.student_grade.student.last_name}`}
+                                sortable
+                                headerStyle={{ minWidth: '15rem' }}
+                            />                            
                             {columns.map((col, index) => (
                                 <Column key={index} field={col.field} header={col.header} editor={col.editor} />
                             ))}
