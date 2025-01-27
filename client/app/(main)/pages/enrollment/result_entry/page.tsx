@@ -33,7 +33,6 @@ const ResultEntryPage = () => {
     const [studentClasses, setStudentClasses] = useState<StudentClass[]>([]);
     const [studentResults, setStudentResults] = useState<StudentResult[]>([]);
     const [resultEntries, setResultEntries] = useState<ResultEntry[]>([]);
-    const [columns, setColumns] = useState<any[]>([]);
     const [selectedTerm, setSelectedTerm] = useState(1);
 
     useEffect(() => {
@@ -77,33 +76,8 @@ const ResultEntryPage = () => {
     useEffect(() => {
         try {
             if (selectedSectionClass) {
-                if (typeof selectedSectionClass.grade_subject === "object") {
-                    SubjectWeightService.getSubjectWeights(selectedSectionClass.grade_subject).then((data) => {
-                        setSubjectWeights(data);
-                        const dynamicColumns = data.map((weight) => ({
-                            header: `${weight.assessment_type} (${weight.assessment_weight}%)`, // Display assessment type with weight
-                            field: weight.assessment_type, // Field for data mapping
-                            editor: (options: any) =>
-                                resultEditor({
-                                    ...options,
-                                    max: weight.assessment_weight, // Pass max value to the editor
-                                }),
-                        }));
-                        setColumns(dynamicColumns);
-                    });
-
-                    StudentClassService.getStudentClasssBySectionClass(selectedSectionClass).then((data) => {
-                        setStudentClasses(data);
-                        //console.log(data);
-                    });
-
-                    StudentResultService.getStudentResultsBySectionClass(selectedTerm, selectedSectionClass).then((data) => {
-                        setStudentResults(data);
-                        //console.log(data);
-                    });
-
-                    setResultEntries(prepareResultEntries(studentClasses, subjectWeights, studentResults));
-                }
+                loadWeightsClassesResults();
+                //setResultEntries(prepareResultEntries(studentClasses, subjectWeights, studentResults));
             }
         } catch (err) {
             toast.current?.show({
@@ -115,10 +89,67 @@ const ResultEntryPage = () => {
         }
     }, [selectedSectionClass]);
 
-    const resultEditor = (options: any) => {
-        const maxValue = options.max || 100;
-        return <InputNumber value={options.value} onValueChange={(e) => options.editorCallback(e.value)} mode="decimal" min={0} max={maxValue} maxFractionDigits={5} useGrouping={false} className="p-inputnumber-sm block mb-2" />
+    useEffect(() => {
+        try {
+            if (studentClasses && subjectWeights && studentResults) {
+                const entries = prepareResultEntries(studentClasses, subjectWeights, studentResults)
+                setResultEntries(entries);
+            }
+        } catch (err) {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load subject weights',
+                detail: '' + err,
+                life: 3000
+            });
+        }
+    }, [studentClasses, subjectWeights, studentResults]);
+
+    const loadWeightsClassesResults = async () => {
+        //try..catch is in here
+        if (typeof selectedSectionClass?.grade_subject === "object") {
+            const _subjectWeights = await SubjectWeightService.getSubjectWeights(selectedSectionClass.grade_subject);
+            if (_subjectWeights.length === 0) {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load subject weights',
+                    detail: "Weights are not setted. Please set weights in the curriculum.",
+                    life: 3000
+                });
+                setSubjectWeights([]);
+                return
+            }
+            const _studentClasses = await StudentClassService.getStudentClasssBySectionClass(selectedSectionClass);
+            if (_studentClasses.length === 0) {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load Student Classes',
+                    detail: "No registred students for this class are found.",
+                    life: 3000
+                });
+                return
+            }
+            const _studentResults = await StudentResultService.getStudentResultsBySectionClass(selectedTerm, selectedSectionClass);
+            setSubjectWeights(_subjectWeights);
+            setStudentClasses(_studentClasses);
+            setStudentResults(_studentResults);
+        }
     }
+
+
+    const onRowEditComplete = (e: any) => {
+        const { newData, index } = e; // `newData` contains the updated row data, and `index` is the row index
+        setResultEntries((prevEntries) => {
+            const updatedEntries = [...prevEntries];
+            updatedEntries[index] = newData; // Uuu u uupdate the specific row
+            return updatedEntries;
+        });
+        // Optionally, send the updated data to the server
+        // console.log("Updated Row:", newData);
+    };
+
+
+
 
     const calculateRowTotal = (rowData: any): number => {
         const values = Object.values(rowData);
@@ -130,7 +161,6 @@ const ResultEntryPage = () => {
         }, 0);
         return total;
     };
-
 
 
     // Prepare data for the DataTable
@@ -161,9 +191,6 @@ const ResultEntryPage = () => {
             return entry;
         });
     };
-
-
-
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
@@ -229,23 +256,51 @@ const ResultEntryPage = () => {
             <div className="grid">
                 <div className="col-12">
                     <div className="card">
-                        <DataTable value={resultEntries} header={header} editMode="row">
+                        <DataTable
+                            value={resultEntries}
+                            header={header}
+                            scrollable
+                            editMode="row"
+                            onRowEditComplete={onRowEditComplete}
+                        >
+                            <Column rowEditor headerStyle={{ width: '10%', minWidth: '8rem' }} bodyStyle={{ textAlign: 'center' }} frozen />
+                            {/*<Column header="#" body={(rowData, options) => options.rowIndex + 1} style={{ width: '50px' }} />*/}
                             <Column
                                 //field='student_class.student_grade.student.first_name'
                                 header="Student"
                                 body={(rowData) => `${rowData.student_class.student_grade.student.first_name} ${rowData.student_class.student_grade.student.last_name}`}
                                 sortable
                                 headerStyle={{ minWidth: '15rem' }}
+                                frozen
                             />
-                            {columns.map((col, index) => (
-                                <Column key={index} field={col.field} header={col.header} editor={col.editor} headerStyle={{ minWidth: '10rem' }} />
+                            {subjectWeights.map(weight => (
+                                <Column
+                                    key={weight._id}
+                                    field={weight._id}
+                                    header={`${weight.assessment_type} (${weight.assessment_weight}%)`}
+                                    editor={(options) =>
+                                        <InputNumber value={options.value} onValueChange={(e) => {
+                                            if (options.editorCallback) {
+                                                options.editorCallback(e.value);
+                                            }
+                                        }}
+                                            mode="decimal"
+                                            maxFractionDigits={3}
+                                            min={0}
+                                            max={weight.assessment_weight}
+                                            useGrouping={false}
+                                        />}
+                                />
                             ))}
+                            {/*columns.map((col, index) => (
+                                <Column key={index} field={col.field} header={col.header} editor={col.editor} headerStyle={{ minWidth: '10rem' }} />
+                            ))*/}
                             <Column
                                 header="Total"
                                 body={(rowData) => calculateRowTotal(rowData)} // Function to calculate and display the total
                                 style={{ fontWeight: 'bold', textAlign: 'right' }}
                             />
-                            <Column rowEditor headerStyle={{ width: '10%', minWidth: '8rem' }} bodyStyle={{ textAlign: 'center' }} />
+                            {/*<Column rowEditor headerStyle={{ width: '10%', minWidth: '8rem' }} bodyStyle={{ textAlign: 'center' }} />*/}
                         </DataTable>
                     </div>
                 </div>
