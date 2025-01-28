@@ -138,7 +138,7 @@ export type StudentResult = {
     student_class: StudentClass | string;
     subject_weight: SubjectWeight | string;
     result: number;
-    status:'ONGOING'|'CLOSED';
+    status: 'ONGOING' | 'CLOSED';
 };
 
 

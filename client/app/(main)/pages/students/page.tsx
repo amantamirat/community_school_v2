@@ -29,7 +29,7 @@ const StudentPage = () => {
         last_name: '',
         sex: 'Male',
         birth_date: null,
-        has_perior_school_info: true
+        has_perior_school_info: true,
     };
     let emptyExternalInfo: ExternalStudentInfo = {
         student: '',
@@ -150,7 +150,7 @@ const StudentPage = () => {
                 let id = selectedStudent._id || '';
                 const updatedStudent = await StudentService.updateStudent(selectedStudent, selectedStudent.has_perior_school_info ? selectedExternalInfo : null);
                 const index = findIndexById(id);
-                _students[index] = updatedStudent;                
+                _students[index] = updatedStudent;
             } else {
                 const newStudent = await StudentService.createStudent(selectedStudent, selectedStudent.has_perior_school_info ? selectedExternalInfo : null);
                 if (newStudent) {
@@ -243,7 +243,7 @@ const StudentPage = () => {
         setShowSaveDialog(false);
         setSubmitted(false);
     };
-    
+
 
     const dialogFooter = () => {
         return <><div className="dialog-footer" style={{ marginTop: '2rem', textAlign: 'right' }}>
@@ -291,7 +291,7 @@ const StudentPage = () => {
                 if (!validateExternalInfo(selectedExternalInfo)) {
                     return;
                 }
-                
+
             }
             setSubmitted(false);
             setActiveIndex((prevIndex) => prevIndex + 1);

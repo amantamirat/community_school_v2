@@ -27,6 +27,11 @@ const StudentSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
             required: true,
+        },
+        registered: {
+            type: Boolean,
+            default: false,
+            required: true,
         }
     }
 );

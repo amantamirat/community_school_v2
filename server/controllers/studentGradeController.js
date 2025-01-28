@@ -17,7 +17,6 @@ const studentGradeController = {
             const registered_students = await StudentGrade.find({ grade_section: grade_section }).populate('student').populate('grade_section');
             res.status(200).json(registered_students);
         } catch (error) {
-            //console.log(error);
             res.status(500).json({ message: error.message });
         }
     },
@@ -32,7 +31,6 @@ const studentGradeController = {
                 .populate('student');
             res.status(200).json(registered_students);
         } catch (error) {
-            //console.log(error);
             res.status(500).json({ message: error.message });
         }
     },
@@ -119,7 +117,7 @@ const studentGradeController = {
                 if (!student) {
                     return res.status(404).json({ message: "Non Student Information Found." });
                 }
-                if (student.has_perior_school_info) {
+                if (student.has_perior_school_info | student.registered) {
                     continue;
                 }
                 const student_grade = new StudentGrade({
@@ -133,16 +131,13 @@ const studentGradeController = {
             const saved_student_grades = await StudentGrade.insertMany(student_grades);
             await Student.updateMany(
                 { _id: { $in: reg_students } },
-                { $set: { has_perior_school_info: true } }
+                { $set: { registered: true } }
             );
             res.status(201).json(saved_student_grades);
         } catch (error) {
-            //console.log(error);
             res.status(500).json({ message: "Error registering students" + error });
         }
     },
-
-
 
     deregisterStudents: async (req, res) => {
         try {

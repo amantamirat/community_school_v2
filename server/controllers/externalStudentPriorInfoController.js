@@ -5,36 +5,6 @@ const gradeController = require('../controllers/gradeController');
 
 
 const externalStudentPriorInfoController = {
-    createExternalStudentPriorInfo: async (req, res) => {
-        try {
-            const {
-                student,
-                school_name,
-                academic_year,
-                classification,
-                grade,
-                average_result,
-                status,
-                transfer_reason,
-            } = req.body;
-
-            const newInfo = new ExternalStudentPriorInfo({
-                student,
-                school_name,
-                academic_year,
-                classification,
-                grade,
-                average_result,
-                status,
-                transfer_reason,
-            });
-
-            await newInfo.save();
-            res.status(201).json(newInfo);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    },
 
     getExternalInfoByStudent: async (req, res) => {
         try {
@@ -92,6 +62,38 @@ const externalStudentPriorInfoController = {
         }
     },
 
+    /*    
+    createExternalStudentPriorInfo: async (req, res) => {
+        try {
+            const {
+                student,
+                school_name,
+                academic_year,
+                classification,
+                grade,
+                average_result,
+                status,
+                transfer_reason,
+            } = req.body;
+
+            const newInfo = new ExternalStudentPriorInfo({
+                student,
+                school_name,
+                academic_year,
+                classification,
+                grade,
+                average_result,
+                status,
+                transfer_reason,
+            });
+
+            await newInfo.save();
+            res.status(201).json(newInfo);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
     getAllExternalStudentPriorInfo: async (req, res) => {
         try {
             const priorInfo = await ExternalStudentPriorInfo.find().populate('student').populate('grade');
@@ -116,8 +118,6 @@ const externalStudentPriorInfoController = {
         }
     },
 
-
-
     updateExternalStudentPriorInfo: async (req, res) => {
         try {
             const { id } = req.params;
@@ -130,9 +130,7 @@ const externalStudentPriorInfoController = {
                 average_result,
                 status,
                 transfer_reason,
-            } = req.body;
-
-            
+            } = req.body;            
 
             const updatedInfo = await ExternalStudentPriorInfo.findByIdAndUpdate(
                 id,
@@ -164,6 +162,9 @@ const externalStudentPriorInfoController = {
             res.status(500).json({ message: "Error deleting prior information", error });
         }
     },
+    */
+
+
 };
 
 module.exports = externalStudentPriorInfoController;

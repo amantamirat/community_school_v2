@@ -43,7 +43,7 @@ const studentController = {
 
     getNewStudents: async (req, res) => {
         try {
-            const students = await Student.find({ has_perior_school_info: false });
+            const students = await Student.find({ has_perior_school_info: false, registered: false });
             res.status(200).json(students);
         } catch (error) {
             res.status(500).json({ message: "Error fetching students", error });
