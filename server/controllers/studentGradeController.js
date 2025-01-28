@@ -4,12 +4,13 @@ const ClassificationGrade = require('../models/classification-grade');
 const Student = require("../models/student");
 const GradeSection = require('../models/grade-sections');
 const SectionClass = require("../models/section-class");
+const TermClass = require("../models/term-class");
 const StudentClass = require("../models/student-class");
 const StudentResult = require("../models/student-result");
 
 const gradeController = require('../controllers/gradeController');
 const studentGradeController = {
-    
+
     getSectionedRegisteredStudents: async (req, res) => {
         try {
             const { grade_section } = req.params;
@@ -141,7 +142,7 @@ const studentGradeController = {
         }
     },
 
-    
+
 
     deregisterStudents: async (req, res) => {
         try {
@@ -164,9 +165,9 @@ const studentGradeController = {
                 if (!reg_student.classification_grade.equals(classificationGrade._id)) {
                     //return res.status(404).json({ message: "Some students are not belongs to the selected grade" });
                 }
-                if(reg_student.grade_section){
-                    return res.status(400).json({ message: `Sectioned student ${reg_student._id} can not be derigistered!` });                   
-                } 
+                if (reg_student.grade_section) {
+                    return res.status(400).json({ message: `Sectioned student ${reg_student._id} can not be derigistered!` });
+                }
                 if (reg_student.external_student_prior_info) {
                     external_students_info.push(reg_student.external_student_prior_info);
                 } else if (!reg_student.previous_student_grade) {
@@ -209,23 +210,25 @@ const studentGradeController = {
                 if (!student_grade.classification_grade.equals(gradeSection.classification_grade)) {
                     return res.status(404).json({ message: `Student ${student_grade_id} does not belong to the selected grade` });
                 }
-                if(student_grade.grade_section){
-                    return res.status(400).json({ message: `Student ${student_grade_id} is sectioned student!` });                   
-                }                
+                if (student_grade.grade_section) {
+                    return res.status(400).json({ message: `Student ${student_grade_id} is sectioned student!` });
+                }
                 section_students.push(student_grade_id);
             }
             const result = await StudentGrade.updateMany(
                 { _id: { $in: section_students } },
                 { $set: { grade_section: gradeSection._id } }
             );
-            const sectionClasses = await SectionClass.find({ grade_section: grade_section });            
+            const sectionClasses = await SectionClass.find({ grade_section: grade_section });
             if (sectionClasses.length !== 0) {
+                const sectionClassIds = sectionClasses.map((_class) => _class._id);
+                const termClasses = await TermClass.find({ section_class: { $in: sectionClassIds } });
                 const studentClassData = [];
-                for (const student_grade of section_students) {                               
-                    for (const sectionClass of sectionClasses) {
+                for (const student_grade of section_students) {
+                    for (const termClass of termClasses) {
                         studentClassData.push({
                             student_grade: student_grade,
-                            section_class: sectionClass._id,
+                            term_class: termClass._id,
                         });
                     }
                 }
@@ -269,7 +272,7 @@ const studentGradeController = {
             const result = await StudentGrade.updateMany(
                 { _id: { $in: section_students } },
                 { $unset: { grade_section: 1 } }
-            );           
+            );
             res.status(200).json(result);
         } catch (error) {
             //console.log(error);

@@ -18,7 +18,6 @@ export const SubjectWeightService = {
     async createSubjectWeights(subjectWeights: Partial<SubjectWeight[]>): Promise<SubjectWeight[]> {
         const createdData = await MyService.create(subjectWeights, create_endpoint);
         return createdData;
-
     },
 
     async deleteSubjectWeights(grade_subject: GradeSubject): Promise<boolean> {

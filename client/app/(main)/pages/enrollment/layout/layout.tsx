@@ -22,58 +22,48 @@ const Layout = ({ children }: ChildContainerProps) => {
 
 
     useEffect(() => {
-        loadAcademicSessions();
-    }, []);
-
-    useEffect(() => {
-        if (selectedAcademicSession) {
-            try {
-                AdmissionClassificationService.getAcademicSessionClassifications(selectedAcademicSession).then((data) => {
-                    setAdmissionClassifications(data);
-                });
-            } catch (err) {
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to load admission Classifications',
-                    detail: '' + err,
-                    life: 3000
-                });
-            }
-        }
-    }, [selectedAcademicSession]);
-
-    useEffect(() => {
-        if (selectedAdmissionClassification) {
-            try {
-                ClassificationGradeService.getClassificationGradesByClassification(selectedAdmissionClassification).then((data) => {
-                    setClassificationGrades(data); // Update state with fetched data
-                });
-            } catch (err) {
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to load Classification Grades',
-                    detail: '' + err,
-                    life: 3000
-                });
-            }
-        }
-    }, [selectedAdmissionClassification]);
-
-
-
-    const loadAcademicSessions = async () => {
-        try {
-            const data = await AcademicSessionService.getAcademicSessions();
+        AcademicSessionService.getAcademicSessions().then((data) => {
             setAcademicSessions(data);
-        } catch (err) {
+        }).catch((err) => {
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to load academicSessions',
                 detail: '' + err,
                 life: 3000
             });
+        });
+    }, []);
+
+    useEffect(() => {
+        if (selectedAcademicSession) {
+            AdmissionClassificationService.getAcademicSessionClassifications(selectedAcademicSession).then((data) => {
+                setAdmissionClassifications(data);
+            }).catch((err) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load admission classifications',
+                    detail: '' + err,
+                    life: 3000
+                });
+            });
         }
-    };
+    }, [selectedAcademicSession]);
+
+    useEffect(() => {
+        if (selectedAdmissionClassification) {
+            ClassificationGradeService.getClassificationGradesByClassification(selectedAdmissionClassification).then((data) => {
+                setClassificationGrades(data); // Update state with fetched data
+            }).catch((err) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load Classification Grades',
+                    detail: '' + err,
+                    life: 3000
+                });
+            });
+        }
+    }, [selectedAdmissionClassification]);
+
 
     return (
         <>

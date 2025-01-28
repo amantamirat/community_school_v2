@@ -3,44 +3,53 @@ const ClassificationGrade = require('../models/classification-grade');
 const SectionClass = require("../models/section-class");
 const GradeSubject = require('../models/grade-subject');
 const StudentGrade = require("../models/student-grade");
+const TermClass = require("../models/term-class");
 
 // Controller methods
 const GradeSectionController = {
 
-    createGradeSection: async (req, res) => {
-        try {
-            const { classification_grade, section_number } = req.body;
-            const class_grade = await ClassificationGrade.findById(classification_grade);
-            if (!class_grade) {
-                return res.status(404).json({ message: 'Classification grade not found' });
-            }
-            //console.log(req.body);
-            const gradeSection = new GradeSection({ classification_grade, section_number });
-            const savedGradeSection = await gradeSection.save();
-
-            const subjectGrades = await GradeSubject.find({ curriculum_grade: class_grade.curriculum_grade, optional: false });
-            //console.log(subjectGrades);
-            const sectionClasses = subjectGrades.map(subjectGrade => ({
-                grade_section: savedGradeSection._id,
-                grade_subject: subjectGrade._id
-            }));
-
-            await SectionClass.insertMany(sectionClasses);
-
-            res.status(201).json(savedGradeSection);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-            //console.log(error);
-        }
-    },
-
-    // Get all gradeSections
+    // Get gradeSections
     getGradeSectionsByClassificationGrade: async (req, res) => {
         try {
             const gradeSections = await GradeSection.find({ classification_grade: req.params.classification_grade });
             res.status(200).json(gradeSections);
         } catch (error) {
             res.status(500).json({ message: error.message });
+        }
+    },
+    createGradeSection: async (req, res) => {
+        try {
+            const { classification_grade, section_number } = req.body;
+            const class_grade = await ClassificationGrade.findById(classification_grade).populate({
+                path: 'curriculum_grade',
+                populate: { path: 'curriculum', },
+            });
+            if (!class_grade) {
+                return res.status(404).json({ message: 'Classification grade not found' });
+            }
+            const gradeSection = new GradeSection({ classification_grade, section_number });
+            const savedGradeSection = await gradeSection.save();
+            const subjectGrades = await GradeSubject.find({ curriculum_grade: class_grade.curriculum_grade, optional: false });
+            const sectionClasses = subjectGrades.map(subjectGrade => ({
+                grade_section: savedGradeSection._id,
+                grade_subject: subjectGrade._id
+            }));
+
+            const savedSectionClasses = await SectionClass.insertMany(sectionClasses);
+            const termClasses = [];
+            for (let term = 1; term <= class_grade.curriculum_grade.curriculum.number_of_terms; term++) {
+                for (const sectionClass of savedSectionClasses) {
+                    termClasses.push({
+                        section_class: sectionClass._id,
+                        term: term
+                    })
+                }
+            }
+            await TermClass.insertMany(termClasses);
+            res.status(201).json(savedGradeSection);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+            //console.log(error);
         }
     },
 
@@ -64,6 +73,8 @@ const GradeSectionController = {
                         });
                     }
                 }
+                const sectionClassIds = sectionClasses.map(sc => sc._id);
+                await TermClass.deleteMany({ section_class: { $in: sectionClassIds } });
                 const ack = await SectionClass.deleteMany({ grade_section: id });
                 //console.log(ack, "class of sections cleared");
             }

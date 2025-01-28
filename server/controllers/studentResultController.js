@@ -3,33 +3,74 @@ const StudentResult = require("../models/student-result");
 
 const StudentResultController = {
 
-    getStudentResultsBySectionClass: async (req, res) => {
+    getStudentResultsByTermClass: async (req, res) => {
         try {
-            const { section_class, term } = req.params;
-            const studentClasses = await StudentClass.find({ section_class: section_class});
+            const { term_class } = req.params;
+            const studentClasses = await StudentClass.find({ term_class: term_class });
             const studentClassIds = studentClasses.map((studentClass) => studentClass._id);
-            const studentResults = await StudentResult.find({ student_class: { $in: studentClassIds }, term: term  });
-            return res.status(200).json(studentResults);;
+            const studentResults = await StudentResult.find({ student_class: { $in: studentClassIds } });
+            return res.status(200).json(studentResults);
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
     },
 
-    // Delete a studentClass by ID
-    deleteStudentClass: async (req, res) => {
+
+    getStudentResultsByStudentClass: async (req, res) => {
         try {
-            const { id } = req.params;
-            const isReferencedInStudentResult = await StudentResult.exists({ student_class: id });
-            if (isReferencedInStudentResult) {
-                return res.status(400).json({
-                    message: 'Cannot delete Student Class, it is referenced in Result.'
-                });
+            const { student_class } = req.params;
+            const studentResults = await StudentResult.find({ student_class: student_class }).populate('subject_weight');
+            return res.status(200).json(studentResults);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+
+    updateStudentResults: async (req, res) => {
+        try {
+            const student_results = req.body;
+            if (!Array.isArray(student_results) || student_results.length === 0) {
+                return res.status(400).json({ message: 'Invalid input data. subject_results must be a non-empty array.' });
             }
-            const deletedStudentClass = await StudentClass.findByIdAndDelete(id);
-            if (!deletedStudentClass) {
-                return res.status(404).json({ message: 'Student Class not found' });
+            const operations = student_results.map(async (result) => {
+                const { student_class, subject_weight, result: score } = result;
+                if (!student_class || !subject_weight || typeof score !== 'number') {
+                    throw new Error('Missing required fields: student_class, subject_weight, or result.');
+                }
+                const studentResult = await StudentResult.findOne({ student_class, subject_weight });
+                if (studentResult && studentResult.status === 'CLOSED') {
+                    throw new Error(
+                        `Update not allowed for CLOSED record with student_class: ${student_class} and subject_weight: ${subject_weight}.`
+                    );
+                }
+                return StudentResult.updateOne(
+                    { student_class, subject_weight },
+                    { $set: { result: score } },
+                    { upsert: true }
+                );
+            });
+            const results = await Promise.all(operations);
+            return res.status(201).json(results);
+        } catch (error) {
+            //console.error(error);
+            return res.status(500).json({ message: error.message });
+        }
+    },
+
+
+    deleteStudentResult: async (req, res) => {
+        try {
+            const studentResult = await StudentResult.findById(id);
+            if (!studentResult) {
+                return res.status(404).json({ message: 'Student Result not found' });
             }
-            res.status(200).json({ message: 'Student Class deleted successfully' });
+            // Check if the status is CLOSED
+            if (studentResult.status === 'CLOSED') {
+                return res.status(403).json({ message: 'Deletion not allowed for CLOSED records.' });
+            }
+            await studentResult.deleteOne();
+            res.status(200).json({ message: 'Student Result deleted successfully' });
         } catch (error) {
             res.status(500).json({ message: error.message });
         }

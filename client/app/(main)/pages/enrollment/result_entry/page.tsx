@@ -5,7 +5,8 @@ import { SectionClassService } from '@/services/SectionClassService';
 import { StudentClassService } from '@/services/StudentClassService';
 import { StudentResultService } from '@/services/StudentResultService';
 import { SubjectWeightService } from '@/services/SubjectWeightService';
-import { GradeSection, SectionClass, StudentClass, StudentResult, SubjectWeight } from '@/types/model';
+import { TermClassService } from '@/services/TermClassService';
+import { GradeSection, GradeSubject, SectionClass, StudentClass, StudentResult, SubjectWeight, TermClass } from '@/types/model';
 import { gradeSectionTemplate } from '@/types/templates';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -27,129 +28,226 @@ const ResultEntryPage = () => {
     const { selectedClassificationGrade } = useClassificationGrade();
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
     const [sectionClasss, setSectionClasss] = useState<SectionClass[]>([]);
+    const [termClasss, setTermClasss] = useState<TermClass[]>([]);
     const [selectedGradeSection, setSelectedGradeSection] = useState<GradeSection | null>(null);
     const [selectedSectionClass, setSelectedSectionClass] = useState<SectionClass | null>(null);
+    const [selectedTermClass, setSelectedTermClass] = useState<TermClass | null>(null);
+
     const [subjectWeights, setSubjectWeights] = useState<SubjectWeight[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClass[]>([]);
     const [studentResults, setStudentResults] = useState<StudentResult[]>([]);
+    const [updatedStudentResults, setUpdatedStudentResults] = useState<StudentResult[]>([]);
     const [resultEntries, setResultEntries] = useState<ResultEntry[]>([]);
-    const [selectedTerm, setSelectedTerm] = useState(1);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        try {
-            if (selectedClassificationGrade) {
-                GradeSectionService.getGradeSectionsByClassificationGrade(selectedClassificationGrade).then((data) => {
-                    setGradeSections(data);
+        if (selectedClassificationGrade) {
+            GradeSectionService.getGradeSectionsByClassificationGrade(selectedClassificationGrade).then((data) => {
+                setGradeSections(data);
+            }).catch((e) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load sections',
+                    detail: '' + e,
+                    life: 3000
                 });
+            }).finally(() => {
                 setSelectedGradeSection(null);
-            }
-        } catch (err) {
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load sections',
-                detail: '' + err,
-                life: 3000
             });
         }
     }, [selectedClassificationGrade]);
 
     useEffect(() => {
-        try {
-            if (selectedGradeSection) {
-                SectionClassService.getSectionClasssByGradeSection(selectedGradeSection).then((data) => {
-                    setSectionClasss(data);
+        if (selectedGradeSection) {
+            SectionClassService.getSectionClasssByGradeSection(selectedGradeSection).then((data) => {
+                setSectionClasss(data);
+            }).catch((err) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load section class',
+                    detail: '' + err,
+                    life: 3000
                 });
-            } else {
-                setSectionClasss([])
-            }
-        } catch (err) {
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load section class',
-                detail: '' + err,
-                life: 3000
             });
         }
     }, [selectedGradeSection]);
 
 
     useEffect(() => {
-        try {
-            if (selectedSectionClass) {
-                loadWeightsClassesResults();
-                //setResultEntries(prepareResultEntries(studentClasses, subjectWeights, studentResults));
-            }
-        } catch (err) {
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load subject weights',
-                detail: '' + err,
-                life: 3000
+        if (selectedSectionClass) {
+            TermClassService.getTermClasssBySectionClass(selectedSectionClass).then((data) => {
+                setTermClasss(data);
+            }).catch((err) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load term classes',
+                    detail: '' + err,
+                    life: 2000
+                });
             });
-        }
-    }, [selectedSectionClass]);
-
-    useEffect(() => {
-        try {
-            if (studentClasses && subjectWeights && studentResults) {
-                const entries = prepareResultEntries(studentClasses, subjectWeights, studentResults)
-                setResultEntries(entries);
-            }
-        } catch (err) {
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load subject weights',
-                detail: '' + err,
-                life: 3000
-            });
-        }
-    }, [studentClasses, subjectWeights, studentResults]);
-
-    const loadWeightsClassesResults = async () => {
-        //try..catch is in here
-        if (typeof selectedSectionClass?.grade_subject === "object") {
-            const _subjectWeights = await SubjectWeightService.getSubjectWeights(selectedSectionClass.grade_subject);
-            if (_subjectWeights.length === 0) {
+            SubjectWeightService.getSubjectWeights(selectedSectionClass.grade_subject as GradeSubject).then((data) => {
+                if (data.length === 0) {
+                    toast.current?.show({
+                        severity: 'error',
+                        summary: 'Failed to load subject weights',
+                        detail: "Weights are not setted. Please set weights in the curriculum.",
+                        life: 3000
+                    });
+                }
+                setSubjectWeights(data);
+            }).catch((err) => {
                 toast.current?.show({
                     severity: 'error',
                     summary: 'Failed to load subject weights',
-                    detail: "Weights are not setted. Please set weights in the curriculum.",
+                    detail: '' + err,
                     life: 3000
                 });
-                setSubjectWeights([]);
-                return
-            }
-            const _studentClasses = await StudentClassService.getStudentClasssBySectionClass(selectedSectionClass);
-            if (_studentClasses.length === 0) {
+            });
+        }
+
+    }, [selectedSectionClass]);
+
+
+    useEffect(() => {
+        if (selectedTermClass) {
+            StudentClassService.getStudentClasssByTermClass(selectedTermClass).then((data) => {
+                if (data.length === 0) {
+                    toast.current?.show({
+                        severity: 'error',
+                        summary: 'Failed to load Student Classes',
+                        detail: "No registred students for this class are found.",
+                        life: 3000
+                    });
+                }
+                setStudentClasses(data);
+            }).catch((err) => {
                 toast.current?.show({
                     severity: 'error',
-                    summary: 'Failed to load Student Classes',
-                    detail: "No registred students for this class are found.",
+                    summary: 'Failed to load registred students',
+                    detail: '' + err,
                     life: 3000
                 });
-                return
+            });
+
+            StudentResultService.getStudentResultsByTermClass(selectedTermClass).then((data) => {
+                setStudentResults(data);
+                setUpdatedStudentResults([]);
+            }).catch((err) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to student results',
+                    detail: '' + err,
+                    life: 3000
+                });
+            });
+        }
+
+    }, [selectedTermClass]);
+
+    useEffect(() => {
+        if (studentClasses && subjectWeights && studentResults) {
+            setResultEntries(prepareResultEntries);
+        }
+    }, [studentClasses, subjectWeights, studentResults]);
+
+    const saveStudentResults = async () => {
+        if (updateStudentResults.length === 0) {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Nothing to update',
+                detail: 'You havent update any results',
+                life: 1500
+            });
+        }
+        try {
+            setLoading(true);
+            const data = await StudentResultService.updateStudentResults(updatedStudentResults);
+            if (data.length === updateStudentResults.length) {
+
             }
-            const _studentResults = await StudentResultService.getStudentResultsBySectionClass(selectedTerm, selectedSectionClass);
-            setSubjectWeights(_subjectWeights);
-            setStudentClasses(_studentClasses);
-            setStudentResults(_studentResults);
+            toast.current?.show({
+                severity: 'success',
+                summary: 'Successful',
+                detail: 'Results Setted',
+                life: 1500
+            });
+
+            setLoading(false);
+        } catch (error) {
+            setLoading(false);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to update results',
+                detail: '' + error,
+                life: 1500
+            });
         }
     }
 
-
-    const onRowEditComplete = (e: any) => {
-        const { newData, index } = e; // `newData` contains the updated row data, and `index` is the row index
-        setResultEntries((prevEntries) => {
-            const updatedEntries = [...prevEntries];
-            updatedEntries[index] = newData; // Uuu u uupdate the specific row
-            return updatedEntries;
+    const prepareResultEntries = (): ResultEntry[] => {
+        return studentClasses.map(studentClass => {
+            const resultsForStudent = studentResults.filter(
+                result => result.student_class === studentClass._id
+            );
+            const entry: ResultEntry = {
+                student_class: studentClass,
+            };
+            subjectWeights.forEach(weight => {
+                const result = resultsForStudent.find(
+                    res => res.subject_weight === weight._id
+                );
+                entry[weight._id || "unknown_weight_id"] = result ? result.result : null;
+            });
+            return entry;
         });
-        // Optionally, send the updated data to the server
-        // console.log("Updated Row:", newData);
     };
 
+    const onCellEditComplete = (e: any) => {
+        const { rowData, field, newValue } = e; // `rowData` is the current row, `field` is the edited column, `newValue` is the new value
 
+        if (!newValue) {
+            return;
+        }
+        try {
+            setResultEntries((prevEntries) =>
+                prevEntries.map((entry) => {
+                    if (entry.student_class._id === rowData.student_class._id && entry[field] !== newValue) {
+                        return { ...entry, [field]: newValue }; // Update the specific field
+                    }
+                    return entry;
+                })
+            );
+            const updatedStudentResult: StudentResult = {
+                student_class: rowData.student_class._id,
+                subject_weight: field,
+                result: newValue,
+                status:'ONGOING',
+            };
+            updateStudentResults(updatedStudentResult);
+        } catch (err) { }
 
+    };
+
+    const updateStudentResults = (updatedResult: StudentResult) => {
+        setUpdatedStudentResults((prevResults) => {
+            const existingIndex = prevResults.findIndex(
+                (result) =>
+                    result.student_class === updatedResult.student_class &&
+                    result.subject_weight === updatedResult.subject_weight
+            );
+
+            if (existingIndex > -1) {
+                const updatedResults = [...prevResults];
+                updatedResults[existingIndex] = {
+                    ...updatedResults[existingIndex],
+                    result: updatedResult.result,
+                };
+                return updatedResults;
+            } else {
+                return [...prevResults, updatedResult];
+            }
+        });
+    };
 
     const calculateRowTotal = (rowData: any): number => {
         const values = Object.values(rowData);
@@ -162,41 +260,11 @@ const ResultEntryPage = () => {
         return total;
     };
 
-
-    // Prepare data for the DataTable
-    const prepareResultEntries = (
-        studentClasses: StudentClass[],
-        subjectWeights: SubjectWeight[],
-        studentResults: StudentResult[]
-    ): ResultEntry[] => {
-        return studentClasses.map(studentClass => {
-            // Filter results for this student_class
-            const resultsForStudent = studentResults.filter(
-                result => result.student_class === studentClass._id
-            );
-
-            // Create an entry for this student_class
-            const entry: ResultEntry = {
-                student_class: studentClass,
-            };
-
-            // Map subject weights to their results
-            subjectWeights.forEach(weight => {
-                const result = resultsForStudent.find(
-                    res => res.subject_weight === weight._id
-                );
-                entry[weight._id || "unknown_weight_id"] = result ? result.result : null;
-            });
-
-            return entry;
-        });
-    };
-
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h5 className="m-0">Student Results</h5>
             <span className="block mt-2">
-                <Button label='Save All' text />
+                <Button label='Save All' text loading={loading} onClick={saveStudentResults} />
             </span>
         </div>
     );
@@ -209,17 +277,6 @@ const ResultEntryPage = () => {
                     <div className="col-12">
                         <div className="formgrid grid">
                             <div className="field col">
-                                <label htmlFor="term">Term (Semester)</label>
-                                <div id="term">
-                                    <Dropdown
-                                        value={selectedTerm}
-                                        onChange={(e) => setSelectedTerm(e.value)}
-                                        options={[1, 2]}
-                                        placeholder="Select Curriculum Term"
-                                    />
-                                </div>
-                            </div>
-                            <div className="field col">
                                 <label htmlFor="section">Section</label>
                                 <div id="section">
                                     <Dropdown
@@ -227,11 +284,12 @@ const ResultEntryPage = () => {
                                         onChange={(e) =>
                                             setSelectedGradeSection(e.value)
                                         }
-                                        options={gradeSections}
-                                        optionLabel="_id"
-                                        placeholder="Select Section"
-                                        itemTemplate={gradeSectionTemplate}
-                                        valueTemplate={gradeSectionTemplate}
+                                        options={gradeSections.map((item) => ({
+                                            ...item,
+                                            section_number: `Section ${item.section_number}`,
+                                        }))}                        
+                                        optionLabel="section_number"
+                                        placeholder="Select Section"                                        
                                     />
                                 </div>
                             </div>
@@ -249,6 +307,21 @@ const ResultEntryPage = () => {
                                     />
                                 </div>
                             </div>
+                            <div className="field col">
+                                <label htmlFor="term">Term (Semester)</label>
+                                <div id="term">
+                                    <Dropdown
+                                        value={selectedTermClass}
+                                        onChange={(e) => setSelectedTermClass(e.value)}
+                                        options={termClasss.map((item) => ({
+                                            ...item,
+                                            term: `Term ${item.term}`,
+                                        }))}
+                                        placeholder="Select Curriculum Term"
+                                        optionLabel='term'
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -259,12 +332,15 @@ const ResultEntryPage = () => {
                         <DataTable
                             value={resultEntries}
                             header={header}
+                            stripedRows
                             scrollable
-                            editMode="row"
-                            onRowEditComplete={onRowEditComplete}
+                            editMode="cell"
                         >
+
+                            {/*
                             <Column rowEditor headerStyle={{ width: '10%', minWidth: '8rem' }} bodyStyle={{ textAlign: 'center' }} frozen />
-                            {/*<Column header="#" body={(rowData, options) => options.rowIndex + 1} style={{ width: '50px' }} />*/}
+                            */}
+                            <Column header="#" body={(rowData, options) => options.rowIndex + 1} style={{ width: '50px' }} />
                             <Column
                                 //field='student_class.student_grade.student.first_name'
                                 header="Student"
@@ -285,22 +361,19 @@ const ResultEntryPage = () => {
                                             }
                                         }}
                                             mode="decimal"
-                                            maxFractionDigits={3}
+                                            maxFractionDigits={5}
                                             min={0}
                                             max={weight.assessment_weight}
                                             useGrouping={false}
                                         />}
+                                    onCellEditComplete={onCellEditComplete}
                                 />
                             ))}
-                            {/*columns.map((col, index) => (
-                                <Column key={index} field={col.field} header={col.header} editor={col.editor} headerStyle={{ minWidth: '10rem' }} />
-                            ))*/}
                             <Column
                                 header="Total"
                                 body={(rowData) => calculateRowTotal(rowData)} // Function to calculate and display the total
                                 style={{ fontWeight: 'bold', textAlign: 'right' }}
                             />
-                            {/*<Column rowEditor headerStyle={{ width: '10%', minWidth: '8rem' }} bodyStyle={{ textAlign: 'center' }} />*/}
                         </DataTable>
                     </div>
                 </div>

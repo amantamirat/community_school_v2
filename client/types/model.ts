@@ -122,18 +122,23 @@ export type StudentGrade = {
     grade_section?: GradeSection | string;
 };
 
+export type TermClass = {
+    _id?: string;
+    section_class: SectionClass | string;
+    term: number;
+};
 export type StudentClass = {
     _id?: string;
     student_grade: StudentGrade | string;
-    section_class: SectionClass | string;
+    term_class: TermClass | string;
 };
 
 export type StudentResult = {
     _id?: string;
     student_class: StudentClass | string;
     subject_weight: SubjectWeight | string;
-    result:number;
-    term:number;
+    result: number;
+    status:'ONGOING'|'CLOSED';
 };
 
 

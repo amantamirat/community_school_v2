@@ -61,6 +61,24 @@ export const MyService = {
         return updatedData;
     },
 
+    async put(endpoint: string,payload: any): Promise<any> {
+        const url = `${API_CONFIG.baseURL}${endpoint}`;
+        const response = await fetch(url, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || "Failed to update data");
+            });
+        }
+        const updatedData = await response.json();
+        return updatedData;
+    },
+
     async delete(id: string, endpoint: string): Promise<boolean> {
         const url = `${API_CONFIG.baseURL}${endpoint}`;
         const response = await fetch(`${url}/${id}`, {

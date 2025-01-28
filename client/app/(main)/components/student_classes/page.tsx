@@ -2,11 +2,12 @@ import { StudentClassService } from "@/services/StudentClassService";
 import { StudentClass, StudentGrade } from "@/types/model";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
-import { DataTable } from "primereact/datatable";
+import { DataTable, DataTableExpandedRows } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
 import { Toast } from "primereact/toast";
 import { Toolbar } from "primereact/toolbar";
 import { useEffect, useRef, useState } from "react";
+import StudentResultComponent from "../student_results/page";
 
 interface StudentClassProps {
     student_grade: StudentGrade;
@@ -16,7 +17,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
 
     let emptyStudentClass: StudentClass = {
         student_grade: props.student_grade,
-        section_class: ''
+        term_class: ''
     };
 
     const [studentClasss, setStudentClasss] = useState<StudentClass[]>([]);
@@ -24,6 +25,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
     const [showRemoveDialog, setShowRemoveDialog] = useState(false);
     const toast = useRef<Toast>(null);
     const [loading, setLoading] = useState(false);
+    const [expandedClassRows, setExpandedClassRows] = useState<any[] | DataTableExpandedRows>([]);
 
     useEffect(() => {
         loadStudentClasss();
@@ -127,7 +129,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
     const startToolbarTemplate = () => {
         return (
             <div className="my-2">
-                <Button  icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncStudentClasses} />
+                <Button icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncStudentClasses} />
             </div>
         );
     };
@@ -157,16 +159,18 @@ const StudentClassComponent = (props: StudentClassProps) => {
                         value={studentClasss}
                         selection={selectedStudentClass}
                         onSelectionChange={(e) => setSelectedStudentClass(e.value)}
-                        dataKey="_id"
                         emptyMessage={`No class for ${props.student_grade} found.`}
-                        paginator
-                        rows={5}
-                        rowsPerPageOptions={[5, 10, 25]}
-                        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} grades"
+                        expandedRows={expandedClassRows}
+                        onRowToggle={(e) => setExpandedClassRows(e.data)}
+                        rowExpansionTemplate={(data) => (
+                            <StudentResultComponent
+                                student_class={data as StudentClass}
+                            />
+                        )}
                     >
-                        <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
-                        <Column field="section_class.grade_subject.subject.title" header="Class" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column expander style={{ width: '4em' }} />
+                        <Column field="term_class.section_class.grade_subject.subject.title" header="Class" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="term_class.term" header="Term" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 

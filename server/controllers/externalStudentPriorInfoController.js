@@ -132,6 +132,8 @@ const externalStudentPriorInfoController = {
                 transfer_reason,
             } = req.body;
 
+            
+
             const updatedInfo = await ExternalStudentPriorInfo.findByIdAndUpdate(
                 id,
                 { student, school_name, academic_year, classification, grade, average_result, status, transfer_reason },
