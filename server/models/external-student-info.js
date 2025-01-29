@@ -4,7 +4,8 @@ const ExternalStudentPriorInfoSchema = new mongoose.Schema({
     student: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Student',
-        required: true
+        required: true,
+        immutable: true
     },
     school_name: {
         type: String,

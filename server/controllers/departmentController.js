@@ -33,7 +33,6 @@ const departmentController = {
             if (!updatedDepartment) {
                 return res.status(404).json({ message: "Department not found" });
             }
-
             res.status(200).json(updatedDepartment);
         } catch (error) {
             res.status(500).json({ message: "Error updating department", error });

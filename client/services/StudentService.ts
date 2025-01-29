@@ -30,7 +30,15 @@ export const StudentService = {
         return createdData;
     },
 
-    async updateStudent(student: Student, external_info: ExternalStudentInfo | null): Promise<Student> {
+    async updateStudent(student: Student): Promise<Student> {
+        if (student._id) {
+            const updatedStudent = await MyService.update(student._id, student, update_endpoint);
+            return updatedStudent;
+        }
+        throw Error("ID Required!");
+    },
+
+    async updateStudent2(student: Student, external_info: ExternalStudentInfo | null): Promise<Student> {
         if (student._id) {
             const external_student: ExternalStudent = { student: student, external_info: external_info }
             const updatedStudent = await MyService.update(student._id, external_student, update_endpoint);

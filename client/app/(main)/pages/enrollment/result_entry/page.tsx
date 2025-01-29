@@ -7,14 +7,13 @@ import { StudentResultService } from '@/services/StudentResultService';
 import { SubjectWeightService } from '@/services/SubjectWeightService';
 import { TermClassService } from '@/services/TermClassService';
 import { GradeSection, GradeSubject, SectionClass, StudentClass, StudentResult, SubjectWeight, TermClass } from '@/types/model';
-import { gradeSectionTemplate } from '@/types/templates';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Toast } from 'primereact/toast';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 
 type ResultEntry = {
@@ -36,7 +35,7 @@ const ResultEntryPage = () => {
     const [subjectWeights, setSubjectWeights] = useState<SubjectWeight[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClass[]>([]);
     const [studentResults, setStudentResults] = useState<StudentResult[]>([]);
-    const [updatedStudentResults, setUpdatedStudentResults] = useState<StudentResult[]>([]);
+    const [queueStudentResults, setQueueStudentResults] = useState<StudentResult[]>([]);
     const [resultEntries, setResultEntries] = useState<ResultEntry[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -131,7 +130,7 @@ const ResultEntryPage = () => {
 
             StudentResultService.getStudentResultsByTermClass(selectedTermClass).then((data) => {
                 setStudentResults(data);
-                setUpdatedStudentResults([]);
+                setQueueStudentResults([]);
             }).catch((err) => {
                 toast.current?.show({
                     severity: 'error',
@@ -151,7 +150,7 @@ const ResultEntryPage = () => {
     }, [studentClasses, subjectWeights, studentResults]);
 
     const saveStudentResults = async () => {
-        if (updateStudentResults.length === 0) {
+        if (updateQueueStudentResults.length === 0) {
             toast.current?.show({
                 severity: 'error',
                 summary: 'Nothing to update',
@@ -161,8 +160,8 @@ const ResultEntryPage = () => {
         }
         try {
             setLoading(true);
-            const data = await StudentResultService.updateStudentResults(updatedStudentResults);
-            if (data.length === updateStudentResults.length) {
+            const data = await StudentResultService.updateStudentResults(queueStudentResults);
+            if (data.length === updateQueueStudentResults.length) {
 
             }
             toast.current?.show({
@@ -183,7 +182,7 @@ const ResultEntryPage = () => {
             });
         }
     }
-
+    //bad implementation
     const prepareResultEntries = (): ResultEntry[] => {
         return studentClasses.map(studentClass => {
             const resultsForStudent = studentResults.filter(
@@ -208,28 +207,27 @@ const ResultEntryPage = () => {
         if (!newValue) {
             return;
         }
-        try {
-            setResultEntries((prevEntries) =>
-                prevEntries.map((entry) => {
-                    if (entry.student_class._id === rowData.student_class._id && entry[field] !== newValue) {
-                        return { ...entry, [field]: newValue }; // Update the specific field
-                    }
-                    return entry;
-                })
-            );
-            const updatedStudentResult: StudentResult = {
-                student_class: rowData.student_class._id,
-                subject_weight: field,
-                result: newValue,
-                status:'ONGOING',
-            };
-            updateStudentResults(updatedStudentResult);
-        } catch (err) { }
 
+        setResultEntries((prevEntries) =>
+            prevEntries.map((entry) => {
+                if (entry.student_class._id === rowData.student_class._id && entry[field] !== newValue) {
+                    return { ...entry, [field]: newValue }; // Update the specific field
+                }
+                return entry;
+            })
+        );
+
+        const updatedStudentResult: StudentResult = {
+            student_class: rowData.student_class._id,
+            subject_weight: field,
+            result: newValue,
+            status: 'ONGOING',
+        };
+        updateQueueStudentResults(updatedStudentResult);
     };
 
-    const updateStudentResults = (updatedResult: StudentResult) => {
-        setUpdatedStudentResults((prevResults) => {
+    const updateQueueStudentResults = (updatedResult: StudentResult) => {
+        setQueueStudentResults((prevResults) => {
             const existingIndex = prevResults.findIndex(
                 (result) =>
                     result.student_class === updatedResult.student_class &&
@@ -287,9 +285,9 @@ const ResultEntryPage = () => {
                                         options={gradeSections.map((item) => ({
                                             ...item,
                                             section_number: `Section ${item.section_number}`,
-                                        }))}                        
+                                        }))}
                                         optionLabel="section_number"
-                                        placeholder="Select Section"                                        
+                                        placeholder="Select Section"
                                     />
                                 </div>
                             </div>
