@@ -130,7 +130,7 @@ const externalStudentPriorInfoController = {
 
             const updatedInfo = await ExternalStudentPriorInfo.findByIdAndUpdate(
                 id,
-                { student, school_name, academic_year, classification, grade, average_result, status, transfer_reason },
+                { school_name, academic_year, classification, grade, average_result, status, transfer_reason },
                 { new: true }
             );
 
@@ -162,38 +162,6 @@ const externalStudentPriorInfoController = {
             res.status(500).json({ message: "Error deleting prior information", error });
         }
     },
-
-    /*    
-    
-
-    getAllExternalStudentPriorInfo: async (req, res) => {
-        try {
-            const priorInfo = await ExternalStudentPriorInfo.find().populate('student').populate('grade');
-            res.status(200).json(priorInfo);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    },
-
-    getExternalStudentPriorInfoById: async (req, res) => {
-        try {
-            const { id } = req.params;
-            const priorInfo = await ExternalStudentPriorInfo.findById(id).populate('student').populate('grade');
-
-            if (!priorInfo) {
-                return res.status(404).json({ message: "Prior information not found" });
-            }
-
-            res.status(200).json(priorInfo);
-        } catch (error) {
-            res.status(500).json({ message: "Error fetching prior information", error });
-        }
-    },
-
-    
-    */
-
-
 };
 
 module.exports = externalStudentPriorInfoController;

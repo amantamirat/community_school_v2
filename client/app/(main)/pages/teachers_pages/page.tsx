@@ -1,9 +1,7 @@
 'use client';
 import { TabPanel, TabView } from 'primereact/tabview';
-import React from 'react';
 import DepartmentsPage from './departments/page';
 import TeachersPage from './teachers/page';
-import { PrimeIcons } from 'primereact/api';
 
 const TeacherMainPage = () => {
     return (
