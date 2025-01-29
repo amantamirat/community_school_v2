@@ -1,10 +1,11 @@
 'use client';
+import SectionClassComponent from "@/app/(main)/components/section_classes/page";
 import { useClassificationGrade } from "@/app/(main)/contexts/classificationGradeContext";
 import { GradeSectionService } from "@/services/GradeSectionService";
 import { GradeSection } from "@/types/model";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
-import { DataTable } from "primereact/datatable";
+import { DataTable, DataTableExpandedRows } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
 import { InputNumber } from "primereact/inputnumber";
 import { Toast } from "primereact/toast";
@@ -25,6 +26,8 @@ const GradeSectionComponent = () => {
     const [showRemoveDialog, setShowRemoveDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
+    const [expandedClassRows, setExpandedClassRows] = useState<any[] | DataTableExpandedRows>([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         try {
@@ -59,6 +62,7 @@ const GradeSectionComponent = () => {
         let _gradeSections = [...(gradeSections as any)];
         try {
             const newGradeSection = await GradeSectionService.createGradeSection(selectedGradeSection);
+            // _gradeSections.push({ ...selectedGradeSection, _id: newGradeSection._id });
             _gradeSections.push(newGradeSection);
             toast.current?.show({
                 severity: 'success',
@@ -102,6 +106,20 @@ const GradeSectionComponent = () => {
         }
         setShowRemoveDialog(false);
         setSelectedGradeSection(emptyGradeSection);
+    }
+
+    const syncSubjects = async () => {
+        try {
+            throw Error("Unimplemented Function");
+        } catch (error) {
+            //console.error(error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to sync',
+                detail: '' + error,
+                life: 1500
+            });
+        }
     }
 
     const openAddDialog = () => {
@@ -148,7 +166,15 @@ const GradeSectionComponent = () => {
     const startToolbarTemplate = () => {
         return (
             <div className="my-2">
-                <Button label="Create Section" icon="pi pi-plus" className="mr-2" onClick={openAddDialog} disabled={!selectedClassificationGrade}/>
+                <Button label="Create Section" icon="pi pi-plus" className="mr-2" onClick={openAddDialog} disabled={!selectedClassificationGrade} />
+            </div>
+        );
+    };
+
+    const endToolbarTemplate = () => {
+        return (
+            <div className="my-2">
+                <Button tooltip="Sync Grade Subjects" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncSubjects} />
             </div>
         );
     };
@@ -173,7 +199,7 @@ const GradeSectionComponent = () => {
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
-                    <Toolbar className="mb-4" start={startToolbarTemplate}></Toolbar>
+                    <Toolbar className="mb-4" start={startToolbarTemplate} end={endToolbarTemplate}></Toolbar>
                     <DataTable
                         header={header}
                         value={gradeSections}
@@ -186,7 +212,15 @@ const GradeSectionComponent = () => {
                         rowsPerPageOptions={[5, 10, 25]}
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} grades"
+                        expandedRows={expandedClassRows}
+                        onRowToggle={(e) => setExpandedClassRows(e.data)}
+                        rowExpansionTemplate={(data) => (
+                            <SectionClassComponent
+                                gradeSection={data as GradeSection}
+                            />
+                        )}
                     >
+                        <Column expander style={{ width: '4em' }} />
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="section_number" header="Section" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>

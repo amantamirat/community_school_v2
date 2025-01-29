@@ -27,6 +27,12 @@ const GradeSubjectController = {
     updateGradeSubject: async (req, res) => {
         try {
             const { optional } = req.body;
+            const classExists = await SectionClass.findOne({ grade_subject: req.params.id });
+            if (classExists) {
+                return res.status(400).json({
+                    message: "Cannot Update, Subject Aleady Registred. It is associated with one or more classes.",
+                });
+            }
             const updatedGradeSubject = await GradeSubject.findByIdAndUpdate(
                 req.params.id,
                 { optional },
@@ -46,7 +52,7 @@ const GradeSubjectController = {
             const classExists = await SectionClass.findOne({ grade_subject: req.params.id });
             if (classExists) {
                 return res.status(400).json({
-                    message: "Cannot delete, Subject Registred. It is associated with one or more classes.Try Deleting Class First",
+                    message: "Cannot delete, Subject Registred. It is associated with one or more classes.",
                 });
             }
             if (!deletedGradeSubject) {

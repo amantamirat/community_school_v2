@@ -78,7 +78,7 @@ const SectionClassController = {
     deleteSectionClass: async (req, res) => {
         try {
             const { id } = req.params;
-            const exists = false;
+            const exists = false;//term class and student class
             if (exists) {
                 return res.status(400).json({
                     message: "Cannot delete the Class. It is associated.",

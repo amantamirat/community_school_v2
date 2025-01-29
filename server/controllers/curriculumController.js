@@ -31,6 +31,12 @@ const CurriculumController = {
     updateCurriculum: async (req, res) => {
         try {
             const { id } = req.params;
+            const classificationExist = await AdmissionClassification.exists({ curriculum: id });
+            if (classificationExist) {
+                return res.status(400).json({
+                    message: "Cannot update, classification Exists. It is associated with one or more admission classification.",
+                });
+            }
             const { title, classification, number_of_terms, maximum_point, minimum_pass_mark } = req.body;
             const updatedCurriculum = await Curriculum.findByIdAndUpdate(
                 id,

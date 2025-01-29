@@ -17,7 +17,7 @@ import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
 
 
-const SectionClassComponent = () => {
+const SectionClassPage = () => {
 
     let emptySectionClass: SectionClass = {
         grade_section: '',
@@ -407,4 +407,4 @@ const SectionClassComponent = () => {
     );
 };
 
-export default SectionClassComponent;
+export default SectionClassPage;
