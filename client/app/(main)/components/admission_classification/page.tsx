@@ -180,21 +180,16 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
         </>
     );
 
-    const startToolbarTemplate = () => {
-        return (
-            <React.Fragment>
-                <div className="my-2">
-                    <Button label="Add Classification" icon="pi pi-plus"  className="mr-2" onClick={openSaveDialog} />
-                </div>
-            </React.Fragment>
-        );
-    };
-
 
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h5 className="m-0">Admission Classfications</h5>
+            <span className="block mt-2 md:mt-0 p-input-icon-left">
+                <div className="my-2">
+                    <Button tooltip="Add Classification" icon="pi pi-plus" className="mr-2" onClick={openSaveDialog} />
+                </div>
+            </span>
         </div>
     );
 
@@ -214,13 +209,11 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
         );
     };
 
-
     return (
         <div className="grid">
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
-                    <Toolbar className="mb-4" start={startToolbarTemplate}></Toolbar>
                     <DataTable
                         ref={dt}
                         value={admissionClassifications}

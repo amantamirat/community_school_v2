@@ -255,9 +255,11 @@ const AcademicSessionPage = () => {
                         )}
                     >
                         <Column expander style={{ width: '3em' }} />
-                        <Column field="academic_year" header="Academic Year" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="start_date" header="Start Date" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="end_date" header="End Date" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="academic_year" header="Academic Year" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="start_date" header="Start Date" sortable headerStyle={{ minWidth: '10rem' }}
+                            body={(rowData) => new Date(rowData.start_date).toLocaleDateString('en-GB')} />
+                        <Column field="end_date" header="End Date" sortable headerStyle={{ minWidth: '10rem' }}
+                            body={(rowData) => new Date(rowData.end_date).toLocaleDateString('en-GB')} />
                         <Column field="status" header="Status" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
