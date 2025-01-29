@@ -35,8 +35,8 @@ const ResultEntryPage = () => {
     const [subjectWeights, setSubjectWeights] = useState<SubjectWeight[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClass[]>([]);
     const [studentResults, setStudentResults] = useState<StudentResult[]>([]);
-    const [queueStudentResults, setQueueStudentResults] = useState<StudentResult[]>([]);
     const [resultEntries, setResultEntries] = useState<ResultEntry[]>([]);
+    const queueStudentResults = useRef<StudentResult[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -130,7 +130,7 @@ const ResultEntryPage = () => {
 
             StudentResultService.getStudentResultsByTermClass(selectedTermClass).then((data) => {
                 setStudentResults(data);
-                setQueueStudentResults([]);
+                queueStudentResults.current.length = 0;
             }).catch((err) => {
                 toast.current?.show({
                     severity: 'error',
@@ -150,7 +150,7 @@ const ResultEntryPage = () => {
     }, [studentClasses, subjectWeights, studentResults]);
 
     const saveStudentResults = async () => {
-        if (updateQueueStudentResults.length === 0) {
+        if (queueStudentResults.current.length === 0) {
             toast.current?.show({
                 severity: 'error',
                 summary: 'Nothing to update',
@@ -160,8 +160,8 @@ const ResultEntryPage = () => {
         }
         try {
             setLoading(true);
-            const data = await StudentResultService.updateStudentResults(queueStudentResults);
-            if (data.length === updateQueueStudentResults.length) {
+            const data = await StudentResultService.updateStudentResults(queueStudentResults.current);
+            if (data.length === queueStudentResults.current.length) {
 
             }
             toast.current?.show({
@@ -195,57 +195,41 @@ const ResultEntryPage = () => {
                 const result = resultsForStudent.find(
                     res => res.subject_weight === weight._id
                 );
-                entry[weight._id || "unknown_weight_id"] = result ? result.result : null;
+                weight._id ? entry[weight?._id] = result ? result.result : null : null
             });
             return entry;
         });
     };
 
     const onCellEditComplete = (e: any) => {
-        const { rowData, field, newValue } = e; // `rowData` is the current row, `field` is the edited column, `newValue` is the new value
-
+        //const { rowData, field, newValue } = e; // `rowData` is the current row, `field` is the edited column, `newValue` is the new value
+        let { rowData, newValue, field, originalEvent: event } = e;
         if (!newValue) {
-            return;
+            event.preventDefault();
+            return
         }
-
-        setResultEntries((prevEntries) =>
-            prevEntries.map((entry) => {
-                if (entry.student_class._id === rowData.student_class._id && entry[field] !== newValue) {
-                    return { ...entry, [field]: newValue }; // Update the specific field
-                }
-                return entry;
-            })
-        );
-
-        const updatedStudentResult: StudentResult = {
+        rowData[field] = newValue;
+        const newResult: StudentResult = {
             student_class: rowData.student_class._id,
             subject_weight: field,
             result: newValue,
             status: 'ONGOING',
         };
-        updateQueueStudentResults(updatedStudentResult);
+        const index = findIndex(newResult);
+        if (index === -1) {
+            queueStudentResults.current.push(newResult);
+        } else {
+            queueStudentResults.current[index] = newResult;
+        }
     };
 
-    const updateQueueStudentResults = (updatedResult: StudentResult) => {
-        setQueueStudentResults((prevResults) => {
-            const existingIndex = prevResults.findIndex(
-                (result) =>
-                    result.student_class === updatedResult.student_class &&
-                    result.subject_weight === updatedResult.subject_weight
-            );
-
-            if (existingIndex > -1) {
-                const updatedResults = [...prevResults];
-                updatedResults[existingIndex] = {
-                    ...updatedResults[existingIndex],
-                    result: updatedResult.result,
-                };
-                return updatedResults;
-            } else {
-                return [...prevResults, updatedResult];
-            }
-        });
+    const findIndex = (result: StudentResult) => {
+        return queueStudentResults.current.findIndex(
+            (item) => item.student_class === result.student_class &&
+                item.subject_weight === result.subject_weight
+        );
     };
+
 
     const calculateRowTotal = (rowData: any): number => {
         const values = Object.values(rowData);
