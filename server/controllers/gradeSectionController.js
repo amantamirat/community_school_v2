@@ -4,8 +4,9 @@ const SectionClass = require("../models/section-class");
 const GradeSubject = require('../models/grade-subject');
 const StudentGrade = require("../models/student-grade");
 const TermClass = require("../models/term-class");
+const StudentGrade = require("../models/student-grade");
 
-// Controller methods
+
 const GradeSectionController = {
 
     // Get gradeSections
@@ -15,6 +16,75 @@ const GradeSectionController = {
             res.status(200).json(gradeSections);
         } catch (error) {
             res.status(500).json({ message: error.message });
+        }
+    },
+
+
+    syncSectionClasses: async (req, res) => {
+        try {
+            const { classification_grade } = req.params;
+            const classificationGrade = await ClassificationGrade.findById(classification_grade).populate({
+                path: 'curriculum_grade',
+                populate: { path: 'curriculum', },
+            });
+            if (!classificationGrade) throw new Error("Classification grade not found.");
+            const gradeSections = await GradeSection.find({ classification_grade: classification_grade });
+            const gradeSectionIds = gradeSections.map((_sec) => _sec._id);
+            const subjectGrades = await GradeSubject.find({ curriculum_grade: classificationGrade.curriculum_grade, optional: false });
+            let newSectionClasses = [];
+            for (const gradeSection of gradeSectionIds) {
+                for (const gradeSubject of subjectGrades) {
+                    const existingSectionClass = await SectionClass.findOne({
+                        grade_section: gradeSection,
+                        grade_subject: gradeSubject._id
+                    });
+                    if (!existingSectionClass) {
+                        const sectionClass = new SectionClass({
+                            grade_section: gradeSection,
+                            grade_subject: gradeSubject._id
+                        });
+                        newSectionClasses.push(sectionClass);
+                    }
+                }
+            }
+           
+            if (newSectionClasses.length > 0) {
+                const savedNewSectionClasses = await SectionClass.insertMany(newSectionClasses);
+                let newTermClasses = [];
+                for (let term = 1; term <= class_grade.curriculum_grade.curriculum.number_of_terms; term++) {
+                    for (const sectionClass of savedNewSectionClasses) {
+                        newTermClasses.push({
+                            section_class: sectionClass._id,
+                            term: term
+                        })
+                    }
+                }
+                const termClasses = await TermClass.insertMany(newTermClasses);
+                const sectionStudents = await StudentGrade.find({ grade_section: { $in: gradeSectionIds } });
+                const newStudentClass = [];
+                for (const gradeSection of gradeSectionIds) {
+                    const filteredSectionStudents = sectionStudents.filter(
+                        sectionStud => sectionStud.grade_section.toString() === gradeSection
+                    );
+                    const filteredSectionClasses = savedNewSectionClasses.filter(
+                        sectionClass => sectionClass.grade_section.toString() === gradeSection
+                    );
+                    for (const studentGrade of filteredSectionStudents) {
+                        for (const sectionclass of filteredSectionClasses) {
+                            const filteredTermClasses = termClasses.filter(termClass => termClass.section_class.toString() === sectionclass);
+                            for (const termClass of filteredTermClasses) {
+                                newStudentClass.push({
+                                    student_grade: studentGrade._id,
+                                    term_class: termClass._id,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            res.status(200).json(savedNewSectionClasses);
+        } catch (error) {
+            res.status(500).json({ message: error + "Error fetching Classs", error });
         }
     },
     createGradeSection: async (req, res) => {

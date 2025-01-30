@@ -26,9 +26,7 @@ const ClassificationGradeController = {
                 admission_classification,
                 curriculum_grade: grade._id
             }));
-
             const insertedGrades = await ClassificationGrade.insertMany(classificationGradesToInsert);
-
             // Fetch and populate the inserted grades
             const savedClassificationGrades = await ClassificationGrade.find({
                 _id: { $in: insertedGrades.map(grade => grade._id) }

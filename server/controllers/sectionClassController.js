@@ -16,7 +16,7 @@ const SectionClassController = {
         } catch (error) {
             res.status(500).json({ message: error + "Error fetching Classs", error });
         }
-    },
+    },    
 
     createSectionClass: async (req, res) => {
         try {
@@ -78,17 +78,20 @@ const SectionClassController = {
     deleteSectionClass: async (req, res) => {
         try {
             const { id } = req.params;
-            const exists = false;//term class and student class
-            if (exists) {
-                return res.status(400).json({
-                    message: "Cannot delete the Class. It is associated.",
-                });
-            }
-            const sectionClass = await SectionClass.findByIdAndDelete(id);
+            const sectionClass = await SectionClass.findById(id).populate('grade_subject');
             if (!sectionClass) {
                 return res.status(404).json({ message: "Class not found" });
             }
+            if (!sectionClass.grade_subject.optional) {
+                return res.status(400).json({
+                    message: "Cannot delete the Class. It is mandatory.",
+                });
+            }
             await TermClass.deleteMany({ section_class: id });
+            const deletedClass = await SectionClass.deleteOne({ _id: id });
+            if (!deletedClass) {
+                return res.status(404).json({ message: "Class not found" });
+            }
             res.status(200).json({ message: "class deleted successfully" });
         } catch (error) {
             res.status(500).json({ message: "Error deleting class" + error });
