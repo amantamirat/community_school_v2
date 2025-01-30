@@ -15,7 +15,7 @@ const StudentGradeSchema = new mongoose.Schema({
         type: String,
         required: true,
         default: 'PENDING',
-        enum: ['PENDING', 'PASSED', 'FAILED', 'INCOMPLETE']
+        enum: ['PENDING', 'ACTIVE', 'PASSED', 'FAILED', 'INCOMPLETE']
     },
     external_student_prior_info: {
         type: mongoose.Schema.Types.ObjectId,

@@ -110,15 +110,36 @@ const GradeSectionComponent = () => {
 
     const syncSubjects = async () => {
         try {
-            throw Error("Unimplemented Function");
+            if (!selectedClassificationGrade) {
+                throw Error("Classification Grade Required");
+            }
+            setLoading(true);
+            const sync_data: any[] = await GradeSectionService.syncSectionClasses(selectedClassificationGrade);
+            if (sync_data.length > 0) {
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: `${sync_data.length} section classes synced`,
+                    life: 3000
+                });
+            } else {
+                toast.current?.show({
+                    severity: 'info',
+                    summary: 'Sync Classes',
+                    detail: "Nothing synced. Already up to date.",
+                    life: 3000
+                });
+            }
+
         } catch (error) {
-            //console.error(error);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to sync',
                 detail: '' + error,
                 life: 1500
             });
+        } finally {
+            setLoading(false);
         }
     }
 

@@ -15,6 +15,8 @@ const CurriculumSchema = new mongoose.Schema({
     number_of_terms: {
         type: Number,
         default: 2,
+        min: 1,
+        max: 4,
         required: true
     },
     maximum_point: {
@@ -27,7 +29,7 @@ const CurriculumSchema = new mongoose.Schema({
         default: 50,
         required: true
     },
-    
+
 },
     {
         timestamps: true // Automatically adds `createdAt` and `updatedAt` fields

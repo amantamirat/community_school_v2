@@ -32,7 +32,7 @@ const AcademicSessionController = {
             const admissionExists = await AdmissionClassification.exists({ academic_session: id });
             if (admissionExists) {
                 return res.status(400).json({
-                    message: "Cannot update the Academic Session. It is associated with one or more Classifcation Admission.",
+                    message: "Cannot update the Academic Session. It is associated with one or more Classifcation Admissions.",
                 });
             }
             const { academic_year, start_date, end_date, status } = req.body;
@@ -50,15 +50,14 @@ const AcademicSessionController = {
     // Delete a academicSession
     deleteAcademicSession: async (req, res) => {
         try {
-            const { id } = req.params;          
+            const { id } = req.params;        
 
             const admissionExists = await AdmissionClassification.exists({ academic_session: id });
             if (admissionExists) {
                 return res.status(400).json({
-                    message: "Cannot delete the Academic Session. It is associated with one or more Classifcation Admission.",
+                    message: "Cannot delete the Academic Session. It contains one or more Classifcation Admissions.",
                 });
             }
-
             const academicSession = await AcademicSession.findByIdAndDelete(id);
             if (!academicSession) {
                 return res.status(404).json({ message: "Academic Session not found" });

@@ -2,12 +2,13 @@ import { ClassificationGrade, GradeSection } from "@/types/model";
 import { MyService } from "./MyService";
 
 const get_endpoint = "/api/grade-sections/classification_grade";
+const sync_endpoint = "/api/grade-sections/sync-section-classes";
 const create_endpoint = '/api/grade-sections/create';
 const delete_endpoint = '/api/grade-sections/delete';
 
 export const GradeSectionService = {
     async getGradeSectionsByClassificationGrade(classification_grade: ClassificationGrade): Promise<GradeSection[]> {
-        const endpoint = `${get_endpoint}/${classification_grade._id}`;               
+        const endpoint = `${get_endpoint}/${classification_grade._id}`;
         const data = await MyService.get(endpoint);
         return data as GradeSection[];
     },
@@ -15,7 +16,11 @@ export const GradeSectionService = {
     async createGradeSection(gradeSection: Partial<GradeSection>): Promise<GradeSection> {
         const createdData = await MyService.create(gradeSection, create_endpoint);
         return createdData;
+    },
 
+    async syncSectionClasses(classification_grade: ClassificationGrade): Promise<any> {
+        const createdData = await MyService.create({}, `${sync_endpoint}/${classification_grade._id}`);
+        return createdData;
     },
 
     async deleteGradeSection(id: string): Promise<boolean> {

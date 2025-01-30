@@ -5,14 +5,14 @@ const AdmissionClassification = require("../models/admission-classification");
 const CurriculumGrade = require('../models/curriculum-grade');
 
 // Controller methods
-const ClassificationGradeController = {    
+const ClassificationGradeController = {
 
     syncCurriculumGrades: async (req, res) => {
         try {
             const { admission_classification } = req.params;
             const admissionClassification = await AdmissionClassification.findById(admission_classification).populate('curriculum');
             if (!admissionClassification) {
-                return res.status(404).json({ message: 'AdmissionClassification not found' });
+                return res.status(404).json({ message: 'Admission Classification not found' });
             }
             // Fetch CurriculumGrades associated with the curriculum of the AdmissionClassification
             const curriculumGrades = await CurriculumGrade.find({ curriculum: admissionClassification.curriculum });
@@ -58,19 +58,15 @@ const ClassificationGradeController = {
     deleteClassificationGrade: async (req, res) => {
         try {
             const { id } = req.params;
-
-            const isReferencedInGradeSection = await GradeSection.exists({ classification_grade: id });
-            if (isReferencedInGradeSection) {
+            const [studentGradeRef, gradeSectionRef] = await Promise.all([
+                StudentGrade.exists({ classification_grade: id }),
+                GradeSection.exists({ classification_grade: id })
+            ]);
+            if (studentGradeRef | gradeSectionRef) {
                 return res.status(400).json({
-                    message: 'Cannot delete ClassificationGrade, it is referenced in GradeSection.'
+                    message: 'Cannot delete Classification Grade because students are registered to the grade or section that has been created.'
                 });
-            }
-            const isReferencedInStudentGrade = await StudentGrade.exists({ classification_grade: id });
-            if (isReferencedInStudentGrade) {
-                return res.status(400).json({
-                    message: 'Cannot delete ClassificationGrade, it is referenced in StudentGrade.'
-                });
-            }
+            }            
             const deletedClassificationGrade = await ClassificationGrade.findByIdAndDelete(id);
             if (!deletedClassificationGrade) {
                 return res.status(404).json({ message: 'Classification Grade not found' });

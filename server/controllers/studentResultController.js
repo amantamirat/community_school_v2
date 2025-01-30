@@ -61,6 +61,7 @@ const StudentResultController = {
 
     deleteStudentResult: async (req, res) => {
         try {
+            const { id } = req.params;
             const studentResult = await StudentResult.findById(id);
             if (!studentResult) {
                 return res.status(404).json({ message: 'Student Result not found' });

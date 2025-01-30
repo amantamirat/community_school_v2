@@ -64,7 +64,7 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
                     toast.current?.show({
                         severity: 'info',
                         summary: 'Updated Grades',
-                        detail: "Nothing synced. Everything is up to date.",
+                        detail: "Nothing synced. Already up to date.",
                         life: 3000
                     });
                 }

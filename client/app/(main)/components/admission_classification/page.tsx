@@ -102,7 +102,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
             toast.current?.show({
                 severity: 'success',
                 summary: 'Successful',
-                detail: `AdmissionClassification Created'}`,
+                detail: 'Admission Classification Created',
                 life: 3000
             });
         } catch (error) {
@@ -130,7 +130,7 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
                 toast.current?.show({
                     severity: 'success',
                     summary: 'Successful',
-                    detail: 'AdmissionClassification Deleted',
+                    detail: 'Admission Classification Deleted',
                     life: 3000
                 });
             }

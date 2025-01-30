@@ -4,7 +4,7 @@ const SectionClass = require("../models/section-class");
 const GradeSubject = require('../models/grade-subject');
 const StudentGrade = require("../models/student-grade");
 const TermClass = require("../models/term-class");
-const StudentGrade = require("../models/student-grade");
+const StudentClass = require('../models/student-class');
 
 
 const GradeSectionController = {
@@ -12,7 +12,8 @@ const GradeSectionController = {
     // Get gradeSections
     getGradeSectionsByClassificationGrade: async (req, res) => {
         try {
-            const gradeSections = await GradeSection.find({ classification_grade: req.params.classification_grade });
+            const { classification_grade } = req.params;
+            const gradeSections = await GradeSection.find({ classification_grade: classification_grade });
             res.status(200).json(gradeSections);
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -28,30 +29,35 @@ const GradeSectionController = {
                 populate: { path: 'curriculum', },
             });
             if (!classificationGrade) throw new Error("Classification grade not found.");
-            const gradeSections = await GradeSection.find({ classification_grade: classification_grade });
-            const gradeSectionIds = gradeSections.map((_sec) => _sec._id);
-            const subjectGrades = await GradeSubject.find({ curriculum_grade: classificationGrade.curriculum_grade, optional: false });
+
+            const [gradeSections, subjectGrades] = await Promise.all([
+                GradeSection.find({ classification_grade }).lean(),
+                GradeSubject.find({ curriculum_grade: classificationGrade.curriculum_grade, optional: false }).lean()
+            ]);
+            const gradeSectionIds = gradeSections.map(sec => sec._id);
+            // Find existing section classes
+            const existingSectionClasses = await SectionClass.find({ grade_section: { $in: gradeSectionIds } }).lean();
+            const existingPairs = new Set(existingSectionClasses.map(sc => `${sc.grade_section}-${sc.grade_subject}`));
+
             let newSectionClasses = [];
             for (const gradeSection of gradeSectionIds) {
                 for (const gradeSubject of subjectGrades) {
-                    const existingSectionClass = await SectionClass.findOne({
-                        grade_section: gradeSection,
-                        grade_subject: gradeSubject._id
-                    });
-                    if (!existingSectionClass) {
-                        const sectionClass = new SectionClass({
+                    const key = `${gradeSection}-${gradeSubject._id}`;
+                    if (!existingPairs.has(key)) {
+                        newSectionClasses.push({
                             grade_section: gradeSection,
                             grade_subject: gradeSubject._id
                         });
-                        newSectionClasses.push(sectionClass);
                     }
                 }
             }
-           
+
+
             if (newSectionClasses.length > 0) {
                 const savedNewSectionClasses = await SectionClass.insertMany(newSectionClasses);
+                //newSectionClasses = savedNewSectionClasses;
                 let newTermClasses = [];
-                for (let term = 1; term <= class_grade.curriculum_grade.curriculum.number_of_terms; term++) {
+                for (let term = 1; term <= classificationGrade.curriculum_grade.curriculum.number_of_terms; term++) {
                     for (const sectionClass of savedNewSectionClasses) {
                         newTermClasses.push({
                             section_class: sectionClass._id,
@@ -60,33 +66,41 @@ const GradeSectionController = {
                     }
                 }
                 const termClasses = await TermClass.insertMany(newTermClasses);
+                //studentclass creation
                 const sectionStudents = await StudentGrade.find({ grade_section: { $in: gradeSectionIds } });
-                const newStudentClass = [];
-                for (const gradeSection of gradeSectionIds) {
-                    const filteredSectionStudents = sectionStudents.filter(
-                        sectionStud => sectionStud.grade_section.toString() === gradeSection
-                    );
-                    const filteredSectionClasses = savedNewSectionClasses.filter(
-                        sectionClass => sectionClass.grade_section.toString() === gradeSection
-                    );
-                    for (const studentGrade of filteredSectionStudents) {
-                        for (const sectionclass of filteredSectionClasses) {
-                            const filteredTermClasses = termClasses.filter(termClass => termClass.section_class.toString() === sectionclass);
-                            for (const termClass of filteredTermClasses) {
-                                newStudentClass.push({
-                                    student_grade: studentGrade._id,
-                                    term_class: termClass._id,
+                const newStudentClasses = [];
+                const termClassMap = new Map();
+                // Group term classes by section_class
+                for (const tc of termClasses) {
+                    const key = tc.section_class.toString();
+                    if (!termClassMap.has(key)) {
+                        termClassMap.set(key, []);
+                    }
+                    termClassMap.get(key).push(tc._id);
+                }
+
+                for (const student of sectionStudents) {
+                    for (const sectionClass of savedNewSectionClasses) {
+                        const termClassIds = termClassMap.get(sectionClass._id.toString());
+                        if (termClassIds) {
+                            for (const termClassId of termClassIds) {
+                                newStudentClasses.push({
+                                    student_grade: student._id,
+                                    term_class: termClassId,
                                 });
                             }
                         }
                     }
                 }
+                await StudentClass.insertMany(newStudentClasses);
             }
-            res.status(200).json(savedNewSectionClasses);
+            res.status(200).json(newSectionClasses);
         } catch (error) {
             res.status(500).json({ message: error + "Error fetching Classs", error });
         }
     },
+
+    
     createGradeSection: async (req, res) => {
         try {
             const { classification_grade, section_number } = req.body;

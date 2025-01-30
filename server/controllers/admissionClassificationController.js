@@ -54,26 +54,32 @@ const AdmissionClassificationController = {
     deleteAdmissionClassification: async (req, res) => {
         try {
             const { id } = req.params;
-            const classificationGrades = await ClassificationGrade.find({ admission_classification: id });
+            /*
+            const isReferenced = await ClassificationGrade.exists({ admission_classification: id });
+            if (isReferenced) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Cannot delete Admission Classification because it contains one or more Classification Grades.',
+                });
+            }
+            */            
+            // Find ClassificationGrades linked to the AdmissionClassification, using .lean() for performance
+            const classificationGrades = await ClassificationGrade.find({ admission_classification: id }).lean();
             if (classificationGrades.length) {
-                for (const grade of classificationGrades) {
-                    const isReferencedInStudentGrade = await StudentGrade.exists({ classification_grade: grade._id });
-                    if (isReferencedInStudentGrade) {
-                        return res.status(400).json({
-                            message: 'Cannot delete AdmissionClassification because its ClassificationGrade is referenced in StudentGrade.'
-                        });
-                    }
-                    const isReferencedInGradeSection = await GradeSection.exists({ classification_grade: grade._id });
-
-                    if (isReferencedInGradeSection) {
-                        return res.status(400).json({
-                            message: 'Cannot delete AdmissionClassification because its ClassificationGrade is referenced in GradeSection.'
-                        });
-                    }
+                const gradeIds = classificationGrades.map(grade => grade._id);
+                const [studentGradeRef, gradeSectionRef] = await Promise.all([
+                    StudentGrade.exists({ classification_grade: { $in: gradeIds } }),
+                    GradeSection.exists({ classification_grade: { $in: gradeIds } })
+                ]);
+                if (studentGradeRef | gradeSectionRef) {
+                    return res.status(400).json({
+                        message: 'Cannot delete Admission Classification because its Classification Grade is referenced in StudentGrade or GradeSection.'
+                    });
                 }
                 const ack = await ClassificationGrade.deleteMany({ admission_classification: id });
-                //console.log(ack, "classifcation grades cleared");
+                //console.log(ack, "classifcation grades cleared");             
             }
+            
             const admissionClassification = await AdmissionClassification.findByIdAndDelete(id);
             if (!admissionClassification) {
                 return res.status(404).json({ message: "Admission Classifcation not found" });
