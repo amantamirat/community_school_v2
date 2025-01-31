@@ -10,17 +10,7 @@ export const gradeTemplate = (grade: Grade) => {
     if (!grade) {
         return <></>
     }
-    let prefix = 'Grade ';
-    if (grade.stage === 'KG') {
-        prefix = 'KG ';
-    }
-    let suffix = "";
-    if (grade.stage === 'PREP') {
-        suffix = '(' + grade.specialization + ')'
-    }
-    return (
-        <>{prefix + " - " + grade.level + " " + suffix}</>
-    );
+    return `${grade.stage}-${grade.level}${grade.specialization ? ` (${grade.specialization})` : ''}`;
 };
 
 export const teacherTemplate = (teacher: Teacher) => {

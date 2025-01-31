@@ -40,9 +40,9 @@ const externalStudentPriorInfoController = {
                 return res.status(404).json({ message: "Class Grade not found" });
             }
             const grade = classificationGrade.curriculum_grade.grade;
-            const academic_year = classificationGrade.admission_classification.academic_session.academic_year;
-            const classification = classificationGrade.admission_classification.classification;
-            const prevGrade = await gradeController.getPreviousGrade(grade.stage, grade.level, grade.specialization);
+            //const academic_year = classificationGrade.admission_classification.academic_session.academic_year;
+            //const classification = classificationGrade.admission_classification.classification;
+            const prevGrade = await gradeController.getPreviousGrade(grade);
             let query;
             if (!prevGrade) {
                 query = { grade: grade, status: "FAILED", is_referred: false };
@@ -59,8 +59,8 @@ const externalStudentPriorInfoController = {
                 .populate('grade');
             res.status(200).json(priorInfo);
         } catch (error) {
-            //console.log(error.message);
-            res.status(500).json({ message: "Error fetching class grade information", error });
+            console.log(error.message);
+            res.status(500).json({ message: error.message });
         }
     },
 

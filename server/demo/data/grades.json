@@ -1,0 +1,19 @@
+[
+    { "stage": "KG", "level": 1 },
+    { "stage": "KG", "level": 2 },
+    { "stage": "KG", "level": 3 },
+    { "stage": "GRADE", "level": 1 },
+    { "stage": "GRADE", "level": 2 },
+    { "stage": "GRADE", "level": 3 },
+    { "stage": "GRADE", "level": 4 },
+    { "stage": "GRADE", "level": 5 },
+    { "stage": "GRADE", "level": 6 },
+    { "stage": "GRADE", "level": 7 },
+    { "stage": "GRADE", "level": 8 },
+    { "stage": "GRADE", "level": 9 },
+    { "stage": "GRADE", "level": 10 },
+    { "stage": "GRADE", "level": 11, "specialization": "NAT" },
+    { "stage": "GRADE", "level": 11, "specialization": "SOC" },
+    { "stage": "GRADE", "level": 12, "specialization": "NAT" },
+    { "stage": "GRADE", "level": 12, "specialization": "SOC" }
+]

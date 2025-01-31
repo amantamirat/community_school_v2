@@ -24,11 +24,55 @@
         "load": 6
     },
     {
+        "title": "Biology",
+        "load": 6
+    },
+    {
+        "title": "French",
+        "load": 3
+    },
+    {
         "title": "Art and Design",
         "load": 2
     },
     {
         "title": "Economics",
         "load": 4
+    },
+    {
+        "title": "Music",
+        "load": 2
+    },
+    {
+        "title": "Geography",
+        "load": 5
+    },
+    {
+        "title": "Philosophy",
+        "load": 3
+    },
+    {
+        "title": "Psychology",
+        "load": 4
+    },
+    {
+        "title": "Literature",
+        "load": 5
+    },
+    {
+        "title": "Business Studies",
+        "load": 4
+    },
+    {
+        "title": "Environmental Science",
+        "load": 5
+    },
+    {
+        "title": "Political Science",
+        "load": 3
+    },
+    {
+        "title": "Statistics",
+        "load": 6
     }
 ]

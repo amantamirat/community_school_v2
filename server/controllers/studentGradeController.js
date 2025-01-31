@@ -7,8 +7,28 @@ const SectionClass = require("../models/section-class");
 const TermClass = require("../models/term-class");
 const StudentClass = require("../models/student-class");
 const StudentResult = require("../models/student-result");
-
 const gradeController = require('../controllers/gradeController');
+const GradeSubject = require('../models/grade-subject');
+const SubjectTerm = require('../models/subject-term');
+const StudentTermClass = require('../models/student-term-class');
+
+
+const registerStudentTermClasses = async (curriculum_grade, savedStudentGrades) => {
+    const gradeSubjects = await GradeSubject.find(
+        { curriculum_grade: curriculum_grade, optional: false },
+        { _id: 1 }
+    ).lean();
+    const gradeSubjectIds = gradeSubjects.map(subject => subject._id);
+    const subjectTerms = await SubjectTerm.find({ grade_subject: { $in: gradeSubjectIds } }, { _id: 1 }).lean();
+    const newStudentTermClasses = savedStudentGrades.flatMap(studGrade =>
+        subjectTerms.map(term => ({
+            student_grade: studGrade._id,
+            subject_term: term._id
+        }))
+    );
+    return await StudentTermClass.insertMany(newStudentTermClasses);
+};
+
 const studentGradeController = {
 
     getSectionedRegisteredStudents: async (req, res) => {
@@ -21,7 +41,7 @@ const studentGradeController = {
         }
     },
 
-    getNaNSectionRegisteredStudents: async (req, res) => {
+    getUnSectionedRegisteredStudents: async (req, res) => {
         try {
             const { classification_grade } = req.params;
             const registered_students = await StudentGrade.find({
@@ -34,6 +54,7 @@ const studentGradeController = {
             res.status(500).json({ message: error.message });
         }
     },
+
     registerExternalStudents: async (req, res) => {
         try {
             const { classification_grade } = req.params;
@@ -42,7 +63,7 @@ const studentGradeController = {
                 populate: { path: 'grade', },
             });
             if (!classificationGrade) {
-                return res.status(404).json({ message: "Classification Grade not found" });
+                throw new Error("Classification Grade not found");
             }
             const current_grade = classificationGrade.curriculum_grade.grade;
             const prev_grade = await gradeController.getPreviousGrade(current_grade.stage, current_grade.level, current_grade.specialization);
@@ -80,12 +101,14 @@ const studentGradeController = {
             } else {
                 res.status(404).json({ message: "Data protocol error, no array students found. Error for registering students" });
             }
-            const saved_student_grades = await StudentGrade.insertMany(student_grades);
+            const savedStudentGrades = await StudentGrade.insertMany(student_grades);
+            //register student subject terms
+            await registerStudentTermClasses(classificationGrade.curriculum_grade, savedStudentGrades);
             await ExternalStudentPriorInfo.updateMany(
                 { _id: { $in: external_students_info } },
                 { $set: { is_referred: true } }
             );
-            res.status(201).json(saved_student_grades);
+            res.status(201).json(savedStudentGrades);
         } catch (error) {
             //console.log(error);
             res.status(500).json({ message: "Error registering students" + error });
@@ -128,12 +151,13 @@ const studentGradeController = {
                 reg_students.push(cadidate);
             }
 
-            const saved_student_grades = await StudentGrade.insertMany(student_grades);
+            const savedStudentGrades = await StudentGrade.insertMany(student_grades);
+            await registerStudentTermClasses(classificationGrade.curriculum_grade, savedStudentGrades);
             await Student.updateMany(
                 { _id: { $in: reg_students } },
                 { $set: { registered: true } }
             );
-            res.status(201).json(saved_student_grades);
+            res.status(201).json(savedStudentGrades);
         } catch (error) {
             res.status(500).json({ message: "Error registering students" + error });
         }
@@ -170,6 +194,7 @@ const studentGradeController = {
                 }
             }
             const result = await StudentGrade.deleteMany({ _id: { $in: selected_registered_students } });
+            await StudentTermClass.deleteMany({ student_grade: { $in: selected_registered_students } });
             await ExternalStudentPriorInfo.updateMany(
                 { _id: { $in: external_students_info } },
                 { $set: { is_referred: false } }
@@ -214,7 +239,11 @@ const studentGradeController = {
                 { _id: { $in: section_students } },
                 { $set: { grade_section: gradeSection._id } }
             );
+
+
+            /*
             const sectionClasses = await SectionClass.find({ grade_section: grade_section });
+            const studentTermClasses = await StudentTermClass.find({ student_grade: { $in: section_students } });
             if (sectionClasses.length !== 0) {
                 const sectionClassIds = sectionClasses.map((_class) => _class._id);
                 const termClasses = await TermClass.find({ section_class: { $in: sectionClassIds } });
@@ -229,6 +258,7 @@ const studentGradeController = {
                 }
                 const createdStudentClasses = await StudentClass.insertMany(studentClassData);
             }
+            */
             res.status(200).json(result);
         } catch (error) {
             //console.log(error);

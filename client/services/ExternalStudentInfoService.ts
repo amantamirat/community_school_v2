@@ -17,8 +17,9 @@ export const ExternalStudentInfoService = {
     },
 
     async getExternalElligibleStudentsByGrade(classification_grade: ClassificationGrade): Promise<ExternalStudentInfo[]> {
-        const endpoint = `${get_by_classification_grade_endpoint}/${classification_grade._id}`;
+        const endpoint = `${get_by_classification_grade_endpoint}/${classification_grade._id}`;        
         const data = await MyService.get(endpoint);
+        //console.log(data);
         return data;
     },
 

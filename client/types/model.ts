@@ -16,10 +16,9 @@ export type Teacher = {
 
 export type Grade = {
     _id?: string;
-    stage: 'KG' | 'PRM_MID' | 'PREP';
-    stage_name: 'KG' | "GRADE";
+    stage: "KG" | "GRADE";
     level: number;
-    specialization: string;
+    specialization?: "NAT" | "SOC";
 };
 
 export type Subject = {

@@ -2,7 +2,7 @@
 import { useClassificationGrade } from '@/app/(main)/contexts/classificationGradeContext';
 import { ExternalStudentInfoService } from '@/services/ExternalStudentInfoService';
 import { StudentGradeService } from '@/services/StudentGradeService';
-import {ExternalStudentInfo, StudentGrade } from '@/types/model';
+import { ExternalStudentInfo, StudentGrade } from '@/types/model';
 import { FilterMatchMode, PrimeIcons } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -43,22 +43,20 @@ const NewExternalStudentsComponent = () => {
     };
 
     useEffect(() => {
-        try {
-            if (selectedClassificationGrade) {
-                setLoading(true);
-                ExternalStudentInfoService.getExternalElligibleStudentsByGrade(selectedClassificationGrade).then((data) => {
-                    setElligibleStudents(data);
-                    setLoading(false);
+
+        if (selectedClassificationGrade) {
+            setLoading(true);
+            ExternalStudentInfoService.getExternalElligibleStudentsByGrade(selectedClassificationGrade).then((data) => {
+                setElligibleStudents(data);
+                setLoading(false);
+            }).catch((err) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed Load Elligible Students',
+                    detail: '' + err,
+                    life: 3000
                 });
-            }
-        } catch (err) {
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed Load Elligible Students',
-                detail: '' + err,
-                life: 3000
-            });
-            setLoading(false);
+            }).finally(() => { setLoading(false) });
         }
     }, [selectedClassificationGrade]);
 
@@ -167,7 +165,7 @@ const NewExternalStudentsComponent = () => {
                             <Column field="student.sex" header="Sex" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                             <Column field="student.birth_date" header="Birth Date" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                             <Column field="grade.stage" header="Grade stage" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                            <Column field="grade.level" header="Grade level" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                            <Column field="grade.level" header="Grade Level" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                             <Column field="academic_year" header="Academic Year" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                             <Column field="status" header="Status" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         </DataTable>
