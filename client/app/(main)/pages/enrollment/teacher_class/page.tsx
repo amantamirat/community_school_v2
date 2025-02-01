@@ -17,7 +17,7 @@ import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
 
 
-const SectionClassPage = () => {
+const TeacherClassPage = () => {
 
     let emptySectionClass: SectionClass = {
         grade_section: '',
@@ -310,7 +310,31 @@ const SectionClassPage = () => {
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
-                    <Toolbar className="mb-4" start={startToolbarTemplate} end={endToolbarTemplate}></Toolbar>
+                    <div className="card p-fluid">
+                        <div className="grid">
+                            <div className="col-12">
+                                <div className="formgrid grid">
+                                    <div className="field col">
+                                        <label htmlFor="section">Section</label>
+                                        <div id="section">
+                                            <Dropdown
+                                                value={selectedGradeSection || null}
+                                                onChange={(e) =>
+                                                    setSelectedGradeSection(e.value)
+                                                }
+                                                options={gradeSections.map((item) => ({
+                                                    ...item,
+                                                    section_number: `Section ${item.section_number}`,
+                                                }))}
+                                                optionLabel="section_number"
+                                                placeholder="Select Section"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <DataTable
                         header={header}
                         value={sectionClasss}
@@ -407,4 +431,4 @@ const SectionClassPage = () => {
     );
 };
 
-export default SectionClassPage;
+export default TeacherClassPage;

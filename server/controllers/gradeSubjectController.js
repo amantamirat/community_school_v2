@@ -1,9 +1,12 @@
+const mongoose = require('mongoose');
 const GradeSubject = require('../models/grade-subject');
 const CurriculumGrade = require('../models/curriculum-grade');
 const SubjectTerm = require('../models/subject-term');
 const SubjectWeight = require('../models/subject-weight');
 
 const SectionClass = require("../models/section-class");
+const StudentClass = require('../models/student-class');
+const StudentResult = require('../models/student-result');
 
 const GradeSubjectController = {
 
@@ -71,28 +74,37 @@ const GradeSubjectController = {
     deleteGradeSubject: async (req, res) => {
         try {
             const { id } = req.params;
+
+            // Validate ObjectId
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({ message: 'Invalid GradeSubject ID' });
+            }
+
+            // Check if any SubjectWeight is associated
             const weightExists = await SubjectWeight.exists({ grade_subject: id });
             if (weightExists) {
                 return res.status(400).json({
                     message: "Cannot delete. It is associated with one or more weights.",
                 });
             }
-            const classExists = await SectionClass.exists({ grade_subject: id });
-            if (classExists) {
-                return res.status(400).json({
-                    message: "Cannot delete, Subject Registred. It is associated with one or more classes.",
-                });
+            const subjectTermIds = await SubjectTerm.distinct('_id', { grade_subject: id });
+            const sectionClassIds = await SectionClass.distinct('_id', { subject_term: { $in: subjectTermIds } });
+            if (sectionClassIds.length > 0) {
+                await StudentClass.deleteMany({ section_class: { $in: sectionClassIds } });
+                await SectionClass.deleteMany({ _id: { $in: sectionClassIds } });
             }
+            await SubjectTerm.deleteMany({ _id: { $in: subjectTermIds } });
+            
             const deletedGradeSubject = await GradeSubject.findByIdAndDelete(id);
             if (!deletedGradeSubject) {
                 return res.status(404).json({ message: 'Grade Subject not found' });
             }
-            await SubjectTerm.deleteMany({ grade_subject: id });
             res.status(200).json(deletedGradeSubject);
         } catch (err) {
-            res.status(500).json({ message: 'Error deleting GradeSubject', error: err });
+            res.status(500).json({ message: 'Error deleting GradeSubject', error: err.message });
         }
     }
+
 }
 
 module.exports = GradeSubjectController;

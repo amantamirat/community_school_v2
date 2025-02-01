@@ -47,40 +47,6 @@ const StudentClassComponent = (props: StudentClassProps) => {
         }
     };
 
-    const syncStudentClasses = async () => {
-        if (props.student_grade) {
-            setLoading(true);
-            try {
-                const sync_grades: StudentClass[] = await StudentClassService.syncStudentClasses(props.student_grade);
-                if (sync_grades.length > 0) {
-                    setStudentClasss(prevGrades => [...prevGrades, ...sync_grades]);
-                    toast.current?.show({
-                        severity: 'success',
-                        summary: 'Successful',
-                        detail: `${sync_grades.length} student class added.`,
-                        life: 3000
-                    });
-                } else {
-                    //console.log('nothing sync');
-                    toast.current?.show({
-                        severity: 'info',
-                        summary: 'Updated Classes',
-                        detail: "Nothing synced. Everything is up to date.",
-                        life: 3000
-                    });
-                }
-            } catch (error) {
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to sync classes',
-                    detail: 'Error syncing classes:' + error,
-                    life: 3000
-                });
-            } finally {
-                setLoading(false);
-            }
-        }
-    }
 
     const deleteStudentClass = async () => {
         try {
@@ -131,7 +97,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
             <h5 className="m-0">Registred Classes</h5>
             <span className="block mt-2 md:mt-0">
                 <div className="my-2">
-                    <Button tooltip="Sync Classes" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncStudentClasses} />
+                    ...
                 </div>
             </span>
         </div>

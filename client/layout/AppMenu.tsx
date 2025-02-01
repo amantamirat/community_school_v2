@@ -32,8 +32,8 @@ const AppMenu = () => {
                                 { label: 'First Level', icon: PrimeIcons.SUN, to: '/pages/enrollment/registration/first_level' }
                             ]
                         },
-                        { label: 'Sections', icon: PrimeIcons.TH_LARGE, to: '/pages/enrollment/grade_sections' },
-                        { label: 'Class', icon: PrimeIcons.CLOCK, to: '/pages/enrollment/section_class' },
+                        { label: 'Section Classes', icon: PrimeIcons.TH_LARGE, to: '/pages/enrollment/grade_sections' },
+                        { label: 'Teacher Allocation', icon: PrimeIcons.USER_EDIT, to: '/pages/enrollment/teacher_class' },
                         { label: 'Result Entry', icon: PrimeIcons.STEP_FORWARD, to: '/pages/enrollment/result_entry' }
                     ]
                 },

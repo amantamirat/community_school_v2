@@ -2,6 +2,7 @@ const Curriculum = require('../models/curriculum');
 const AdmissionClassification = require("../models/admission-classification");
 const CurriculumGrade = require('../models/curriculum-grade');
 const GradeSubject = require('../models/grade-subject');
+const SubjectWeight = require('../models/subject-weight');
 const SubjectTerm = require('../models/subject-term');
 
 // Controller methods
@@ -43,21 +44,28 @@ const CurriculumController = {
                 return res.status(404).json({ message: "Curriculum not found." });
             }
             const { title, classification, number_of_terms, maximum_point, minimum_pass_mark } = req.body;
-            
+
             //update subjectTerms based on number_of_terms
             const oldNumberOfTerms = existingCurriculum.number_of_terms;
-            if (oldNumberOfTerms !== number_of_terms) {
+            const oldMaximumPoint = existingCurriculum.maximum_point;
+            if (oldNumberOfTerms !== number_of_terms || oldMaximumPoint !== maximum_point) {
                 const curriculumGrades = await CurriculumGrade.find({ curriculum: id }).select('_id');
                 const curriculumGradeIds = curriculumGrades.map(cg => cg._id);
                 const gradeSubjects = await GradeSubject.find({ curriculum_grade: { $in: curriculumGradeIds } }).select('_id');
                 const gradeSubjectIds = gradeSubjects.map(gs => gs._id);
+                if (oldMaximumPoint !== maximum_point) {
+                    const isWeightSetted = await SubjectWeight.exists({ grade_subject: { $in: gradeSubjectIds } });
+                    if (isWeightSetted) {
+                        throw new Error("Can't Update Curriculum, Weight Setted!");
+                    }
+                }
                 if (oldNumberOfTerms > number_of_terms) {
                     // If decreasing, delete SubjectTerms that exceed new number_of_terms
                     await SubjectTerm.deleteMany({
                         grade_subject: { $in: gradeSubjectIds },
                         term: { $gt: number_of_terms }
                     });
-                } else {
+                } else if (oldNumberOfTerms < number_of_terms) {
                     // If increasing, add missing SubjectTerms
                     const newSubjectTerms = [];
                     for (const gradeSubjectId of gradeSubjectIds) {
@@ -73,7 +81,7 @@ const CurriculumController = {
             const updatedCurriculum = await Curriculum.findByIdAndUpdate(
                 id,
                 { title, classification, number_of_terms, maximum_point, minimum_pass_mark },
-                { new: true}
+                { new: true }
             );
             if (!updatedCurriculum) {
                 return res.status(404).json({ message: 'Curriculum not found' });

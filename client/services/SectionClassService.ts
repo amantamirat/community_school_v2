@@ -35,7 +35,7 @@ export const SectionClassService = {
     },
 
     async deleteSectionClass(id: string): Promise<boolean> {
-        throw new Error("Unimplemented Function");
+        //throw new Error("Unimplemented Function");
         const response = await MyService.delete(id, delete_endpoint);
         return response;
     },

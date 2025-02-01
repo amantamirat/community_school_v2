@@ -102,8 +102,7 @@ const SubjectWeightComponent = (props: SubjectWeightProps) => {
                     detail: 'Weights Deleted',
                     life: 3000
                 });
-            }
-            setLoading(false);
+            }           
         } catch (error) {
             //console.error(error);
             toast.current?.show({
@@ -112,6 +111,8 @@ const SubjectWeightComponent = (props: SubjectWeightProps) => {
                 detail: '' + error,
                 life: 3000
             });
+        }finally{
+            setLoading(false);
         }
         setShowDeleteDialog(false);
 

@@ -1,4 +1,4 @@
-import { SectionClass, StudentClass, StudentGrade, TermClass } from "@/types/model";
+import { SectionClass, StudentClass, StudentGrade } from "@/types/model";
 import { MyService } from "./MyService";
 const CACHE_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
 const storageName = 'studentClasss';
@@ -24,10 +24,7 @@ export const StudentClassService = {
         return data as StudentClass[];
     },
 
-    async syncStudentClasses(student_grade: StudentGrade): Promise<StudentClass[]> {
-        const createdData = await MyService.create({}, `${sync_endpoint}/${student_grade._id}`) as StudentClass[];
-        throw Error("unimplemented function");
-    },
+    
 
     async deleteStudentClass(studentClass: StudentClass): Promise<boolean> {
         if (studentClass._id) {

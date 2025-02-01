@@ -1,6 +1,8 @@
 const SectionClass = require("../models/section-class");
 const GradeSection = require('../models/grade-sections');
-const GradeSubject = require('../models/grade-subject');
+const SubjectTerm = require('../models/subject-term');
+const StudentClass = require('../models/student-class');
+const StudentResult = require('../models/student-result');
 
 const SectionClassController = {
 
@@ -15,49 +17,52 @@ const SectionClassController = {
         } catch (error) {
             res.status(500).json({ message: error + "Error fetching Classs", error });
         }
-    },    
+    },
 
+    //for optional only
     createSectionClass: async (req, res) => {
         try {
-            const { grade_section, grade_subject } = req.body;
-            //make sure grade_section and grade_subject are in the same curriculum_grade
-            const section = await GradeSection.findById(grade_section).populate({
-                path: 'classification_grade',
-                populate: { path: 'curriculum_grade', populate: { path: 'curriculum', } },
-            });
-            if (!section) {
-                return res.status(404).json({ message: 'Grade section not found' });
+            const { grade_section, subject_term } = req.body;
+
+            const subjectTerm = await SubjectTerm.findById(subject_term).populate("grade_subject");
+            if (!subjectTerm) {
+                return res.status(404).json({ message: 'Subject Term not found' });
             }
-            const { classification_grade } = section;
-            if (!classification_grade) {
-                return res.status(404).json({ message: 'Classification grade not found in the grade section' });
-            }
-            const subject = await GradeSubject.findById(grade_subject);
-            if (!subject) {
-                return res.status(404).json({ message: 'Grade subject not found' });
-            }
-            // Validate that the curriculum grades match
-            if (!classification_grade.curriculum_grade._id.equals(subject.curriculum_grade)) {
+            if (!subjectTerm.grade_subject.optional) {
                 return res.status(400).json({
-                    message: 'The GradeSection and GradeSubject must belong to the same curriculum grade'
+                    message: "Cannot create the Class. It must be optional.",
                 });
             }
-            const newSectionClass = new SectionClass({ grade_section, grade_subject });
-            const termClasses = [];
-            for (let term = 1; term <= classification_grade.curriculum_grade.curriculum.number_of_terms; term++) {
-                termClasses.push({
-                    section_class: newSectionClass._id,
-                    term: term
+
+            const gradeSection = await GradeSection.findById(grade_section).populate("classification_grade");
+            if (!gradeSection) {
+                return res.status(404).json({ message: 'Grade section not found' });
+            }
+
+            // Validate that the curriculum grades match //make sure grade_section and grade_subject are in the same curriculum_grade
+            if (!gradeSection.classification_grade.curriculum_grade.equals(subjectTerm.grade_subject.curriculum_grade)) {
+                return res.status(400).json({
+                    message: 'The GradeSection and GradeSubject must belong to the same Curriculum Grade'
+                });
+            }
+            const subjectTerms = await SubjectTerm.find({ grade_subject: subjectTerm.grade_subject._id })
+            const sectionClasses = [];
+            for (const term of subjectTerms) {
+                sectionClasses.push({
+                    grade_section: grade_section,
+                    subject_term: term._id
                 })
-            }            
-            await newSectionClass.save();
-            res.status(201).json(newSectionClass);
+            }
+            //const newSectionClass = new SectionClass({ grade_section, subject_term });
+            // await newSectionClass.save();
+            const newSectionClasses = await SectionClass.insertMany(sectionClasses);
+            res.status(201).json(newSectionClasses);
         } catch (error) {
             res.status(500).json({ message: "Error creating Class", error });
         }
     },
 
-    // Update a SectionClass
+    // Update a teacher only //change the name of the function
     updateSectionClass: async (req, res) => {
         try {
             const { id } = req.params;
@@ -76,16 +81,34 @@ const SectionClassController = {
     deleteSectionClass: async (req, res) => {
         try {
             const { id } = req.params;
-            const sectionClass = await SectionClass.findById(id).populate('grade_subject');
+            const sectionClass = await SectionClass.findById(id).populate({ path: 'subject_term', populate: { path: 'grade_subject' } });
             if (!sectionClass) {
                 return res.status(404).json({ message: "Class not found" });
             }
-            if (!sectionClass.grade_subject.optional) {
+            if (sectionClass.teacher) {
+                return res.status(400).json({
+                    message: "Cannot delete the Class. Teacher Exist.",
+                });
+            }
+            if (!sectionClass.subject_term.grade_subject.optional) {
                 return res.status(400).json({
                     message: "Cannot delete the Class. It is mandatory.",
                 });
             }
-            const deletedClass = await SectionClass.deleteOne({ _id: id });
+            //check for the student result
+            const studentClassIds = await StudentClass.distinct('_id', { section_class: id });
+            if (studentClassIds.length > 0) {
+                const referenced = await StudentResult.exists({
+                    student_class: { $in: studentClassIds }
+                });
+                if (referenced) {
+                    return res.status(400).json({
+                        message: 'Deletion denied. One or more Student Result entries are associated with the class.'
+                    });
+                }
+                await StudentClass.deleteMany({ _id: { $in: studentClassIds } });
+            }
+            const deletedClass = await SectionClass.findByIdAndDelete(id);
             if (!deletedClass) {
                 return res.status(404).json({ message: "Class not found" });
             }

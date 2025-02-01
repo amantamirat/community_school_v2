@@ -1,5 +1,6 @@
 const SubjectWeight = require('../models/subject-weight');
 const StudentResult = require('../models/student-result');
+const GradeSubject = require('../models/grade-subject');
 const SubjectWeightController = {
     // Create multiple SubjectWeight entries for a specific grade_subject
     createByGradeSubject: async (req, res) => {
@@ -13,9 +14,13 @@ const SubjectWeightController = {
                 return sum + (weight.assessment_weight || 0); // Add weight or default to 0 if undefined
             }, 0);
 
+            const gradeSubject = await GradeSubject.findById(subject_weights[0].grade_subject).populate({
+                path: 'curriculum_grade',
+                populate: { path: 'curriculum'},
+            });
             // Check if the total weight is 100
-            if (totalWeight !== 100) {
-                return res.status(404).json({ message: 'The total assessment weight must be 100.' });
+            if (totalWeight !== gradeSubject.curriculum_grade.curriculum.maximum_point) {
+                return res.status(404).json({ message: `The total assessment weight must be ${gradeSubject.curriculum_grade.curriculum.maximum_point}.` });
             }
             const createdEntries = await SubjectWeight.insertMany(subject_weights);
             return res.status(201).json(createdEntries);
@@ -33,12 +38,12 @@ const SubjectWeightController = {
             if (!grade_subject) {
                 return res.status(400).json({ message: 'grade_subject is required.' });
             }
-            const subjectWeights = await SubjectWeight.find({ grade_subject });
 
-            const referencedSubjectWeight = await StudentResult.findOne({
-                subject_weight: { $in: subjectWeights.map(sw => sw._id) }
+            const subjectWeights = await SubjectWeight.find({ grade_subject: grade_subject }, { _id: 1 }).lean();
+            const subjectWeightIds = subjectWeights.map(sub => sub._id);
+            const referencedSubjectWeight = await StudentResult.exists({
+                subject_weight: { $in: subjectWeightIds }
             });
-
             if (referencedSubjectWeight) {
                 return res.status(400).json({
                     message: 'Deletion denied. One or more SubjectWeight entries are referenced in StudentResult.'
@@ -48,7 +53,7 @@ const SubjectWeightController = {
             return res.status(200).json({ message: `Deleted ${deletedCount.deletedCount} entries.` });
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ message: error });
+            return res.status(500).json({ message: error.message });
         }
     },
 
