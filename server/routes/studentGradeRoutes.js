@@ -10,6 +10,7 @@ router.put("/detach_section/:grade_section", studentGradeController.detachSectio
 router.get('/nan_section_registered_students/:classification_grade', studentGradeController.getUnSectionedRegisteredStudents); 
 router.get('/sectioned_registered_students/:grade_section', studentGradeController.getSectionedRegisteredStudents); 
 router.delete("/deregister_students/:classification_grade", studentGradeController.deregisterStudents);
+router.post('/sync-student-classes/:grade_section', studentGradeController.syncClasses);
 
 
 module.exports = router;

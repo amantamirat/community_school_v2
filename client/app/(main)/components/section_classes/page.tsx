@@ -20,7 +20,7 @@ const SectionClassComponent = (props: SectionClassProps) => {
 
     let emptySectionClass: SectionClass = {
         grade_section: props.gradeSection,
-        grade_subject: ''
+        subject_term: ''
     };
     const { selectedClassificationGrade } = useClassificationGrade();
     const [sectionClasss, setSectionClasss] = useState<SectionClass[]>([]);
@@ -60,7 +60,7 @@ const SectionClassComponent = (props: SectionClassProps) => {
 
 
     const validateSectionClass = (section_class: SectionClass) => {
-        if (!section_class.grade_section || !section_class.grade_subject) {
+        if (!section_class.grade_section || !section_class.subject_term) {
             return false;
         }
         return true;
@@ -219,7 +219,8 @@ const SectionClassComponent = (props: SectionClassProps) => {
                         rows={15}
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
-                        <Column field="grade_subject.subject.title" header="Subject" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="subject_term.grade_subject.subject.title" header="Subject" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="subject_term.term" header="Term" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
                     <Dialog
@@ -234,9 +235,9 @@ const SectionClassComponent = (props: SectionClassProps) => {
                             <label htmlFor="subject">Subject</label>
                             <div id="subject">
                                 <Dropdown
-                                    value={selectedSectionClass.grade_subject}
+                                    value={selectedSectionClass.subject_term}
                                     options={gradeSubjects}
-                                    onChange={(e) => setSelectedSectionClass({ ...selectedSectionClass, grade_subject: e.value })}
+                                    onChange={(e) => setSelectedSectionClass({ ...selectedSectionClass, subject_term: e.value })}
                                     placeholder="Select a Subject"
                                     optionLabel="_id"
                                     itemTemplate={gradeSubjectTemplate}
@@ -246,10 +247,10 @@ const SectionClassComponent = (props: SectionClassProps) => {
                                     autoFocus
                                     emptyMessage="No Subjects Found."
                                     className={classNames({
-                                        'p-invalid': submitted && !selectedSectionClass.grade_subject,
+                                        'p-invalid': submitted && !selectedSectionClass.subject_term,
                                     })}
                                 />
-                                {submitted && !selectedSectionClass.grade_subject && <small className="p-invalid">Subject is required.</small>}
+                                {submitted && !selectedSectionClass.subject_term && <small className="p-invalid">Subject is required.</small>}
                             </div>
                         </div>
                     </Dialog>

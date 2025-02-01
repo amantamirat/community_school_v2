@@ -21,7 +21,7 @@ const SectionClassPage = () => {
 
     let emptySectionClass: SectionClass = {
         grade_section: '',
-        grade_subject: ''
+        subject_term: ''
     };
     const { selectedClassificationGrade } = useClassificationGrade();
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
@@ -105,7 +105,7 @@ const SectionClassPage = () => {
     const syncSubjects = async () => { }
 
     const validateSectionClass = (section_class: SectionClass) => {
-        if (!section_class.grade_section || !section_class.grade_subject) {
+        if (!section_class.grade_section || !section_class.subject_term) {
             return false;
         }
         return true;
@@ -362,9 +362,9 @@ const SectionClassPage = () => {
                                     <label htmlFor="subject">Subject</label>
                                     <div id="subject">
                                         <Dropdown
-                                            value={selectedSectionClass.grade_subject}
+                                            value={selectedSectionClass.subject_term}
                                             options={gradeSubjects}
-                                            onChange={(e) => setSelectedSectionClass({ ...selectedSectionClass, grade_subject: e.value })}
+                                            onChange={(e) => setSelectedSectionClass({ ...selectedSectionClass, subject_term: e.value })}
                                             placeholder="Select a Subject"
                                             optionLabel="_id"
                                             itemTemplate={gradeSubjectTemplate}
@@ -374,10 +374,10 @@ const SectionClassPage = () => {
                                             autoFocus
                                             emptyMessage="No Subjects Found."
                                             className={classNames({
-                                                'p-invalid': submitted && !selectedSectionClass.grade_subject,
+                                                'p-invalid': submitted && !selectedSectionClass.subject_term,
                                             })}
                                         />
-                                        {submitted && !selectedSectionClass.grade_subject && <small className="p-invalid">Subject is required.</small>}
+                                        {submitted && !selectedSectionClass.subject_term && <small className="p-invalid">Subject is required.</small>}
                                     </div>
                                 </div>
                             : <></>

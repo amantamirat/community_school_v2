@@ -58,6 +58,13 @@ export type SubjectWeight = {
     assessment_weight: number;
 }
 
+export type SubjectTerm = {
+    _id?: string;
+    grade_subject: string | GradeSubject;
+    term: number;
+}
+
+
 export type AcademicSession = {
     _id?: string;
     academic_year: number; // Year of the session, e.g., 2023
@@ -88,7 +95,7 @@ export type GradeSection = {
 export type SectionClass = {
     _id?: string;
     grade_section: GradeSection | string;
-    grade_subject: GradeSubject | string;
+    subject_term: SubjectTerm | string;
     teacher?: Teacher | string;
 };
 
@@ -121,15 +128,10 @@ export type StudentGrade = {
     grade_section?: GradeSection | string;
 };
 
-export type TermClass = {
-    _id?: string;
-    section_class: SectionClass | string;
-    term: number;
-};
 export type StudentClass = {
     _id?: string;
     student_grade: StudentGrade | string;
-    term_class: TermClass | string;
+    section_class: SectionClass | string;
 };
 
 export type StudentResult = {

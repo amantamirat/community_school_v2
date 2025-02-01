@@ -17,8 +17,8 @@ interface SubjectWeightProps {
 const SubjectWeightComponent = (props: SubjectWeightProps) => {
     let emptySubjectWeight: SubjectWeight = {
         grade_subject: props.gradeSubject,
-        assessment_type: 'Quiz',
-        assessment_weight: 5
+        assessment_type: 'Test',
+        assessment_weight: 10
     };
 
     const [subjectWeights, setSubjectWeights] = useState<SubjectWeight[]>([]);

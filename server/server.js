@@ -44,8 +44,6 @@ const gradeSectionRoutes = require("./routes/gradeSectionRoutes");
 app.use("/api/grade-sections", gradeSectionRoutes);
 const sectionClassRoutes = require("./routes/sectionClassRoutes");
 app.use("/api/section-classs", sectionClassRoutes);
-const termClassRoutes = require("./routes/termClassRoutes");
-app.use("/api/term-classes", termClassRoutes);
 
 require('dotenv').config();
 const gradeController = require('./controllers/gradeController');

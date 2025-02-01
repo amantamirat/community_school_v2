@@ -1,5 +1,4 @@
 const SectionClass = require("../models/section-class");
-const TermClass = require("../models/term-class");
 const GradeSection = require('../models/grade-sections');
 const GradeSubject = require('../models/grade-subject');
 
@@ -9,8 +8,8 @@ const SectionClassController = {
         try {
             const { grade_section } = req.params;
             const SectionClasss = await SectionClass.find({ grade_section: grade_section }).populate('teacher').populate({
-                path: 'grade_subject',
-                populate: { path: 'subject', },
+                path: 'subject_term',
+                populate: { path: 'grade_subject', populate: { path: 'subject', } },
             });
             res.status(200).json(SectionClasss);
         } catch (error) {
@@ -50,8 +49,7 @@ const SectionClassController = {
                     section_class: newSectionClass._id,
                     term: term
                 })
-            }
-            await TermClass.insertMany(termClasses);
+            }            
             await newSectionClass.save();
             res.status(201).json(newSectionClass);
         } catch (error) {
@@ -87,7 +85,6 @@ const SectionClassController = {
                     message: "Cannot delete the Class. It is mandatory.",
                 });
             }
-            await TermClass.deleteMany({ section_class: id });
             const deletedClass = await SectionClass.deleteOne({ _id: id });
             if (!deletedClass) {
                 return res.status(404).json({ message: "Class not found" });

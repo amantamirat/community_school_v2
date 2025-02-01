@@ -22,8 +22,8 @@ const StudentClassController = {
         try {
             const { student_grade } = req.params;
             const studentClasss = await StudentClass.find({ student_grade: student_grade }).populate({
-                path: 'term_class',
-                populate: { path: 'section_class', populate: { path: 'grade_subject', populate: { path: 'subject' } } },
+                path: 'section_class',
+                populate: { path: 'subject_term', populate: { path: 'grade_subject', populate: { path: 'subject' } } },
             });
             //console.log(studentClasss)
             res.status(200).json(studentClasss);
@@ -32,10 +32,10 @@ const StudentClassController = {
         }
     },
 
-    getStudentClassesByTermClass: async (req, res) => {
+    getStudentClassesBySectionClass: async (req, res) => {
         try {
-            const { term_class } = req.params;
-            const studentClasss = await StudentClass.find({ term_class: term_class }).populate({
+            const { section_class } = req.params;
+            const studentClasss = await StudentClass.find({ section_class: section_class }).populate({
                 path: 'student_grade',
                 populate: { path: 'student' },
             });

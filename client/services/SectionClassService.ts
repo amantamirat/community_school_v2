@@ -10,7 +10,7 @@ function sanitize(section_class: Partial<SectionClass>) {
     return {
         ...section_class,
         grade_section: (section_class.grade_section && typeof section_class.grade_section !== 'string') ? section_class.grade_section._id : section_class.grade_section,
-        grade_subject: (section_class.grade_subject && typeof section_class.grade_subject !== 'string') ? section_class.grade_subject._id : section_class.grade_subject,
+        grade_subject: (section_class.subject_term && typeof section_class.subject_term !== 'string') ? section_class.subject_term._id : section_class.subject_term,
         teacher: section_class.teacher && typeof section_class.teacher !== 'string' ? section_class.teacher._id : section_class.teacher
     };
 }
@@ -23,16 +23,19 @@ export const SectionClassService = {
     },
 
     async createSectionClass(sectionClass: Partial<SectionClass>): Promise<SectionClass> {
+        throw new Error("Unimplemented Function");
         const createdData = await MyService.create(sanitize(sectionClass), create_endpoint);
         return createdData;
 
     },
     async updateSectionClass(id: string, sectionClass: Partial<SectionClass>): Promise<SectionClass> {
+        throw new Error("Unimplemented Function");
         const updatedClass = await MyService.update(id, sanitize(sectionClass), update_endpoint);
         return updatedClass;
     },
 
     async deleteSectionClass(id: string): Promise<boolean> {
+        throw new Error("Unimplemented Function");
         const response = await MyService.delete(id, delete_endpoint);
         return response;
     },

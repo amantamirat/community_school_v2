@@ -3,10 +3,10 @@ const StudentResult = require("../models/student-result");
 
 const StudentResultController = {
 
-    getStudentResultsByTermClass: async (req, res) => {
+    getStudentResultsBySectionClass: async (req, res) => {
         try {
-            const { term_class } = req.params;
-            const studentClasses = await StudentClass.find({ term_class: term_class });
+            const { section_class } = req.params;
+            const studentClasses = await StudentClass.find({ section_class: section_class });
             const studentClassIds = studentClasses.map((studentClass) => studentClass._id);
             const studentResults = await StudentResult.find({ student_class: { $in: studentClassIds } });
             return res.status(200).json(studentResults);

@@ -99,6 +99,42 @@ const SectionedStudentsPage = () => {
         setShowDetachSectionDialog(false);
     }
 
+
+    const syncStudClasses = async () => {
+        try {
+            if (!selectedGradeSection) {
+                throw Error("Section Required");
+            }
+            setLoading(true);
+            const sync_data: any[] = await StudentGradeService.syncStudentClasses(selectedGradeSection);
+            if (sync_data.length > 0) {
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: `${sync_data.length} student classes synced`,
+                    life: 3000
+                });
+            } else {
+                toast.current?.show({
+                    severity: 'info',
+                    summary: 'Sync Classes',
+                    detail: "Nothing synced. Already up to date.",
+                    life: 3000
+                });
+            }
+
+        } catch (error) {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to sync',
+                detail: '' + error,
+                life: 1500
+            });
+        } finally {
+            setLoading(false);
+        }
+    }
+
     const openDetachSectionDialog = () => {
         setShowDetachSectionDialog(true);
     };
@@ -118,14 +154,17 @@ const SectionedStudentsPage = () => {
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h5 className="m-0">Section Students</h5>
             <span className="block mt-2 md:mt-0">
-                <Button
-                    label="Detach Section"
-                    icon="pi pi-fw pi-times-circle"
-                    severity="danger"
-                    className="mr-2"
-                    disabled={selectedRegisteredStudents.length === 0}
-                    onClick={openDetachSectionDialog}
-                />
+                <div className="my-2">
+                    <Button
+                        label="Detach Section"
+                        icon="pi pi-fw pi-times-circle"
+                        severity="danger"
+                        className="mr-2"
+                        disabled={selectedRegisteredStudents.length === 0}
+                        onClick={openDetachSectionDialog}
+                    />
+                    <Button tooltip="Sync Student Classes" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncStudClasses} />
+                </div>
             </span>
         </div>
     );

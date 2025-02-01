@@ -17,7 +17,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
 
     let emptyStudentClass: StudentClass = {
         student_grade: props.student_grade,
-        term_class: ''
+        section_class: ''
     };
 
     const [studentClasss, setStudentClasss] = useState<StudentClass[]>([]);
@@ -165,8 +165,8 @@ const StudentClassComponent = (props: StudentClassProps) => {
                         )}
                     >
                         <Column expander style={{ width: '4em' }} />
-                        <Column field="term_class.section_class.grade_subject.subject.title" header="Class" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="term_class.term" header="Term" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="section_class.subject_term.grade_subject.subject.title" header="Class" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="section_class.subject_term.term" header="Term" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 

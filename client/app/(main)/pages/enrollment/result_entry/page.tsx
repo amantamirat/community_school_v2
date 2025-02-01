@@ -5,8 +5,7 @@ import { SectionClassService } from '@/services/SectionClassService';
 import { StudentClassService } from '@/services/StudentClassService';
 import { StudentResultService } from '@/services/StudentResultService';
 import { SubjectWeightService } from '@/services/SubjectWeightService';
-import { TermClassService } from '@/services/TermClassService';
-import { GradeSection, GradeSubject, SectionClass, StudentClass, StudentResult, SubjectWeight, TermClass } from '@/types/model';
+import { GradeSection, GradeSubject, SectionClass, StudentClass, StudentResult, SubjectTerm, SubjectWeight } from '@/types/model';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
@@ -27,10 +26,10 @@ const ResultEntryPage = () => {
     const { selectedClassificationGrade } = useClassificationGrade();
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
     const [sectionClasss, setSectionClasss] = useState<SectionClass[]>([]);
-    const [termClasss, setTermClasss] = useState<TermClass[]>([]);
+    const [termClasss, setTermClasss] = useState<any[]>([]);
     const [selectedGradeSection, setSelectedGradeSection] = useState<GradeSection | null>(null);
     const [selectedSectionClass, setSelectedSectionClass] = useState<SectionClass | null>(null);
-    const [selectedTermClass, setSelectedTermClass] = useState<TermClass | null>(null);
+    const [selectedTermClass, setSelectedTermClass] = useState<any | null>(null);
 
     const [subjectWeights, setSubjectWeights] = useState<SubjectWeight[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClass[]>([]);
@@ -74,6 +73,7 @@ const ResultEntryPage = () => {
 
     useEffect(() => {
         if (selectedSectionClass) {
+            /*
             TermClassService.getTermClasssBySectionClass(selectedSectionClass).then((data) => {
                 setTermClasss(data);
             }).catch((err) => {
@@ -83,8 +83,39 @@ const ResultEntryPage = () => {
                     detail: '' + err,
                     life: 2000
                 });
+            });*/
+            StudentClassService.getStudentClasssBySectionClass(selectedSectionClass).then((data) => {
+                if (data.length === 0) {
+                    toast.current?.show({
+                        severity: 'error',
+                        summary: 'Empty Student Classes',
+                        detail: "No registred students for this class are found.",
+                        life: 3000
+                    });
+                }
+                setStudentClasses(data);
+            }).catch((err) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load registred students',
+                    detail: '' + err,
+                    life: 3000
+                });
             });
-            SubjectWeightService.getSubjectWeights(selectedSectionClass.grade_subject as GradeSubject).then((data) => {
+
+            StudentResultService.getStudentResultsBySectionClass(selectedSectionClass).then((data) => {
+                setStudentResults(data);
+                queueStudentResults.current.length = 0;
+            }).catch((err) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to student results',
+                    detail: '' + err,
+                    life: 3000
+                });
+            });
+
+            SubjectWeightService.getSubjectWeights((selectedSectionClass.subject_term as SubjectTerm).grade_subject as GradeSubject).then((data) => {
                 if (data.length === 0) {
                     toast.current?.show({
                         severity: 'error',
@@ -109,36 +140,9 @@ const ResultEntryPage = () => {
 
     useEffect(() => {
         if (selectedTermClass) {
-            StudentClassService.getStudentClasssByTermClass(selectedTermClass).then((data) => {
-                if (data.length === 0) {
-                    toast.current?.show({
-                        severity: 'error',
-                        summary: 'Failed to load Student Classes',
-                        detail: "No registred students for this class are found.",
-                        life: 3000
-                    });
-                }
-                setStudentClasses(data);
-            }).catch((err) => {
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to load registred students',
-                    detail: '' + err,
-                    life: 3000
-                });
-            });
+            
 
-            StudentResultService.getStudentResultsByTermClass(selectedTermClass).then((data) => {
-                setStudentResults(data);
-                queueStudentResults.current.length = 0;
-            }).catch((err) => {
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to student results',
-                    detail: '' + err,
-                    life: 3000
-                });
-            });
+            
         }
 
     }, [selectedTermClass]);
@@ -284,7 +288,7 @@ const ResultEntryPage = () => {
                                             setSelectedSectionClass(e.value)
                                         }
                                         options={sectionClasss}
-                                        optionLabel="grade_subject.subject.title"
+                                        optionLabel="subject_term.grade_subject.subject.title"
                                         placeholder="Select Class"
                                     />
                                 </div>

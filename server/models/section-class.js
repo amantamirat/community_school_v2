@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-//section_class or class or subject class or section_grade_subject
+
 const SectionClassSchema = new mongoose.Schema({
     grade_section: {
         type: mongoose.Schema.Types.ObjectId,
@@ -7,9 +7,9 @@ const SectionClassSchema = new mongoose.Schema({
         required: true,
         immutable: true,
     },
-    grade_subject: {
+    subject_term: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'GradeSubject',
+        ref: 'SubjectTerm',
         required: true,
         immutable: true
     },
@@ -18,6 +18,6 @@ const SectionClassSchema = new mongoose.Schema({
         ref: "Teacher"
     }
 });
-SectionClassSchema.index({ grade_section: 1, grade_subject: 1 }, { unique: true });
+SectionClassSchema.index({ grade_section: 1, subject_term: 1 }, { unique: true });
 const SectionClass = mongoose.model('SectionClass', SectionClassSchema);
 module.exports = SectionClass
