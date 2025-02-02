@@ -3,6 +3,7 @@ const StudentGrade = require("../models/student-grade");
 const GradeSection = require('../models/grade-sections');
 const AdmissionClassification = require("../models/admission-classification");
 const CurriculumGrade = require('../models/curriculum-grade');
+const mongoose = require('mongoose');
 
 // Controller methods
 const ClassificationGradeController = {
@@ -54,28 +55,39 @@ const ClassificationGradeController = {
         }
     },
 
-    // Delete a classificationGrade by ID
+
+
+
     deleteClassificationGrade: async (req, res) => {
         try {
             const { id } = req.params;
+
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({ message: 'Invalid Classification Grade ID' });
+            }
+
             const [studentGradeRef, gradeSectionRef] = await Promise.all([
                 StudentGrade.exists({ classification_grade: id }),
                 GradeSection.exists({ classification_grade: id })
             ]);
-            if (studentGradeRef | gradeSectionRef) {
+
+            if (Boolean(studentGradeRef) || Boolean(gradeSectionRef)) {
                 return res.status(400).json({
                     message: 'Cannot delete Classification Grade because students are registered to the grade or section that has been created.'
                 });
-            }            
+            }
+
             const deletedClassificationGrade = await ClassificationGrade.findByIdAndDelete(id);
             if (!deletedClassificationGrade) {
                 return res.status(404).json({ message: 'Classification Grade not found' });
             }
+
             res.status(200).json({ message: 'Classification Grade deleted successfully' });
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
     },
+
 };
 
 module.exports = ClassificationGradeController;

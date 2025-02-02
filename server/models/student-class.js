@@ -11,6 +11,12 @@ const StudentClassSchema = new mongoose.Schema({
         ref: 'SectionClass',
         required: true,
         immutable: true
+    },
+    status: {
+        type: String,
+        enum: ['ACTIVE', 'COMPLETED', 'INCOMPLETE', 'PENDING'],
+        default: 'ACTIVE',
+        required: true
     }
 });
 StudentClassSchema.index({ student_grade: 1, section_class: 1 }, { unique: true });

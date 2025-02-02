@@ -53,14 +53,60 @@ const SectionClassController = {
                     subject_term: term._id
                 })
             }
-            //const newSectionClass = new SectionClass({ grade_section, subject_term });
-            // await newSectionClass.save();
             const newSectionClasses = await SectionClass.insertMany(sectionClasses);
             res.status(201).json(newSectionClasses);
         } catch (error) {
             res.status(500).json({ message: "Error creating Class", error });
         }
     },
+
+    allocateTeacher: async (req, res) => {
+        try {
+            const { grade_section, subject_term, teacher } = req.body;
+            const subjectTerm = await SubjectTerm.findById(subject_term);
+            if (!subjectTerm) {
+                return res.status(404).json({ message: "Term (Subject) not found" });
+            }            
+            const subjectTermIds = await SubjectTerm.distinct('_id', { grade_subject: subjectTerm.grade_subject });
+            
+            const updatedSectionClass = await SectionClass.updateMany(
+                { grade_section, subject_term: { $in: subjectTermIds } },
+                { $set: { teacher } }
+            );
+            if (updatedSectionClass.modifiedCount === 0) {
+                return res.status(404).json({ message: "No classes updated. Check the provided grade_section and subject_term values." });
+            }
+            res.status(200).json(updatedSectionClass.modifiedCount);
+        } catch (error) {
+            res.status(500).json({ message: "Error updating Class", error });
+        }
+    },
+
+    removeTeacher: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const sectionClass = await SectionClass.findById(id).populate('subject_term');    
+            if (!sectionClass) {
+                return res.status(404).json({ message: "Class not found" });
+            }    
+            const subjectTermIds = await SubjectTerm.distinct('_id', {
+                grade_subject: sectionClass.subject_term.grade_subject
+            });
+            const updateResult = await SectionClass.updateMany(
+                { grade_section: sectionClass.grade_section, subject_term: { $in: subjectTermIds } },
+                { $unset: { teacher: 1 } }
+            );    
+            if (updateResult.modifiedCount === 0) {
+                return res.status(404).json({ message: "No classes updated. Check if records exist." });
+            }
+    
+            res.status(200).json({ message: "Teacher removed successfully"});
+        } catch (error) {
+            console.error("Error:", error);
+            res.status(500).json({ message: "Error removing teacher", error });
+        }
+    },
+    
 
     // Update a teacher only //change the name of the function
     updateSectionClass: async (req, res) => {

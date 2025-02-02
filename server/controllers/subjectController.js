@@ -30,7 +30,7 @@ const subjectController = {
     updateSubject: async (req, res) => {
         try {
             const { id } = req.params;
-            const isReferenced = await GradeSubject.findOne({ 'subject': id });
+            const isReferenced = await GradeSubject.exists({ subject: id });
             if (isReferenced) {
                 return res.status(400).json({
                     message: "Cannot update subject as it is referenced in a curriculum.",

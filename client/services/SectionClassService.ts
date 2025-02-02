@@ -4,6 +4,8 @@ import { MyService } from "./MyService";
 const get_endpoint = "/api/section-classs/grade_section";
 const create_endpoint = '/api/section-classs/create';
 const update_endpoint = '/api/section-classs/update';
+const allocate_endpoint = '/api/section-classs/allocate-teacher';
+const remove_endpoint = '/api/section-classs/remove-teacher';
 const delete_endpoint = '/api/section-classs/delete';
 
 function sanitize(section_class: Partial<SectionClass>) {
@@ -28,6 +30,20 @@ export const SectionClassService = {
         return createdData;
 
     },
+
+    async allocateTeacher(sectionClass: SectionClass): Promise<any> {
+        const data = await MyService.put(allocate_endpoint, sectionClass);
+        return data;
+    },
+
+    async removeTeacherClass(sectionClass: SectionClass): Promise<boolean> {
+        if (!sectionClass._id) {
+            throw new Error("Class Id required.");
+        }
+        const response = await MyService.delete_payload(sectionClass, `${remove_endpoint}/${sectionClass._id}`);
+        return response;
+    },
+
     async updateSectionClass(id: string, sectionClass: Partial<SectionClass>): Promise<SectionClass> {
         throw new Error("Unimplemented Function");
         const updatedClass = await MyService.update(id, sanitize(sectionClass), update_endpoint);

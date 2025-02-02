@@ -13,6 +13,12 @@ const SectionClassSchema = new mongoose.Schema({
         required: true,
         immutable: true
     },
+    status: {
+        type: String,
+        enum: ['ACTIVE', 'SUBMITTED', 'APPROVED', 'PENDING'],
+        default: 'ACTIVE',
+        required: true
+    },
     teacher: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Teacher"
