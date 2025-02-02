@@ -196,7 +196,7 @@ const SubjectWeightComponent = (props: SubjectWeightProps) => {
                     <Toolbar className="mb-4" start={startToolbarTemplate} end={endToolbarTemplate}></Toolbar>
                     <DataTable
                         value={subjectWeights}
-                        dataKey="_sw_id"
+                        dataKey="_id"
                         editMode="row"
                         onRowEditComplete={onRowEditComplete}
                         emptyMessage={`No weights found.`}

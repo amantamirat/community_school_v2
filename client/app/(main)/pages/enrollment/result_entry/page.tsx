@@ -9,6 +9,7 @@ import { GradeSection, GradeSubject, SectionClass, StudentClass, StudentResult, 
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
+import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Toast } from 'primereact/toast';
@@ -26,17 +27,16 @@ const ResultEntryPage = () => {
     const { selectedClassificationGrade } = useClassificationGrade();
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
     const [sectionClasss, setSectionClasss] = useState<SectionClass[]>([]);
-    const [termClasss, setTermClasss] = useState<any[]>([]);
     const [selectedGradeSection, setSelectedGradeSection] = useState<GradeSection | null>(null);
     const [selectedSectionClass, setSelectedSectionClass] = useState<SectionClass | null>(null);
-    const [selectedTermClass, setSelectedTermClass] = useState<any | null>(null);
-
     const [subjectWeights, setSubjectWeights] = useState<SubjectWeight[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClass[]>([]);
     const [studentResults, setStudentResults] = useState<StudentResult[]>([]);
     const [resultEntries, setResultEntries] = useState<ResultEntry[]>([]);
     const queueStudentResults = useRef<StudentResult[]>([]);
     const [loading, setLoading] = useState(false);
+    const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+
 
     useEffect(() => {
         if (selectedClassificationGrade) {
@@ -73,17 +73,6 @@ const ResultEntryPage = () => {
 
     useEffect(() => {
         if (selectedSectionClass) {
-            /*
-            TermClassService.getTermClasssBySectionClass(selectedSectionClass).then((data) => {
-                setTermClasss(data);
-            }).catch((err) => {
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to load term classes',
-                    detail: '' + err,
-                    life: 2000
-                });
-            });*/
             StudentClassService.getStudentClasssBySectionClass(selectedSectionClass).then((data) => {
                 if (data.length === 0) {
                     toast.current?.show({
@@ -95,6 +84,7 @@ const ResultEntryPage = () => {
                 }
                 setStudentClasses(data);
             }).catch((err) => {
+                setStudentClasses([]);
                 toast.current?.show({
                     severity: 'error',
                     summary: 'Failed to load registred students',
@@ -105,8 +95,8 @@ const ResultEntryPage = () => {
 
             StudentResultService.getStudentResultsBySectionClass(selectedSectionClass).then((data) => {
                 setStudentResults(data);
-                queueStudentResults.current.length = 0;
             }).catch((err) => {
+                setStudentResults([]);
                 toast.current?.show({
                     severity: 'error',
                     summary: 'Failed to student results',
@@ -126,6 +116,7 @@ const ResultEntryPage = () => {
                 }
                 setSubjectWeights(data);
             }).catch((err) => {
+                setSubjectWeights([]);
                 toast.current?.show({
                     severity: 'error',
                     summary: 'Failed to load subject weights',
@@ -133,25 +124,17 @@ const ResultEntryPage = () => {
                     life: 3000
                 });
             });
+            queueStudentResults.current.length = 0;
         }
 
     }, [selectedSectionClass]);
 
-
     useEffect(() => {
-        if (selectedTermClass) {
-            
-
-            
+        if (studentClasses.length > 0 && subjectWeights.length > 0) {
+            setResultEntries(prepareResultEntries());
         }
+    }, [studentClasses, studentResults, subjectWeights]);
 
-    }, [selectedTermClass]);
-
-    useEffect(() => {
-        if (studentClasses && subjectWeights && studentResults) {
-            setResultEntries(prepareResultEntries);
-        }
-    }, [studentClasses, subjectWeights, studentResults]);
 
     const saveStudentResults = async () => {
         if (queueStudentResults.current.length === 0) {
@@ -165,29 +148,70 @@ const ResultEntryPage = () => {
         try {
             setLoading(true);
             const data = await StudentResultService.updateStudentResults(queueStudentResults.current);
-            if (data.length === queueStudentResults.current.length) {
-
+            if (data.length > 0) {
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: `${data.length} Results Saved`,
+                    life: 1500
+                });
             }
-            toast.current?.show({
-                severity: 'success',
-                summary: 'Successful',
-                detail: 'Results Setted',
-                life: 1500
-            });
-
-            setLoading(false);
         } catch (error) {
-            setLoading(false);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to update results',
                 detail: '' + error,
                 life: 1500
             });
+        } finally {
+            setLoading(false);
         }
     }
-    //bad implementation
+
+    const submitStudentResults = async () => {
+        try {
+            console.log(resultEntries);
+            if (selectedSectionClass) {
+                await StudentResultService.submitStudentResults(selectedSectionClass);
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: 'Results Submitted',
+                    life: 1500
+                });
+            }
+        } catch (error) {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to update results',
+                detail: '' + error,
+                life: 1500
+            });
+        } finally {
+
+        }
+    }
+
+    const openSubmitDialog = () => {
+        setShowSubmitDialog(true);
+    };
+
+    const hideSubmitDialog = () => {
+        setShowSubmitDialog(false);
+    };
+
+    const submitDialogFooter = (
+        <>
+            <Button label="Cancel" icon="pi pi-times" text onClick={hideSubmitDialog} />
+            <Button label="Submit" icon="pi pi-check" text onClick={submitStudentResults} />
+        </>
+    );
+
     const prepareResultEntries = (): ResultEntry[] => {
+        console.log("Preparing Result Entries...");
+        console.log("Student Classes:", studentClasses);
+        console.log("Student Results:", studentResults);
+        console.log("Subject Weights:", subjectWeights);
         return studentClasses.map(studentClass => {
             const resultsForStudent = studentResults.filter(
                 result => result.student_class === studentClass._id
@@ -255,6 +279,13 @@ const ResultEntryPage = () => {
         </div>
     );
 
+    const footer = (
+        <div className="flex flex-wrap align-items-center justify-content-between gap-2">
+            <div></div>
+            <Button label='Submit' text onClick={openSubmitDialog} />
+        </div>
+    );
+
     return (
         <>
             <Toast ref={toast} />
@@ -293,21 +324,6 @@ const ResultEntryPage = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="field col">
-                                <label htmlFor="term">Term (Semester)</label>
-                                <div id="term">
-                                    <Dropdown
-                                        value={selectedTermClass}
-                                        onChange={(e) => setSelectedTermClass(e.value)}
-                                        options={termClasss.map((item) => ({
-                                            ...item,
-                                            term: `Term ${item.term}`,
-                                        }))}
-                                        placeholder="Select Curriculum Term"
-                                        optionLabel='term'
-                                    />
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -318,14 +334,11 @@ const ResultEntryPage = () => {
                         <DataTable
                             value={resultEntries}
                             header={header}
+                            footer={footer}
                             stripedRows
                             scrollable
                             editMode="cell"
                         >
-
-                            {/*
-                            <Column rowEditor headerStyle={{ width: '10%', minWidth: '8rem' }} bodyStyle={{ textAlign: 'center' }} frozen />
-                            */}
                             <Column header="#" body={(rowData, options) => options.rowIndex + 1} style={{ width: '50px' }} />
                             <Column
                                 //field='student_class.student_grade.student.first_name'
@@ -361,6 +374,23 @@ const ResultEntryPage = () => {
                                 style={{ fontWeight: 'bold', textAlign: 'right' }}
                             />
                         </DataTable>
+                        <Dialog
+                            visible={showSubmitDialog}
+                            style={{ width: '450px' }}
+                            header="Confirm to Submit Student Result"
+                            modal
+                            footer={submitDialogFooter}
+                            onHide={hideSubmitDialog}
+                        >
+                            <div className="flex align-items-center justify-content-center">
+                                <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
+                                {selectedGradeSection && (
+                                    <span>
+                                        Are you sure you want to submit <b>{selectedSectionClass?._id}</b>?
+                                    </span>
+                                )}
+                            </div>
+                        </Dialog>
                     </div>
                 </div>
             </div>
