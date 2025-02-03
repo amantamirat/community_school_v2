@@ -17,7 +17,8 @@ const GradeSectionComponent = () => {
 
     let emptyGradeSection: GradeSection = {
         classification_grade: '',
-        section_number: 0
+        section_number: 0,
+        status:'OPEN'
     };
     const { selectedClassificationGrade } = useClassificationGrade();
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);

@@ -17,7 +17,8 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
 
     let emptyClassificationGrade: ClassificationGrade = {
         admission_classification: props.addmission_classification,
-        curriculum_grade: ''
+        curriculum_grade: '',
+        status:'OPEN'
     };
 
     const [classificationGrades, setClassificationGrades] = useState<ClassificationGrade[]>([]);

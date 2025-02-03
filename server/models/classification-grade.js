@@ -12,6 +12,12 @@ const ClassificationGradeSchema = new mongoose.Schema({
         ref: 'CurriculumGrade',
         required: true,
         immutable: true
+    },
+    status: {
+        type: String,
+        enum: ['OPEN', 'CLOSED'],
+        default: 'OPEN',
+        required: true
     }
 });
 ClassificationGradeSchema.index({ admission_classification: 1, curriculum_grade: 1 }, { unique: true });

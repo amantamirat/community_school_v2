@@ -241,7 +241,7 @@ const ResultEntryPage = () => {
             student_class: rowData.student_class._id,
             subject_weight: field,
             result: newValue,
-            status: 'ONGOING',
+            status: 'ACTIVE',
         };
         const index = findIndex(newResult);
         if (index === -1) {

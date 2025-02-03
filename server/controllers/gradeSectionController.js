@@ -34,12 +34,12 @@ const GradeSectionController = {
 
     createSection: async (req, res) => {
         try {
-            const { classification_grade, section_number } = req.body;
+            const { classification_grade, section_number, status } = req.body;
             const classificationGrade = await ClassificationGrade.findById(classification_grade);
             if (!classificationGrade) {
                 return res.status(404).json({ message: 'Classification grade not found' });
             }
-            const gradeSection = new GradeSection({ classification_grade, section_number });
+            const gradeSection = new GradeSection({ classification_grade, section_number, status });
             const savedGradeSection = await gradeSection.save();
             await registerSectionClasses(classificationGrade.curriculum_grade, savedGradeSection);
             res.status(201).json(savedGradeSection);
@@ -70,17 +70,17 @@ const GradeSectionController = {
             const subjectTerms = await fetchSubjectTerms(classificationGrade.curriculum_grade);
             const subjectTermIds = subjectTerms.map(sub => sub._id.toString());
 
-            const newSectionTermClasses = [];
+            const newSectionClasses = [];
             gradeSectionIds.forEach(secId => {
                 const existingSubjects = sectionSubjectMap.get(secId.toString());
                 subjectTermIds.forEach(subjectId => {
                     if (!existingSubjects.has(subjectId)) {
-                        newSectionTermClasses.push({ grade_section: secId, subject_term: subjectId });
+                        newSectionClasses.push({ grade_section: secId, subject_term: subjectId });
                     }
                 });
             });
 
-            const insertedClasses = await SectionClass.insertMany(newSectionTermClasses);
+            const insertedClasses = await SectionClass.insertMany(newSectionClasses);
             res.status(201).json(insertedClasses);
         } catch (error) {
             res.status(400).json({ message: error.message });

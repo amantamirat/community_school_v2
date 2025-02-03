@@ -84,18 +84,21 @@ export type ClassificationGrade = {
     _id?: string;
     admission_classification: AdmissionClassification | string;
     curriculum_grade: CurriculumGrade | string;
+    status: 'OPEN' | 'CLOSED';
 };
 
 export type GradeSection = {
     _id?: string;
     classification_grade: ClassificationGrade | string;
     section_number: number;
+    status: 'OPEN' | 'CLOSED';
 };
 
 export type SectionClass = {
     _id?: string;
     grade_section: GradeSection | string;
     subject_term: SubjectTerm | string;
+    status: 'ACTIVE' | 'SUBMITTED' | 'APPROVED' | 'PENDING';
     teacher?: Teacher | string;
 };
 
@@ -124,7 +127,7 @@ export type StudentGrade = {
     _id?: string;
     classification_grade: ClassificationGrade | string;
     student: Student | string;
-    status: 'PENDING' | 'PASSED' | 'FAILED' | 'INCOMPLETE';
+    status: 'ACTIVE' | 'PASSED' | 'FAILED' | 'INCOMPLETE';
     grade_section?: GradeSection | string;
 };
 
@@ -139,7 +142,7 @@ export type StudentResult = {
     student_class: StudentClass | string;
     subject_weight: SubjectWeight | string;
     result: number;
-    status: 'ONGOING' | 'CLOSED';
+    status: 'ACTIVE' | 'CLOSED';
 };
 
 

@@ -11,6 +11,12 @@ const GradeSectionSchema = new mongoose.Schema({
         type: Number,
         required: true,
         immutable: true
+    },
+    status: {
+        type: String,
+        enum: ['OPEN', 'CLOSED'],
+        default: 'OPEN',
+        required: true
     }
 });
 

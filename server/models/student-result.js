@@ -20,8 +20,8 @@ const StudentResultSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['ONGOING', 'CLOSED'],
-        default: 'ONGOING',
+        enum: ['ACTIVE', 'CLOSED'],
+        default: 'ACTIVE',
         required: true
     }
 });
