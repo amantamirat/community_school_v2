@@ -57,7 +57,7 @@ const ResultEntryPage = () => {
 
     useEffect(() => {
         if (selectedGradeSection) {
-            SectionClassService.getSectionClasssByGradeSection(selectedGradeSection).then((data) => {
+            SectionClassService.getActiveSectionClasssByGradeSection(selectedGradeSection).then((data) => {
                 setSectionClasss(data);
             }).catch((err) => {
                 toast.current?.show({
@@ -208,10 +208,6 @@ const ResultEntryPage = () => {
     );
 
     const prepareResultEntries = (): ResultEntry[] => {
-        console.log("Preparing Result Entries...");
-        console.log("Student Classes:", studentClasses);
-        console.log("Student Results:", studentResults);
-        console.log("Subject Weights:", subjectWeights);
         return studentClasses.map(studentClass => {
             const resultsForStudent = studentResults.filter(
                 result => result.student_class === studentClass._id

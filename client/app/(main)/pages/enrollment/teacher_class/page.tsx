@@ -20,7 +20,8 @@ const TeacherClassPage = () => {
     let emptySectionClass: SectionClass = {
         grade_section: '',
         subject_term: '',
-        teacher: ''
+        teacher: '',
+        status:'PENDING'
     };
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
     const [selectedGradeSection, setSelectedGradeSection] = useState<GradeSection | null>(null);
@@ -68,7 +69,7 @@ const TeacherClassPage = () => {
 
     useEffect(() => {
         if (selectedGradeSection) {
-            SectionClassService.getSectionClasssByGradeSection(selectedGradeSection).then((data) => {
+            SectionClassService.getActiveSectionClasssByGradeSection(selectedGradeSection).then((data) => {
                 setSectionClasss(data);
             }).catch((err) => {
                 toast.current?.show({
@@ -109,7 +110,7 @@ const TeacherClassPage = () => {
                 setSectionClasss(_sectionClasss);
             }
         } catch (error) {
-            //console.log(error);
+            console.log(error);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to allocate teacher',

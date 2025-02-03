@@ -18,7 +18,7 @@ const StudentResultComponent = (props: StudentResultProps) => {
         student_class: props.student_class,
         subject_weight: '',
         result: 0,
-        status:'ONGOING'
+        status:'ACTIVE'
     };
 
     const [studentResults, setStudentResults] = useState<StudentResult[]>([]);
@@ -122,7 +122,7 @@ const StudentResultComponent = (props: StudentResultProps) => {
                     <Dialog
                         visible={showRemoveDialog}
                         style={{ width: '450px' }}
-                        header="Confirm to Delete Class"
+                        header="Confirm to Delete Result"
                         modal
                         footer={removeDialogFooter}
                         onHide={hideRemoveDialog}

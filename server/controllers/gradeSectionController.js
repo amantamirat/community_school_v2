@@ -10,7 +10,8 @@ const registerSectionClasses = async (curriculum_grade, savedSection) => {
     const subjectTerms = await fetchSubjectTerms(curriculum_grade);
     const newSectionTermClasses = subjectTerms.map(termClass => ({
         grade_section: savedSection._id,
-        subject_term: termClass._id
+        subject_term: termClass._id,
+        status: termClass.term === 1 ? 'ACTIVE' : 'PENDING'
     }));
     return await SectionClass.insertMany(newSectionTermClasses);
 };
@@ -18,7 +19,7 @@ const registerSectionClasses = async (curriculum_grade, savedSection) => {
 const fetchSubjectTerms = async (curriculum_grade) => {
     const gradeSubjects = await GradeSubject.find({ curriculum_grade: curriculum_grade, optional: false }, { _id: 1 }).lean();
     const gradeSubjectIds = gradeSubjects.map(subject => subject._id);
-    return await SubjectTerm.find({ grade_subject: { $in: gradeSubjectIds } }, { _id: 1 }).lean();
+    return await SubjectTerm.find({ grade_subject: { $in: gradeSubjectIds } }).lean();
 };
 const GradeSectionController = {
 
