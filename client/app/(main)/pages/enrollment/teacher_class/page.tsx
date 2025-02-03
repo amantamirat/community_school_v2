@@ -20,6 +20,7 @@ const TeacherClassPage = () => {
     let emptySectionClass: SectionClass = {
         grade_section: '',
         subject_term: '',
+        status: 'ACTIVE',
         teacher: ''
     };
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
@@ -132,7 +133,7 @@ const TeacherClassPage = () => {
                             ((sectionClasss[i].subject_term as SubjectTerm).grade_subject as GradeSubject)._id ===
                             ((selectedSectionClass.subject_term as SubjectTerm).grade_subject as GradeSubject)._id
                         ) {
-                            _sectionClasss[i] = { ..._sectionClasss[i], teacher: undefined }; 
+                            _sectionClasss[i] = { ..._sectionClasss[i], teacher: undefined };
                         }
                     }
                     toast.current?.show({
@@ -272,6 +273,7 @@ const TeacherClassPage = () => {
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="subject_term.grade_subject.subject.title" header="Subject" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="status" header="Status" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column header="Teacher" body={teacherBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>

@@ -166,7 +166,7 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} grades"
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
-                        <Column header="Classfication Grade" body={classificationGradeTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column header="Classfication Grade" field="curriculum_grade.grade.level" body={classificationGradeTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
