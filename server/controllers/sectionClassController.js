@@ -22,7 +22,7 @@ const SectionClassController = {
     getActiveSectionClasssBySection: async (req, res) => {
         try {
             const { grade_section } = req.params;
-            const SectionClasss = await SectionClass.find({ grade_section: grade_section, status: 'ACTIVE' }).populate('teacher').populate({
+            const SectionClasss = await SectionClass.find({ grade_section: grade_section, status: { $ne: 'PENDING' } }).populate('teacher').populate({
                 path: 'subject_term',
                 populate: { path: 'grade_subject', populate: { path: 'subject', } },
             });

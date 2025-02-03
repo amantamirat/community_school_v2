@@ -135,6 +135,7 @@ export type StudentClass = {
     _id?: string;
     student_grade: StudentGrade | string;
     section_class: SectionClass | string;
+    status: 'ACTIVE'| 'COMPLETED'|'INCOMPLETE'| 'PENDING';
 };
 
 export type StudentResult = {
