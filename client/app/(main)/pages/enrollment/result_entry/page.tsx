@@ -6,12 +6,14 @@ import { StudentClassService } from '@/services/StudentClassService';
 import { StudentResultService } from '@/services/StudentResultService';
 import { SubjectWeightService } from '@/services/SubjectWeightService';
 import { GradeSection, GradeSubject, SectionClass, StudentClass, StudentResult, SubjectTerm, SubjectWeight } from '@/types/model';
+import { stat } from 'fs';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
+import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 import { useEffect, useRef, useState } from 'react';
 
@@ -28,14 +30,16 @@ const ResultEntryPage = () => {
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
     const [sectionClasss, setSectionClasss] = useState<SectionClass[]>([]);
     const [selectedGradeSection, setSelectedGradeSection] = useState<GradeSection | null>(null);
-    const [selectedSectionClass, setSelectedSectionClass] = useState<SectionClass | null>(null);
+    const [selectedSectionClass, setSelectedSectionClass] = useState<SectionClass | undefined>(undefined);
     const [subjectWeights, setSubjectWeights] = useState<SubjectWeight[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClass[]>([]);
     const [studentResults, setStudentResults] = useState<StudentResult[]>([]);
     const [resultEntries, setResultEntries] = useState<ResultEntry[]>([]);
     const queueStudentResults = useRef<StudentResult[]>([]);
     const [loading, setLoading] = useState(false);
-    const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+    const [loading1, setLoading1] = useState(false);
+    const [status, setStatus] = useState<"Disapprove" | "Submit" | "Approve">("Submit");
+    const [showSubmitDialog, setShowConfirmationDialog] = useState(false);
 
 
     useEffect(() => {
@@ -57,7 +61,7 @@ const ResultEntryPage = () => {
 
     useEffect(() => {
         if (selectedGradeSection) {
-            SectionClassService.getSectionClasssByGradeSection(selectedGradeSection).then((data) => {
+            SectionClassService.getActiveSectionClasssByGradeSection(selectedGradeSection).then((data) => {
                 setSectionClasss(data);
             }).catch((err) => {
                 toast.current?.show({
@@ -113,6 +117,7 @@ const ResultEntryPage = () => {
                         detail: "Weights are not setted. Please set weights in the curriculum.",
                         life: 3000
                     });
+                    setStudentResults([]);
                 }
                 setSubjectWeights(data);
             }).catch((err) => {
@@ -144,6 +149,7 @@ const ResultEntryPage = () => {
                 detail: 'You havent update any results',
                 life: 1500
             });
+            return;
         }
         try {
             setLoading(true);
@@ -168,17 +174,60 @@ const ResultEntryPage = () => {
         }
     }
 
-    const submitStudentResults = async () => {
+    const updateStudentResultsState = async () => {
         try {
-            console.log(resultEntries);
+
             if (selectedSectionClass) {
-                await StudentResultService.submitStudentResults(selectedSectionClass);
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Results Submitted',
-                    life: 1500
-                });
+                switch (selectedSectionClass.status) {
+                    case 'ACTIVE':
+                        setLoading1(true);
+                        let total_results = subjectWeights.length * studentClasses.length;
+                        let _studentResults = await StudentResultService.getStudentResultsBySectionClass(selectedSectionClass);
+                        let entered_results = _studentResults.length;
+                        let entered_percentage = (entered_results / total_results) * 100;
+                        if (entered_percentage < 75) {
+                            throw new Error('At least 75% result must be saved. Please enter results and save all first!');
+                        }
+                        const data = await StudentResultService.submitStudentResults(selectedSectionClass);
+                        if (data) {
+                            //console.log(data);
+                            const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedSectionClass);
+                            //const _selectedClass = { ...selectedSectionClass, status: 'SUBMITTED' as 'SUBMITTED' | 'ACTIVE' | 'APPROVED' | 'PENDING' };
+                            setSelectedSectionClass({ ...selectedSectionClass, status: 'SUBMITTED' });
+                            setStudentClasses(_studentClass);
+                            toast.current?.show({
+                                severity: 'success',
+                                summary: 'Successful',
+                                detail: 'Results Submitted',
+                                life: 1500
+                            });
+                        }
+                        break;
+                    case 'SUBMITTED':
+                        switch (status) {
+                            case 'Disapprove':
+                                const data = await StudentResultService.activateStudentResults(selectedSectionClass);
+                                if (data) {
+                                    //console.log(data);
+                                    const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedSectionClass);
+                                    setSelectedSectionClass({ ...selectedSectionClass, status: 'ACTIVE' });
+                                    setStudentClasses(_studentClass);
+                                    toast.current?.show({
+                                        severity: 'success',
+                                        summary: 'Successful',
+                                        detail: 'Results Back to Activated',
+                                        life: 1500
+                                    });
+                                }
+                            case 'Submit':
+                            case 'Approve':
+                        }
+                        break;
+                    case 'APPROVED':
+                        break;
+                    case 'PENDING':
+                        break
+                }
             }
         } catch (error) {
             toast.current?.show({
@@ -188,30 +237,28 @@ const ResultEntryPage = () => {
                 life: 1500
             });
         } finally {
-
+            setLoading1(false);
+            setShowConfirmationDialog(false);
         }
     }
 
-    const openSubmitDialog = () => {
-        setShowSubmitDialog(true);
+    const openStateDialog = (status: "Disapprove" | "Submit" | "Approve") => {
+        setStatus(status);
+        setShowConfirmationDialog(true);
     };
 
     const hideSubmitDialog = () => {
-        setShowSubmitDialog(false);
+        setShowConfirmationDialog(false);
     };
 
     const submitDialogFooter = (
         <>
-            <Button label="Cancel" icon="pi pi-times" text onClick={hideSubmitDialog} />
-            <Button label="Submit" icon="pi pi-check" text onClick={submitStudentResults} />
+            <Button label="No" icon="pi pi-times" text onClick={hideSubmitDialog} />
+            <Button label="Yes" icon="pi pi-check" text onClick={updateStudentResultsState} />
         </>
     );
 
     const prepareResultEntries = (): ResultEntry[] => {
-        console.log("Preparing Result Entries...");
-        console.log("Student Classes:", studentClasses);
-        console.log("Student Results:", studentResults);
-        console.log("Subject Weights:", subjectWeights);
         return studentClasses.map(studentClass => {
             const resultsForStudent = studentResults.filter(
                 result => result.student_class === studentClass._id
@@ -232,10 +279,12 @@ const ResultEntryPage = () => {
     const onCellEditComplete = (e: any) => {
         //const { rowData, field, newValue } = e; // `rowData` is the current row, `field` is the edited column, `newValue` is the new value
         let { rowData, newValue, field, originalEvent: event } = e;
+
         if (!newValue) {
             event.preventDefault();
             return
         }
+
         rowData[field] = newValue;
         const newResult: StudentResult = {
             student_class: rowData.student_class._id,
@@ -270,19 +319,40 @@ const ResultEntryPage = () => {
         return total;
     };
 
+    const getSeverity = (value: string) => {
+        switch (value) {
+            case 'COMPLETED':
+                return 'success';
+
+            case 'PENDING':
+                return 'info';
+
+            case 'INCOMPLETE':
+                return 'danger';
+
+            default:
+                return null;
+        }
+    };
+
+    const statusBodyTemplate = (rowData: ResultEntry) => {
+        return <Tag value={rowData.student_class.status} severity={getSeverity(rowData.student_class.status)}></Tag>;
+    };
+
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h5 className="m-0">Student Results</h5>
             <span className="block mt-2">
-                <Button label='Save All' text loading={loading} onClick={saveStudentResults} />
+                {selectedSectionClass?.status === "ACTIVE" ? <Button label='Save All' text loading={loading} onClick={saveStudentResults} /> : <></>}
             </span>
         </div>
     );
 
     const footer = (
         <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-            <div></div>
-            <Button label='Submit' text onClick={openSubmitDialog} />
+            {selectedSectionClass?.status === "ACTIVE" ? <><></><Button label='Submit' onClick={() => openStateDialog("Submit")} loading={loading1} /> </> :
+                selectedSectionClass?.status === "SUBMITTED" ? <><Button label='Approve' severity='success' onClick={() => openStateDialog("Approve")} loading={loading1} /><Button label='Disapprove' onClick={() => openStateDialog("Disapprove")} severity='danger' loading={loading} /></>
+                    : <></>}
         </div>
     );
 
@@ -338,10 +408,11 @@ const ResultEntryPage = () => {
                             stripedRows
                             scrollable
                             editMode="cell"
+                            dataKey='student_class._id'
                         >
                             <Column header="#" body={(rowData, options) => options.rowIndex + 1} style={{ width: '50px' }} />
                             <Column
-                                //field='student_class.student_grade.student.first_name'
+                                field='student_class.student_grade.student.first_name'
                                 header="Student"
                                 body={(rowData) => `${rowData.student_class.student_grade.student.first_name} ${rowData.student_class.student_grade.student.last_name}`}
                                 sortable
@@ -353,18 +424,29 @@ const ResultEntryPage = () => {
                                     key={weight._id}
                                     field={weight._id}
                                     header={`${weight.assessment_type} (${weight.assessment_weight}%)`}
-                                    editor={(options) =>
-                                        <InputNumber value={options.value} onValueChange={(e) => {
-                                            if (options.editorCallback) {
-                                                options.editorCallback(e.value);
-                                            }
-                                        }}
-                                            mode="decimal"
-                                            maxFractionDigits={5}
-                                            min={0}
-                                            max={weight.assessment_weight}
-                                            useGrouping={false}
-                                        />}
+                                    editor={(options) => {
+                                        const isEditable = selectedSectionClass?.status === 'ACTIVE';
+                                        if (!isEditable) {
+                                            return <span>{options.value}</span>;
+                                        }
+                                        // If editable, render InputNumber
+                                        return (
+                                            <InputNumber
+                                                value={options.value}
+                                                onValueChange={(e) => {
+                                                    if (options.editorCallback) {
+                                                        options.editorCallback(e.value);
+                                                    }
+                                                }}
+                                                mode="decimal"
+                                                maxFractionDigits={5}
+                                                min={0}
+                                                max={weight.assessment_weight}
+                                                useGrouping={false}
+                                                disabled={!isEditable}
+                                            />
+                                        );
+                                    }}
                                     onCellEditComplete={onCellEditComplete}
                                 />
                             ))}
@@ -373,11 +455,18 @@ const ResultEntryPage = () => {
                                 body={(rowData) => calculateRowTotal(rowData)} // Function to calculate and display the total
                                 style={{ fontWeight: 'bold', textAlign: 'right' }}
                             />
+                            <Column
+                                field='student_class.status'
+                                header="Status"
+                                sortable
+                                headerStyle={{ minWidth: '15rem' }}
+                                body={statusBodyTemplate}
+                            />
                         </DataTable>
                         <Dialog
                             visible={showSubmitDialog}
                             style={{ width: '450px' }}
-                            header="Confirm to Submit Student Result"
+                            header={`Confirm to ${status} Student Result`}
                             modal
                             footer={submitDialogFooter}
                             onHide={hideSubmitDialog}
@@ -386,7 +475,7 @@ const ResultEntryPage = () => {
                                 <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                                 {selectedGradeSection && (
                                     <span>
-                                        Are you sure you want to submit <b>{selectedSectionClass?._id}</b>?
+                                        Are you sure you want to {status} <b>{selectedSectionClass?._id}</b>?
                                     </span>
                                 )}
                             </div>

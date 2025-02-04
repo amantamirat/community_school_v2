@@ -18,7 +18,7 @@ const StudentResultComponent = (props: StudentResultProps) => {
         student_class: props.student_class,
         subject_weight: '',
         result: 0,
-        status:'ONGOING'
+        status:'ACTIVE'
     };
 
     const [studentResults, setStudentResults] = useState<StudentResult[]>([]);
@@ -45,6 +45,9 @@ const StudentResultComponent = (props: StudentResultProps) => {
     const deleteStudentResult = async () => {
         try {
             if (selectedStudentResult) {
+                if(selectedStudentResult.status==="CLOSED"){
+                    throw new Error('Closed Results Can not be deleted!');
+                }
                 const deleted = await StudentResultService.deleteStudentResult(selectedStudentResult);
                 if (deleted) {
                     let _studentResults = (studentResults as any)?.filter((val: any) => val._id !== selectedStudentResult._id);
@@ -116,13 +119,14 @@ const StudentResultComponent = (props: StudentResultProps) => {
                         <Column field="subject_weight.assessment_type" header="Assesment" sortable headerStyle={{ minWidth: '10rem' }} />
                         <Column field="subject_weight.assessment_weight" header="Weight" sortable headerStyle={{ minWidth: '10rem' }} />
                         <Column field="result" header="Result" sortable headerStyle={{ minWidth: '10rem' }} />
+                        <Column field="status" header="Status" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
                     </DataTable>
 
                     <Dialog
                         visible={showRemoveDialog}
                         style={{ width: '450px' }}
-                        header="Confirm to Delete Class"
+                        header="Confirm to Delete Result"
                         modal
                         footer={removeDialogFooter}
                         onHide={hideRemoveDialog}

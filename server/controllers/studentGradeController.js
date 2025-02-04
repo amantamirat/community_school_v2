@@ -15,13 +15,13 @@ const SectionClass = require("../models/section-class");
 
 const registerStudentClasses = async (grade_section, sectionStudents) => {
     const sectionTermClasses = await SectionClass.find(
-        { grade_section: grade_section },
-        { _id: 1 }
+        { grade_section: grade_section }
     ).lean();
     const newStudentTermClasses = sectionStudents.flatMap(secStud =>
         sectionTermClasses.map(secTerm => ({
             student_grade: secStud,
-            section_class: secTerm._id
+            section_class: secTerm._id,
+            status:secTerm.status
         }))
     );
     return await StudentClass.insertMany(newStudentTermClasses);

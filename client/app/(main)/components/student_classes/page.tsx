@@ -133,6 +133,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
                         <Column expander style={{ width: '4em' }} />
                         <Column field="section_class.subject_term.grade_subject.subject.title" header="Class" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="section_class.subject_term.term" header="Term" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="status" header="Status" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 

@@ -20,8 +20,8 @@ const TeacherClassPage = () => {
     let emptySectionClass: SectionClass = {
         grade_section: '',
         subject_term: '',
-        status: 'ACTIVE',
-        teacher: ''
+        teacher: '',
+        status: 'PENDING'
     };
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
     const [selectedGradeSection, setSelectedGradeSection] = useState<GradeSection | null>(null);
@@ -69,7 +69,7 @@ const TeacherClassPage = () => {
 
     useEffect(() => {
         if (selectedGradeSection) {
-            SectionClassService.getSectionClasssByGradeSection(selectedGradeSection).then((data) => {
+            SectionClassService.getActiveSectionClasssByGradeSection(selectedGradeSection).then((data) => {
                 setSectionClasss(data);
             }).catch((err) => {
                 toast.current?.show({
@@ -110,7 +110,7 @@ const TeacherClassPage = () => {
                 setSectionClasss(_sectionClasss);
             }
         } catch (error) {
-            //console.log(error);
+            console.log(error);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to allocate teacher',
@@ -273,8 +273,13 @@ const TeacherClassPage = () => {
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="subject_term.grade_subject.subject.title" header="Subject" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="status" header="Status" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column header="Teacher" body={teacherBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
+
+                        <Column header="Teacher" field="teacher.first_name" body={(rowData) =>
+                            rowData.teacher
+                                ? `${rowData.teacher.sex === 'Male' ? 'Mr.' : 'Miss'} ${rowData.teacher.first_name} ${rowData.teacher.last_name}`
+                                : 'N/A'
+                        } sortable headerStyle={{ minWidth: '10rem' }}></Column>
+
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
                     <Dialog

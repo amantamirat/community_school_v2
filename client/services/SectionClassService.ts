@@ -2,6 +2,7 @@ import { GradeSection, SectionClass } from "@/types/model";
 import { MyService } from "./MyService";
 
 const get_endpoint = "/api/section-classs/grade_section";
+const get_active_endpoint = "/api/section-classs/active/grade_section";
 const create_endpoint = '/api/section-classs/create';
 const update_endpoint = '/api/section-classs/update';
 const allocate_endpoint = '/api/section-classs/allocate-teacher';
@@ -20,6 +21,12 @@ function sanitize(section_class: Partial<SectionClass>) {
 export const SectionClassService = {
     async getSectionClasssByGradeSection(grade_section: GradeSection): Promise<SectionClass[]> {
         const endpoint = `${get_endpoint}/${grade_section._id}`;
+        const data = await MyService.get(endpoint);
+        return data as SectionClass[];
+    },
+
+    async getActiveSectionClasssByGradeSection(grade_section: GradeSection): Promise<SectionClass[]> {
+        const endpoint = `${get_active_endpoint}/${grade_section._id}`;
         const data = await MyService.get(endpoint);
         return data as SectionClass[];
     },

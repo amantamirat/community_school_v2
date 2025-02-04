@@ -18,7 +18,7 @@ const GradeSectionComponent = () => {
     let emptyGradeSection: GradeSection = {
         classification_grade: '',
         section_number: 0,
-        status:'OPEN'
+        status: 'OPEN'
     };
     const { selectedClassificationGrade } = useClassificationGrade();
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
@@ -188,16 +188,23 @@ const GradeSectionComponent = () => {
     const startToolbarTemplate = () => {
         return (
             <div className="my-2">
-                <Button label="Create Section" icon="pi pi-plus" className="mr-2" onClick={openAddDialog} disabled={!selectedClassificationGrade} />
+                <Button label="Create Section" icon="pi pi-plus" className="mr-2" severity="success" onClick={openAddDialog} disabled={!selectedClassificationGrade} />
             </div>
         );
     };
 
     const endToolbarTemplate = () => {
         return (
-            <div className="my-2">
-                <Button tooltip="Sync Grade Subjects" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncSubjects} />
-            </div>
+            <>
+                <div className="my-2">
+                    <Button label="Activate Next Term" icon="pi pi-fast-forward" severity="help" raised  style={{ marginRight: '10px' }} />
+                </div>
+
+                <div className="my-2">
+                    <Button tooltip="Sync Grade Subjects" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded onClick={syncSubjects} />
+                </div>
+
+            </>
         );
     };
 

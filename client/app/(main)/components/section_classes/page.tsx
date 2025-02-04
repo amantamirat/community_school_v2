@@ -5,6 +5,7 @@ import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
+import { Tag } from "primereact/tag";
 import { Toast } from "primereact/toast";
 import { useEffect, useRef, useState } from "react";
 
@@ -15,7 +16,8 @@ const SectionClassComponent = (props: SectionClassProps) => {
 
     let emptySectionClass: SectionClass = {
         grade_section: props.gradeSection,
-        subject_term: ''
+        subject_term: '',
+        status: 'PENDING'
     };
 
     const [sectionClasss, setSectionClasss] = useState<SectionClass[]>([]);
@@ -115,6 +117,25 @@ const SectionClassComponent = (props: SectionClassProps) => {
         return index;
     };
 
+    const getSeverity = (value: string) => {
+        switch (value) {
+            case 'ACTIVE':
+                return 'warning';
+            case 'SUBMITTED':
+                return 'info';
+            case 'PENDING':
+                return 'danger';
+            case 'APPROVED':
+                return 'success';
+            default:
+                return null;
+        }
+    };
+
+    const statusBodyTemplate = (rowData: SectionClass) => {
+        return <Tag value={rowData.status} severity={getSeverity(rowData.status)}></Tag>;
+    };
+
     const actionBodyTemplate = (rowData: SectionClass) => {
         return (
             <>
@@ -143,6 +164,8 @@ const SectionClassComponent = (props: SectionClassProps) => {
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="subject_term.grade_subject.subject.title" header="Subject" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="subject_term.term" header="Term" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="teacher.first_name" header="Teacher" body={(rowData) => rowData.teacher ? `${rowData.teacher.first_name} ${rowData.teacher.last_name}` : 'N/A'} sortable headerStyle={{ minWidth: '15rem' }} />
+                        <Column field="status" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '5rem' }}></Column>
                     </DataTable>
 

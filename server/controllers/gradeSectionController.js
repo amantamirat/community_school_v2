@@ -19,7 +19,7 @@ const registerSectionClasses = async (curriculum_grade, savedSection) => {
 const fetchSubjectTerms = async (curriculum_grade) => {
     const gradeSubjects = await GradeSubject.find({ curriculum_grade: curriculum_grade, optional: false }, { _id: 1 }).lean();
     const gradeSubjectIds = gradeSubjects.map(subject => subject._id);
-    return await SubjectTerm.find({ grade_subject: { $in: gradeSubjectIds } });
+    return await SubjectTerm.find({ grade_subject: { $in: gradeSubjectIds } }).lean();
 };
 const GradeSectionController = {
 
