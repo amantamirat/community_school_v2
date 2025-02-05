@@ -3,14 +3,14 @@ const SectionClass = require("../models/section-class");
 const StudentClass = require('../models/student-class');
 const SubjectTerm = require('../models/subject-term');
 const SubjectWeight = require('../models/subject-weight');
+const TermClass = require("../models/term-class");
 
 const StudentResultController = {
 
-    getStudentResultsBySectionClass: async (req, res) => {
+    getStudentResultsByTermClass: async (req, res) => {
         try {
-            const { section_class } = req.params;
-            const studentClasses = await StudentClass.find({ section_class: section_class });
-            const studentClassIds = studentClasses.map((studentClass) => studentClass._id);
+            const { term_class } = req.params;            
+            const studentClassIds = await StudentClass.distinct('_id', { term_class: term_class });
             const studentResults = await StudentResult.find({ student_class: { $in: studentClassIds } });
             return res.status(200).json(studentResults);
         } catch (error) {
@@ -22,7 +22,7 @@ const StudentResultController = {
         try {
             const { section_class } = req.params;
             // Find and validate section class
-            const sectionClass = await SectionClass.findById(section_class);
+            const sectionClass = await TermClass.findById(section_class);
             if (!sectionClass) return res.status(404).json({ message: 'Section class not found' });
             if (sectionClass.status !== "ACTIVE") return res.status(400).json({ message: 'Section class is not ACTIVE' });
             //subject term

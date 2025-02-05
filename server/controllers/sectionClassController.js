@@ -9,7 +9,8 @@ const SectionClassController = {
     getAllSectionClasssBySection: async (req, res) => {
         try {
             const { grade_section } = req.params;
-            const SectionClasss = await SectionClass.find({ grade_section: grade_section }).populate('teacher').populate({
+            const SectionClasss = await SectionClass.find({ grade_section: grade_section }).populate('teacher')
+            .populate({
                 path: 'subject_term',
                 populate: { path: 'grade_subject', populate: { path: 'subject', } },
             });

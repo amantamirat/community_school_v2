@@ -8,20 +8,18 @@ const gradeController = require('../controllers/gradeController');
 const GradeSubject = require('../models/grade-subject');
 const SubjectTerm = require('../models/subject-term');
 const StudentClass = require('../models/student-class');
-const SectionClass = require("../models/section-class");
-
-
+const SectionSubject = require("../models/section-subject");
+const TermClass = require("../models/term-class");
 
 
 const registerStudentClasses = async (grade_section, sectionStudents) => {
-    const sectionTermClasses = await SectionClass.find(
-        { grade_section: grade_section }
-    ).lean();
+    const sectionSubjectsIds = await SectionSubject.distinct('_id', { grade_section: grade_section });
+    const termClasses = await TermClass.find({ section_subject: { $in: sectionSubjectsIds } }).lean();
     const newStudentTermClasses = sectionStudents.flatMap(secStud =>
-        sectionTermClasses.map(secTerm => ({
+        termClasses.map(secTerm => ({
             student_grade: secStud,
-            section_class: secTerm._id,
-            status:secTerm.status
+            term_class: secTerm._id,
+            status: secTerm.status
         }))
     );
     return await StudentClass.insertMany(newStudentTermClasses);
@@ -253,21 +251,21 @@ const studentGradeController = {
             const studentGrades = await StudentGrade.find({ _id: { $in: selected_students } }).lean();
             if (studentGrades.length !== selected_students.length) {
                 return res.status(400).json({ message: "Some provided student IDs are invalid." });
-            }            
+            }
             for (const student of studentGrades) {
                 if (!student.grade_section?.equals(grade_section)) {
                     return res.status(400).json({ message: `Student ${student._id} is not in the correct section.` });
-                }               
-            }            
+                }
+            }
             const studentClassIds = await StudentClass.distinct("_id", { student_grade: { $in: selected_students } });
             const resultsExist = await StudentResult.exists({ student_class: { $in: studentClassIds } });
             if (resultsExist) {
                 return res.status(400).json({ message: "Some students have results and cannot be detached." });
             }
 
-            await StudentClass.deleteMany({ student_grade: { $in: selected_students} });
+            await StudentClass.deleteMany({ student_grade: { $in: selected_students } });
             const result = await StudentGrade.updateMany(
-                { _id: { $in: selected_students} },
+                { _id: { $in: selected_students } },
                 { $unset: { grade_section: 1 } }
             );
             res.status(200).json(result);
@@ -280,35 +278,36 @@ const studentGradeController = {
     syncClasses: async (req, res) => {
         try {
             const { grade_section } = req.params;
-
             const studentGrades = await StudentGrade.find({ grade_section: grade_section }).lean();
             const studentGradeIds = studentGrades.map(stud => stud._id);
 
             const existingStudentClasses = await StudentClass.find({ student_grade: { $in: studentGradeIds } })
-                .select('student_grade section_class');
+                .select('student_grade term_class');
 
             const studentClassMap = new Map();
             studentGradeIds.forEach(studId => studentClassMap.set(studId.toString(), new Set()));
 
-            existingStudentClasses.forEach(({ student_grade, section_class }) => {
-                studentClassMap.get(student_grade.toString()).add(section_class.toString());
+            existingStudentClasses.forEach(({ student_grade, term_class }) => {
+                studentClassMap.get(student_grade.toString()).add(term_class.toString());
             });
-            const sectionClasses = await SectionClass.find({ grade_section: grade_section });
-            const sectionClassIds = sectionClasses.map(sub => sub._id.toString());
+            const sectionSubjects = await SectionSubject.find({ grade_section: grade_section });
+            const sectionSubjectsIds = sectionSubjects.map(sub => sub._id.toString());
+            const termClasses = await TermClass.find({ section_subject: {$in:sectionSubjectsIds} });
+            const termClassIds = termClasses.map(term => term._id.toString());
 
             const newStudentClasses = [];
             studentGradeIds.forEach(studId => {
                 const existingClass = studentClassMap.get(studId.toString());
-                sectionClassIds.forEach(secClass => {
-                    if (!existingClass.has(secClass)) {
-                        newStudentClasses.push({ student_grade: studId, section_class: secClass });
+                termClassIds.forEach(termClass => {
+                    if (!existingClass.has(termClass)) {
+                        newStudentClasses.push({ student_grade: studId, term_class: termClass });
                     }
                 });
             });
             const insertedClasses = await StudentClass.insertMany(newStudentClasses);
             res.status(201).json(insertedClasses);
         } catch (error) {
-            //console.log(error);
+            console.log(error);
             res.status(500).json({ message: error.message });
         }
     },

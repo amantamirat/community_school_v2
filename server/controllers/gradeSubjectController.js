@@ -3,10 +3,11 @@ const GradeSubject = require('../models/grade-subject');
 const CurriculumGrade = require('../models/curriculum-grade');
 const SubjectTerm = require('../models/subject-term');
 const SubjectWeight = require('../models/subject-weight');
-
 const SectionClass = require("../models/section-class");
 const StudentClass = require('../models/student-class');
 const Subject = require('../models/subject');
+const { createSectionSubjectsByGradeSubject } = require('../services/sectionSubjectService');
+const SectionSubject = require('../models/section-subject');
 
 const GradeSubjectController = {
 
@@ -35,7 +36,8 @@ const GradeSubjectController = {
             for (let term = 1; term <= number_of_terms; term++) {
                 subjectTerms.push({ grade_subject: newGradeSubject._id, term });
             }
-            await SubjectTerm.insertMany(subjectTerms);
+            const savedSubjectTerms = await SubjectTerm.insertMany(subjectTerms);
+            await createSectionSubjectsByGradeSubject(curriculumGrade, newGradeSubject, savedSubjectTerms);
 
             res.status(201).json(newGradeSubject);
         } catch (err) {
@@ -54,7 +56,7 @@ const GradeSubjectController = {
         try {
             const { id } = req.params;
             const { optional } = req.body;
-            const classExists = await SectionClass.findOne({ grade_subject: id });
+            const classExists = await SectionSubject.findOne({ grade_subject: id });
             if (classExists) {
                 return res.status(400).json({
                     message: "Cannot Update, Subject Aleady Registred. It is associated with one or more classes.",
@@ -74,19 +76,19 @@ const GradeSubjectController = {
     deleteGradeSubject: async (req, res) => {
         try {
             const { id } = req.params;
-
-            // Validate ObjectId
-            if (!mongoose.Types.ObjectId.isValid(id)) {
-                return res.status(400).json({ message: 'Invalid GradeSubject ID' });
-            }
-
-            // Check if any SubjectWeight is associated
             const weightExists = await SubjectWeight.exists({ grade_subject: id });
             if (weightExists) {
                 return res.status(400).json({
                     message: "Cannot delete. It is associated with one or more weights.",
                 });
             }
+            const subjectExists = await SectionSubject.exists({ grade_subject: id });            
+            if (subjectExists) {
+                return res.status(400).json({
+                    message: "Cannot delete. We Will fix it. It is associated with one or more classes.",
+                });
+            }
+            /*
             const subjectTermIds = await SubjectTerm.distinct('_id', { grade_subject: id });
             const sectionClassIds = await SectionClass.distinct('_id', { subject_term: { $in: subjectTermIds } });
             if (sectionClassIds.length > 0) {
@@ -94,11 +96,12 @@ const GradeSubjectController = {
                 await SectionClass.deleteMany({ _id: { $in: sectionClassIds } });
             }
             await SubjectTerm.deleteMany({ _id: { $in: subjectTermIds } });
-
+            */            
             const deletedGradeSubject = await GradeSubject.findByIdAndDelete(id);
             if (!deletedGradeSubject) {
                 return res.status(404).json({ message: 'Grade Subject not found' });
             }
+            await SubjectTerm.deleteMany({ grade_subject: id });
             res.status(200).json(deletedGradeSubject);
         } catch (err) {
             res.status(500).json({ message: 'Error deleting GradeSubject', error: err.message });

@@ -1,11 +1,12 @@
 "use client"
 import { useClassificationGrade } from '@/app/(main)/contexts/classificationGradeContext';
 import { GradeSectionService } from '@/services/GradeSectionService';
-import { SectionClassService } from '@/services/SectionClassService';
+import { SectionSubjectService } from '@/services/SectionSubjectService';
 import { StudentClassService } from '@/services/StudentClassService';
 import { StudentResultService } from '@/services/StudentResultService';
 import { SubjectWeightService } from '@/services/SubjectWeightService';
-import { GradeSection, GradeSubject, SectionClass, StudentClass, StudentResult, SubjectTerm, SubjectWeight } from '@/types/model';
+import { TermClassService } from '@/services/TermClassService';
+import { GradeSection, GradeSubject, SectionSubject, StudentClass, StudentResult, SubjectWeight, TermClass } from '@/types/model';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
@@ -26,9 +27,11 @@ const ResultEntryPage = () => {
     const toast = useRef<Toast>(null);
     const { selectedClassificationGrade } = useClassificationGrade();
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
-    const [sectionClasss, setSectionClasss] = useState<SectionClass[]>([]);
+    const [sectionSubjects, setSectionSubjects] = useState<SectionSubject[]>([]);
+    const [termClasses, setTermClasses] = useState<TermClass[]>([]);
     const [selectedGradeSection, setSelectedGradeSection] = useState<GradeSection | null>(null);
-    const [selectedSectionClass, setSelectedSectionClass] = useState<SectionClass | undefined>(undefined);
+    const [selectedSectionSubject, setSelectedSectionSubject] = useState<SectionSubject | undefined>(undefined);
+    const [selectedTermClass, setSelectedTermClass] = useState<TermClass | undefined>(undefined);
     const [subjectWeights, setSubjectWeights] = useState<SubjectWeight[]>([]);
     const [studentClasses, setStudentClasses] = useState<StudentClass[]>([]);
     const [studentResults, setStudentResults] = useState<StudentResult[]>([]);
@@ -59,8 +62,8 @@ const ResultEntryPage = () => {
 
     useEffect(() => {
         if (selectedGradeSection) {
-            SectionClassService.getActiveSectionClasssByGradeSection(selectedGradeSection).then((data) => {
-                setSectionClasss(data);
+            SectionSubjectService.getSectionClasssByGradeSection(selectedGradeSection).then((data) => {
+                setSectionSubjects(data);
             }).catch((err) => {
                 toast.current?.show({
                     severity: 'error',
@@ -73,18 +76,13 @@ const ResultEntryPage = () => {
     }, [selectedGradeSection]);
 
 
+
+
+
     useEffect(() => {
-        if (selectedSectionClass) {
-            StudentClassService.getStudentClasssBySectionClass(selectedSectionClass).then((data) => {
-                if (data.length === 0) {
-                    toast.current?.show({
-                        severity: 'error',
-                        summary: 'Empty Student Classes',
-                        detail: "No registred students for this class are found.",
-                        life: 3000
-                    });
-                }
-                setStudentClasses(data);
+        if (selectedSectionSubject) {
+            TermClassService.getTermClassesBySubject(selectedSectionSubject).then((data) => {
+                setTermClasses(data);
             }).catch((err) => {
                 setStudentClasses([]);
                 toast.current?.show({
@@ -95,19 +93,7 @@ const ResultEntryPage = () => {
                 });
             });
 
-            StudentResultService.getStudentResultsBySectionClass(selectedSectionClass).then((data) => {
-                setStudentResults(data);
-            }).catch((err) => {
-                setStudentResults([]);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed to student results',
-                    detail: '' + err,
-                    life: 3000
-                });
-            });
-
-            SubjectWeightService.getSubjectWeights((selectedSectionClass.subject_term as SubjectTerm).grade_subject as GradeSubject).then((data) => {
+            SubjectWeightService.getSubjectWeights(selectedSectionSubject.grade_subject as GradeSubject).then((data) => {
                 if (data.length === 0) {
                     toast.current?.show({
                         severity: 'error',
@@ -129,8 +115,47 @@ const ResultEntryPage = () => {
             });
             queueStudentResults.current.length = 0;
         }
+    }, [selectedSectionSubject]);
 
-    }, [selectedSectionClass]);
+
+
+    useEffect(() => {
+        if (selectedTermClass) {
+            StudentClassService.getStudentClasssBySectionClass(selectedTermClass).then((data) => {
+                console.log(data);
+                if (data.length === 0) {
+                    toast.current?.show({
+                        severity: 'error',
+                        summary: 'Empty Student Classes',
+                        detail: "No registred students for this class are found.",
+                        life: 3000
+                    });
+                }
+                setStudentClasses(data);
+            }).catch((err) => {
+                setStudentClasses([]);
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load registred students',
+                    detail: '' + err,
+                    life: 3000
+                });
+            });
+
+            StudentResultService.getStudentResultsByTerm(selectedTermClass).then((data) => {
+                setStudentResults(data);
+            }).catch((err) => {
+                setStudentResults([]);
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to student results',
+                    detail: '' + err,
+                    life: 3000
+                });
+            });
+        }
+    }, [selectedTermClass])
+
 
     useEffect(() => {
         if (studentClasses.length > 0 && subjectWeights.length > 0) {
@@ -141,7 +166,7 @@ const ResultEntryPage = () => {
 
     const saveStudentResults = async () => {
         try {
-            if (selectedSectionClass?.status !== 'ACTIVE') {
+            if (selectedSectionSubject?.status !== 'ACTIVE') {
                 throw new Error("Non Active Class Can not be Saved!");
             }
             if (queueStudentResults.current.length === 0) {
@@ -172,27 +197,27 @@ const ResultEntryPage = () => {
 
     const submitStudentResults = async () => {
         try {
-            if (selectedSectionClass) {
-                if (selectedSectionClass.status !== 'ACTIVE') {
+            if (selectedTermClass) {
+                if (selectedTermClass.status !== 'ACTIVE') {
                     throw new Error("Non Active Class Can not be Submitted");
                 }
                 setLoading1(true);
                 let total_results = subjectWeights.length * studentClasses.length;
-                let _studentResults = await StudentResultService.getStudentResultsBySectionClass(selectedSectionClass);
+                let _studentResults = await StudentResultService.getStudentResultsByTerm(selectedTermClass);
                 let entered_results = _studentResults.length;
                 let entered_percentage = (entered_results / total_results) * 100;
                 if (entered_percentage < 75) {
                     throw new Error('At least 75% result must be saved. Please enter results and save all first!');
                 }
-                const data = await StudentResultService.submitStudentResults(selectedSectionClass);
+                const data = await StudentResultService.submitStudentResults(selectedTermClass);
                 if (data) {
-                    const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedSectionClass);
-                    let _sectionClasses = [...sectionClasss];
-                    const index = sectionClasss.findIndex((section) => section._id === selectedSectionClass._id);
-                    _sectionClasses[index] = { ...selectedSectionClass, status: 'SUBMITTED' };
-                    setSectionClasss(_sectionClasses);
+                    const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedTermClass);
+                    let _sectionClasses = [...termClasses];
+                    const index = sectionSubjects.findIndex((section) => section._id === selectedTermClass._id);
+                    _sectionClasses[index] = { ...selectedTermClass, status: 'SUBMITTED' };
+                    setTermClasses(_sectionClasses);
                     setStudentClasses(_studentClass);
-                    setSelectedSectionClass(_sectionClasses[index]);
+                    setSelectedTermClass(_sectionClasses[index]);
                     toast.current?.show({
                         severity: 'success',
                         summary: 'Successful',
@@ -215,20 +240,20 @@ const ResultEntryPage = () => {
 
     const approveStudentResults = async () => {
         try {
-            if (selectedSectionClass) {
-                if (selectedSectionClass.status !== 'SUBMITTED') {
+            if (selectedTermClass) {
+                if (selectedTermClass.status !== 'SUBMITTED') {
                     throw new Error("Non Submitted Class Can not be Approved");
                 }
                 setLoading2(true);
-                const data = await StudentResultService.approveStudentResults(selectedSectionClass);
+                const data = await StudentResultService.approveStudentResults(selectedTermClass);
                 if (data) {
                     //const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedSectionClass);
-                    let _sectionClasses = [...sectionClasss];
-                    const index = sectionClasss.findIndex((section) => section._id === selectedSectionClass._id);
-                    _sectionClasses[index] = { ...selectedSectionClass, status: 'APPROVED' };
-                    setSectionClasss(_sectionClasses);
+                    let _sectionClasses = [...termClasses];
+                    const index = sectionSubjects.findIndex((section) => section._id === selectedTermClass._id);
+                    _sectionClasses[index] = { ...selectedTermClass, status: 'APPROVED' };
+                    setTermClasses(_sectionClasses);
                     //setStudentClasses(_studentClass);
-                    setSelectedSectionClass(_sectionClasses[index]);
+                    setSelectedTermClass(_sectionClasses[index]);
                     toast.current?.show({
                         severity: 'success',
                         summary: 'Successful',
@@ -252,20 +277,20 @@ const ResultEntryPage = () => {
 
     const activateStudentResults = async () => {
         try {
-            if (selectedSectionClass) {
-                if (selectedSectionClass.status !== 'SUBMITTED') {
+            if (selectedTermClass) {
+                if (selectedTermClass.status !== 'SUBMITTED') {
                     throw new Error("Non Submitted Class Can not be Activated");
                 }
                 setLoading3(true);
-                const data = await StudentResultService.activateStudentResults(selectedSectionClass);
+                const data = await StudentResultService.activateStudentResults(selectedTermClass);
                 if (data) {
-                    const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedSectionClass);
-                    let _sectionClasses = [...sectionClasss];
-                    const index = sectionClasss.findIndex((section) => section._id === selectedSectionClass._id);
-                    _sectionClasses[index] = { ...selectedSectionClass, status: 'ACTIVE' };
-                    setSectionClasss(_sectionClasses);
+                    const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedTermClass);
+                    let _sectionClasses = [...termClasses];
+                    const index = sectionSubjects.findIndex((section) => section._id === selectedTermClass._id);
+                    _sectionClasses[index] = { ...selectedTermClass, status: 'SUBMITTED' };
+                    setTermClasses(_sectionClasses);
                     setStudentClasses(_studentClass);
-                    setSelectedSectionClass(_sectionClasses[index]);
+                    setSelectedTermClass(_sectionClasses[index]);
                     toast.current?.show({
                         severity: 'success',
                         summary: 'Successful',
@@ -369,9 +394,9 @@ const ResultEntryPage = () => {
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h5 className="m-0">Student Results</h5>
             <span className="block mt-2">
-                <Button label='Save All' text loading={loading} onClick={saveStudentResults}  style={{ marginRight: '10px' }} />
-                <Button label='Submit' onClick={submitStudentResults} loading={loading1}  style={{ marginRight: '10px' }} />
-                <Button label='Approve' severity='success' onClick={approveStudentResults}  loading={loading2}  style={{ marginRight: '10px' }} />
+                <Button label='Save All' text loading={loading} onClick={saveStudentResults} style={{ marginRight: '10px' }} />
+                <Button label='Submit' onClick={submitStudentResults} loading={loading1} style={{ marginRight: '10px' }} />
+                <Button label='Approve' severity='success' onClick={approveStudentResults} loading={loading2} style={{ marginRight: '10px' }} />
                 <Button label='Disapprove' onClick={activateStudentResults} severity='danger' loading={loading3} />
             </span>
         </div>
@@ -411,13 +436,28 @@ const ResultEntryPage = () => {
                                 <label htmlFor="subject">Subject</label>
                                 <div id="subject">
                                     <Dropdown
-                                        value={selectedSectionClass || null}
+                                        value={selectedSectionSubject || null}
                                         onChange={(e) =>
-                                            setSelectedSectionClass(e.value)
+                                            setSelectedSectionSubject(e.value)
                                         }
-                                        options={sectionClasss}
-                                        optionLabel="subject_term.grade_subject.subject.title"
+                                        options={sectionSubjects}
+                                        optionLabel="grade_subject.subject.title"
                                         placeholder="Select Class"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="field col">
+                                <label htmlFor="term">Term</label>
+                                <div id="term">
+                                    <Dropdown
+                                        value={selectedTermClass || null}
+                                        onChange={(e) =>
+                                            setSelectedTermClass(e.value)
+                                        }
+                                        options={termClasses}
+                                        optionLabel="subject_term.term"
+                                        placeholder="Select Term"
                                     />
                                 </div>
                             </div>
@@ -452,7 +492,7 @@ const ResultEntryPage = () => {
                                     field={weight._id}
                                     header={`${weight.assessment_type} (${weight.assessment_weight}%)`}
                                     editor={(options) => {
-                                        const isEditable = selectedSectionClass?.status === 'ACTIVE';
+                                        const isEditable = selectedSectionSubject?.status === 'ACTIVE';
                                         if (!isEditable) {
                                             return <span>{options.value}</span>;
                                         }

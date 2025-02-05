@@ -44,6 +44,8 @@ const gradeSectionRoutes = require("./routes/gradeSectionRoutes");
 app.use("/api/grade-sections", gradeSectionRoutes);
 const sectionSubjectRoutes = require("./routes/sectionSubjectRoutes");
 app.use("/api/section-subjects", sectionSubjectRoutes);
+const termClassRoutes = require("./routes/termClassRoutes");
+app.use("/api/term-classes", termClassRoutes);
 //this will be removed i think
 const sectionClassRoutes = require("./routes/sectionClassRoutes");
 app.use("/api/section-classs", sectionClassRoutes);
