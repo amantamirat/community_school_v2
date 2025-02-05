@@ -42,6 +42,9 @@ const classificationGradeRoutes = require("./routes/classificationGradeRoutes");
 app.use("/api/classification-grades", classificationGradeRoutes);
 const gradeSectionRoutes = require("./routes/gradeSectionRoutes");
 app.use("/api/grade-sections", gradeSectionRoutes);
+const sectionSubjectRoutes = require("./routes/sectionSubjectRoutes");
+app.use("/api/section-subjects", sectionSubjectRoutes);
+//this will be removed i think
 const sectionClassRoutes = require("./routes/sectionClassRoutes");
 app.use("/api/section-classs", sectionClassRoutes);
 

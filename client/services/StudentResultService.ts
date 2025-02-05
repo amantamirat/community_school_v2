@@ -41,6 +41,11 @@ export const StudentResultService = {
         return data;
     },
 
+    async approveStudentResults(section_class: SectionClass): Promise<any> {
+        throw new Error("Unimplemented Function");
+        const data = await MyService.put(`${activate_endpoint}/${section_class._id}`, {});
+        return data;
+    },
     async deleteStudentResult(studentResult: StudentResult): Promise<boolean> {
         if (studentResult._id) {
             const response = await MyService.delete(studentResult._id, delete_endpoint);

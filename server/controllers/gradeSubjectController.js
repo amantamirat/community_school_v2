@@ -6,7 +6,7 @@ const SubjectWeight = require('../models/subject-weight');
 
 const SectionClass = require("../models/section-class");
 const StudentClass = require('../models/student-class');
-const StudentResult = require('../models/student-result');
+const Subject = require('../models/subject');
 
 const GradeSubjectController = {
 
@@ -14,19 +14,21 @@ const GradeSubjectController = {
         try {
             const { curriculum_grade, subject, optional } = req.body;
 
-            const curriculumGrade = await CurriculumGrade.findById(curriculum_grade).populate('curriculum');
-            if (!curriculumGrade) {
-                return res.status(404).json({ message: 'Curriculum Grade not found' });
-            }
+            const curriculumGrade = await CurriculumGrade.findById(curriculum_grade).populate('curriculum').lean();
+            if (!curriculumGrade) return res.status(404).json({ message: 'Curriculum Grade not found' });
+
+            const _subject = await Subject.findById(subject).lean();
+            if (!_subject) return res.status(404).json({ message: 'Subject not found' });
+
             const number_of_terms = curriculumGrade.curriculum.number_of_terms;
-            if (!number_of_terms) {
-                return res.status(400).json({ message: 'Invalid curriculum' });
-            }
-            const newGradeSubject = new GradeSubject({
-                curriculum_grade,
-                subject,
-                optional
-            });
+            const maximum_load = curriculumGrade.curriculum.maximum_load;
+
+            const gradeSubjects = await GradeSubject.find({ curriculum_grade: curriculum_grade }).populate('subject').lean();
+
+            const totalLoad = gradeSubjects.reduce((sum, { subject }) => sum + subject.load, 0);
+            if (totalLoad + _subject.load > maximum_load) return res.status(404).json({ message: 'Maximum Load Reached' });
+
+            const newGradeSubject = new GradeSubject({ curriculum_grade, subject, optional });
             await newGradeSubject.save();
 
             const subjectTerms = [];
@@ -42,7 +44,7 @@ const GradeSubjectController = {
     },
     getGradeSubjectsByCurriculumGrade: async (req, res) => {
         try {
-            const gradeSubjects = await GradeSubject.find({ curriculum_grade: req.params.curriculum_grade }).populate("subject");
+            const gradeSubjects = await GradeSubject.find({ curriculum_grade: req.params.curriculum_grade }).populate("subject").lean();
             res.status(200).json(gradeSubjects);
         } catch (err) {
             res.status(500).json({ message: 'Error fetching GradeSubjects', error: err });
@@ -59,9 +61,7 @@ const GradeSubjectController = {
                 });
             }
             const updatedGradeSubject = await GradeSubject.findByIdAndUpdate(
-                id,
-                { optional },
-                { new: true }
+                id, { optional }, { new: true }
             );
             if (!updatedGradeSubject) {
                 return res.status(404).json({ message: 'GradeSubject not found' });
@@ -94,7 +94,7 @@ const GradeSubjectController = {
                 await SectionClass.deleteMany({ _id: { $in: sectionClassIds } });
             }
             await SubjectTerm.deleteMany({ _id: { $in: subjectTermIds } });
-            
+
             const deletedGradeSubject = await GradeSubject.findByIdAndDelete(id);
             if (!deletedGradeSubject) {
                 return res.status(404).json({ message: 'Grade Subject not found' });

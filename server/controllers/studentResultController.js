@@ -82,18 +82,17 @@ const StudentResultController = {
     activateStudentResultsBySectionClass: async (req, res) => {
         try {
             const { section_class } = req.params;
-            
             // Find and validate section class
             const sectionClass = await SectionClass.findById(section_class);
             if (!sectionClass) return res.status(404).json({ message: 'Section class not found' });
             if (sectionClass.status !== "SUBMITTED") return res.status(400).json({ message: 'Only SUBMITTED section classes can be activated' });
-    
+
             // Retrieve student classes
             const studentClasses = await StudentClass.find({ section_class: section_class });
             if (studentClasses.length === 0) return res.status(400).json({ message: 'No students found in this section class' });
-            
+
             const studentClassIds = studentClasses.map(sc => sc._id);
-    
+
             // Prepare bulk updates
             const bulkStudentClassUpdates = studentClassIds.map(id => ({
                 updateOne: {
@@ -101,28 +100,28 @@ const StudentResultController = {
                     update: { status: 'ACTIVE' }
                 }
             }));
-    
+
             const bulkStudentResultUpdates = studentClassIds.map(id => ({
                 updateMany: {
                     filter: { student_class: id },
                     update: { status: 'ACTIVE' }
                 }
             }));
-    
+
             // Perform bulk updates
             if (bulkStudentClassUpdates.length > 0) await StudentClass.bulkWrite(bulkStudentClassUpdates);
             if (bulkStudentResultUpdates.length > 0) await StudentResult.bulkWrite(bulkStudentResultUpdates);
-    
+
             // Update section class status back to ACTIVE
             await SectionClass.updateOne({ _id: section_class }, { status: 'ACTIVE' });
-    
+
             return res.status(200).json({ message: 'Results activation successful, everything is back to active state' });
-    
+
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
     },
-    
+
 
 
     getStudentResultsByStudentClass: async (req, res) => {
@@ -138,21 +137,26 @@ const StudentResultController = {
 
     updateStudentResults: async (req, res) => {
         try {
+            const { section_class } = req.params;
+            const sectionClass = await SectionClass.findById(section_class);
+            if (!sectionClass) return res.status(404).json({ message: 'Section class not found' });
+            if (sectionClass.status !== "ACTIVE") return res.status(400).json({ message: 'Only ACTIVE section classes results can be updated' });
+
             const student_results = req.body;
             if (!Array.isArray(student_results) || student_results.length === 0) {
                 return res.status(400).json({ message: 'Invalid input data. subject_results must be a non-empty array.' });
             }
+            const studentClassIds = student_results.map(r => r.student_class);
+            const studentClasses = await StudentClass.find({ _id: { $in: studentClassIds } }).lean();
+            const invalidStudent = studentClasses.some(sc => sc.section_class.toString() !== section_class.toString());
+            if (invalidStudent) return res.status(400).json({ message: 'Some students are not in the section class' });
+            
             const operations = student_results.map(async (result) => {
                 const { student_class, subject_weight, result: score } = result;
                 if (!student_class || !subject_weight || typeof score !== 'number') {
                     throw new Error('Missing required fields: student_class, subject_weight, or result.');
                 }
-                const studentResult = await StudentResult.findOne({ student_class, subject_weight });
-                if (studentResult && studentResult.status === 'CLOSED') {
-                    throw new Error(
-                        `Update not allowed for CLOSED record with student_class: ${student_class} and subject_weight: ${subject_weight}.`
-                    );
-                }
+                //closed results...?
                 return StudentResult.updateOne(
                     { student_class, subject_weight },
                     { $set: { result: score } },

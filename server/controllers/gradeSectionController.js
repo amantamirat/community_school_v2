@@ -4,6 +4,7 @@ const GradeSubject = require('../models/grade-subject');
 const StudentGrade = require("../models/student-grade");
 const SubjectTerm = require('../models/subject-term');
 const SectionClass = require('../models/section-class');
+const { createSectionSubjects } = require('../services/sectionSubjectService');
 
 
 const registerSectionClasses = async (curriculum_grade, savedSection) => {
@@ -26,7 +27,7 @@ const GradeSectionController = {
     getGradeSectionsByClassificationGrade: async (req, res) => {
         try {
             const { classification_grade } = req.params;
-            const gradeSections = await GradeSection.find({ classification_grade: classification_grade });
+            const gradeSections = await GradeSection.find({ classification_grade: classification_grade }).lean();
             res.status(200).json(gradeSections);
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -42,6 +43,7 @@ const GradeSectionController = {
             }
             const gradeSection = new GradeSection({ classification_grade, section_number, status });
             const savedGradeSection = await gradeSection.save();
+            await createSectionSubjects(savedGradeSection);
             await registerSectionClasses(classificationGrade.curriculum_grade, savedGradeSection);
             res.status(201).json(savedGradeSection);
         } catch (error) {

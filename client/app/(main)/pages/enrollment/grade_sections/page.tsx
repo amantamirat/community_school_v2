@@ -31,20 +31,19 @@ const GradeSectionComponent = () => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        try {
-            if (selectedClassificationGrade) {
-                GradeSectionService.getGradeSectionsByClassificationGrade(selectedClassificationGrade).then((data) => {
-                    setGradeSections(data);
+        if (selectedClassificationGrade) {
+            GradeSectionService.getGradeSectionsByClassificationGrade(selectedClassificationGrade).then((data) => {
+                setGradeSections(data);
+            }).catch((err) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load sections',
+                    detail: '' + err,
+                    life: 3000
                 });
-            }
-        } catch (err) {
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load sections',
-                detail: '' + err,
-                life: 3000
             });
         }
+
     }, [selectedClassificationGrade]);
 
 
@@ -63,7 +62,6 @@ const GradeSectionComponent = () => {
         let _gradeSections = [...(gradeSections as any)];
         try {
             const newGradeSection = await GradeSectionService.createGradeSection(selectedGradeSection);
-            // _gradeSections.push({ ...selectedGradeSection, _id: newGradeSection._id });
             _gradeSections.push(newGradeSection);
             toast.current?.show({
                 severity: 'success',
@@ -72,7 +70,6 @@ const GradeSectionComponent = () => {
                 life: 1500
             });
         } catch (error) {
-            //console.error(error);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to add grade',
@@ -197,11 +194,11 @@ const GradeSectionComponent = () => {
         return (
             <>
                 <div className="my-2">
-                    <Button label="Activate Next Term" icon="pi pi-fast-forward" severity="help" raised  style={{ marginRight: '10px' }} />
+                    <Button label="Activate Next Term" icon="pi pi-fast-forward" severity="help" raised style={{ marginRight: '10px' }} />
                 </div>
 
                 <div className="my-2">
-                    <Button tooltip="Sync Grade Subjects" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded onClick={syncSubjects} />
+                    <Button tooltip="Sync Subjects" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded onClick={syncSubjects} />
                 </div>
 
             </>

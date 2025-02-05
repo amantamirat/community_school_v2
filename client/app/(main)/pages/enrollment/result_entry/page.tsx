@@ -6,11 +6,9 @@ import { StudentClassService } from '@/services/StudentClassService';
 import { StudentResultService } from '@/services/StudentResultService';
 import { SubjectWeightService } from '@/services/SubjectWeightService';
 import { GradeSection, GradeSubject, SectionClass, StudentClass, StudentResult, SubjectTerm, SubjectWeight } from '@/types/model';
-import { stat } from 'fs';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
-import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Tag } from 'primereact/tag';
@@ -38,8 +36,8 @@ const ResultEntryPage = () => {
     const queueStudentResults = useRef<StudentResult[]>([]);
     const [loading, setLoading] = useState(false);
     const [loading1, setLoading1] = useState(false);
-    const [status, setStatus] = useState<"Disapprove" | "Submit" | "Approve">("Submit");
-    const [showSubmitDialog, setShowConfirmationDialog] = useState(false);
+    const [loading2, setLoading2] = useState(false);
+    const [loading3, setLoading3] = useState(false);
 
 
     useEffect(() => {
@@ -142,16 +140,13 @@ const ResultEntryPage = () => {
 
 
     const saveStudentResults = async () => {
-        if (queueStudentResults.current.length === 0) {
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Nothing to update',
-                detail: 'You havent update any results',
-                life: 1500
-            });
-            return;
-        }
         try {
+            if (selectedSectionClass?.status !== 'ACTIVE') {
+                throw new Error("Non Active Class Can not be Saved!");
+            }
+            if (queueStudentResults.current.length === 0) {
+                throw new Error("You havent update any results");
+            }
             setLoading(true);
             const data = await StudentResultService.updateStudentResults(queueStudentResults.current);
             if (data.length > 0) {
@@ -174,89 +169,123 @@ const ResultEntryPage = () => {
         }
     }
 
-    const updateStudentResultsState = async () => {
-        try {
 
+    const submitStudentResults = async () => {
+        try {
             if (selectedSectionClass) {
-                switch (selectedSectionClass.status) {
-                    case 'ACTIVE':
-                        setLoading1(true);
-                        let total_results = subjectWeights.length * studentClasses.length;
-                        let _studentResults = await StudentResultService.getStudentResultsBySectionClass(selectedSectionClass);
-                        let entered_results = _studentResults.length;
-                        let entered_percentage = (entered_results / total_results) * 100;
-                        if (entered_percentage < 75) {
-                            throw new Error('At least 75% result must be saved. Please enter results and save all first!');
-                        }
-                        const data = await StudentResultService.submitStudentResults(selectedSectionClass);
-                        if (data) {
-                            //console.log(data);
-                            const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedSectionClass);
-                            //const _selectedClass = { ...selectedSectionClass, status: 'SUBMITTED' as 'SUBMITTED' | 'ACTIVE' | 'APPROVED' | 'PENDING' };
-                            setSelectedSectionClass({ ...selectedSectionClass, status: 'SUBMITTED' });
-                            setStudentClasses(_studentClass);
-                            toast.current?.show({
-                                severity: 'success',
-                                summary: 'Successful',
-                                detail: 'Results Submitted',
-                                life: 1500
-                            });
-                        }
-                        break;
-                    case 'SUBMITTED':
-                        switch (status) {
-                            case 'Disapprove':
-                                const data = await StudentResultService.activateStudentResults(selectedSectionClass);
-                                if (data) {
-                                    //console.log(data);
-                                    const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedSectionClass);
-                                    setSelectedSectionClass({ ...selectedSectionClass, status: 'ACTIVE' });
-                                    setStudentClasses(_studentClass);
-                                    toast.current?.show({
-                                        severity: 'success',
-                                        summary: 'Successful',
-                                        detail: 'Results Back to Activated',
-                                        life: 1500
-                                    });
-                                }
-                            case 'Submit':
-                            case 'Approve':
-                        }
-                        break;
-                    case 'APPROVED':
-                        break;
-                    case 'PENDING':
-                        break
+                if (selectedSectionClass.status !== 'ACTIVE') {
+                    throw new Error("Non Active Class Can not be Submitted");
+                }
+                setLoading1(true);
+                let total_results = subjectWeights.length * studentClasses.length;
+                let _studentResults = await StudentResultService.getStudentResultsBySectionClass(selectedSectionClass);
+                let entered_results = _studentResults.length;
+                let entered_percentage = (entered_results / total_results) * 100;
+                if (entered_percentage < 75) {
+                    throw new Error('At least 75% result must be saved. Please enter results and save all first!');
+                }
+                const data = await StudentResultService.submitStudentResults(selectedSectionClass);
+                if (data) {
+                    const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedSectionClass);
+                    let _sectionClasses = [...sectionClasss];
+                    const index = sectionClasss.findIndex((section) => section._id === selectedSectionClass._id);
+                    _sectionClasses[index] = { ...selectedSectionClass, status: 'SUBMITTED' };
+                    setSectionClasss(_sectionClasses);
+                    setStudentClasses(_studentClass);
+                    setSelectedSectionClass(_sectionClasses[index]);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Results Submitted',
+                        life: 1500
+                    });
                 }
             }
         } catch (error) {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed to update results',
+                summary: 'Failed to submit results',
                 detail: '' + error,
                 life: 1500
             });
         } finally {
             setLoading1(false);
-            setShowConfirmationDialog(false);
         }
     }
 
-    const openStateDialog = (status: "Disapprove" | "Submit" | "Approve") => {
-        setStatus(status);
-        setShowConfirmationDialog(true);
-    };
+    const approveStudentResults = async () => {
+        try {
+            if (selectedSectionClass) {
+                if (selectedSectionClass.status !== 'SUBMITTED') {
+                    throw new Error("Non Submitted Class Can not be Approved");
+                }
+                setLoading2(true);
+                const data = await StudentResultService.approveStudentResults(selectedSectionClass);
+                if (data) {
+                    //const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedSectionClass);
+                    let _sectionClasses = [...sectionClasss];
+                    const index = sectionClasss.findIndex((section) => section._id === selectedSectionClass._id);
+                    _sectionClasses[index] = { ...selectedSectionClass, status: 'APPROVED' };
+                    setSectionClasss(_sectionClasses);
+                    //setStudentClasses(_studentClass);
+                    setSelectedSectionClass(_sectionClasses[index]);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Results Approved',
+                        life: 1500
+                    });
+                }
+            }
+        } catch (error) {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to approve results',
+                detail: '' + error,
+                life: 1500
+            });
+        } finally {
+            setLoading2(false);
+        }
+    }
 
-    const hideSubmitDialog = () => {
-        setShowConfirmationDialog(false);
-    };
 
-    const submitDialogFooter = (
-        <>
-            <Button label="No" icon="pi pi-times" text onClick={hideSubmitDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={updateStudentResultsState} />
-        </>
-    );
+    const activateStudentResults = async () => {
+        try {
+            if (selectedSectionClass) {
+                if (selectedSectionClass.status !== 'SUBMITTED') {
+                    throw new Error("Non Submitted Class Can not be Activated");
+                }
+                setLoading3(true);
+                const data = await StudentResultService.activateStudentResults(selectedSectionClass);
+                if (data) {
+                    const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedSectionClass);
+                    let _sectionClasses = [...sectionClasss];
+                    const index = sectionClasss.findIndex((section) => section._id === selectedSectionClass._id);
+                    _sectionClasses[index] = { ...selectedSectionClass, status: 'ACTIVE' };
+                    setSectionClasss(_sectionClasses);
+                    setStudentClasses(_studentClass);
+                    setSelectedSectionClass(_sectionClasses[index]);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Results Back to Activated',
+                        life: 1500
+                    });
+                }
+            }
+        } catch (error) {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to activate results',
+                detail: '' + error,
+                life: 1500
+            });
+        } finally {
+            setLoading3(false);
+        }
+    }
+
 
     const prepareResultEntries = (): ResultEntry[] => {
         return studentClasses.map(studentClass => {
@@ -277,14 +306,11 @@ const ResultEntryPage = () => {
     };
 
     const onCellEditComplete = (e: any) => {
-        //const { rowData, field, newValue } = e; // `rowData` is the current row, `field` is the edited column, `newValue` is the new value
         let { rowData, newValue, field, originalEvent: event } = e;
-
         if (!newValue) {
             event.preventDefault();
             return
         }
-
         rowData[field] = newValue;
         const newResult: StudentResult = {
             student_class: rowData.student_class._id,
@@ -343,16 +369,17 @@ const ResultEntryPage = () => {
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h5 className="m-0">Student Results</h5>
             <span className="block mt-2">
-                {selectedSectionClass?.status === "ACTIVE" ? <Button label='Save All' text loading={loading} onClick={saveStudentResults} /> : <></>}
+                <Button label='Save All' text loading={loading} onClick={saveStudentResults}  style={{ marginRight: '10px' }} />
+                <Button label='Submit' onClick={submitStudentResults} loading={loading1}  style={{ marginRight: '10px' }} />
+                <Button label='Approve' severity='success' onClick={approveStudentResults}  loading={loading2}  style={{ marginRight: '10px' }} />
+                <Button label='Disapprove' onClick={activateStudentResults} severity='danger' loading={loading3} />
             </span>
         </div>
     );
 
     const footer = (
         <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-            {selectedSectionClass?.status === "ACTIVE" ? <><></><Button label='Submit' onClick={() => openStateDialog("Submit")} loading={loading1} /> </> :
-                selectedSectionClass?.status === "SUBMITTED" ? <><Button label='Approve' severity='success' onClick={() => openStateDialog("Approve")} loading={loading1} /><Button label='Disapprove' onClick={() => openStateDialog("Disapprove")} severity='danger' loading={loading} /></>
-                    : <></>}
+            <>... footer content</>
         </div>
     );
 
@@ -463,23 +490,6 @@ const ResultEntryPage = () => {
                                 body={statusBodyTemplate}
                             />
                         </DataTable>
-                        <Dialog
-                            visible={showSubmitDialog}
-                            style={{ width: '450px' }}
-                            header={`Confirm to ${status} Student Result`}
-                            modal
-                            footer={submitDialogFooter}
-                            onHide={hideSubmitDialog}
-                        >
-                            <div className="flex align-items-center justify-content-center">
-                                <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                                {selectedGradeSection && (
-                                    <span>
-                                        Are you sure you want to {status} <b>{selectedSectionClass?._id}</b>?
-                                    </span>
-                                )}
-                            </div>
-                        </Dialog>
                     </div>
                 </div>
             </div>

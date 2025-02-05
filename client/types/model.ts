@@ -94,6 +94,14 @@ export type GradeSection = {
     status: 'OPEN' | 'CLOSED';
 };
 
+export type SectionSubject = {
+    _id?: string;
+    grade_section: GradeSection | string;
+    grade_subject: GradeSubject | string;
+    teacher?: Teacher | string;
+    status: 'ACTIVE' | 'CLOSED';
+};
+
 export type SectionClass = {
     _id?: string;
     grade_section: GradeSection | string;
