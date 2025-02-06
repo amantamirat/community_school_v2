@@ -4,25 +4,11 @@ const StudentResult = require("../models/student-result");
 
 const StudentClassController = {
 
-    syncStudentClasses: async (req, res) => {
-        try {
-            const { student_grade } = req.params;
-            const studentGrade = await StudentGrade.findById(student_grade);
-            if (!studentGrade) {
-                return res.status(404).json({ message: 'Student Grade not found' });
-            }
-            res.status(201).json({});
-        } catch (error) {
-            res.status(400).json({ message: error.message });
-            //console.log(error);
-        }
-    },
-
     getStudentClassesByStudentGrade: async (req, res) => {
         try {
             const { student_grade } = req.params;
             const studentClasss = await StudentClass.find({ student_grade: student_grade }).populate({
-                path: 'section_class',
+                path: 'term_class',
                 populate: { path: 'subject_term', populate: { path: 'grade_subject', populate: { path: 'subject' } } },
             });
             //console.log(studentClasss)
@@ -34,11 +20,12 @@ const StudentClassController = {
 
     getStudentClassesBySectionClass: async (req, res) => {
         try {
-            const { section_class } = req.params;
-            const studentClasss = await StudentClass.find({ section_class: section_class }).populate({
+            const { term_class } = req.params;
+            const studentClasss = await StudentClass.find({ term_class: term_class }).populate({
                 path: 'student_grade',
                 populate: { path: 'student' },
-            });
+            }).lean();
+            //console.log(studentClasss);
             res.status(200).json(studentClasss);
         } catch (error) {
             res.status(500).json({ message: error.message });

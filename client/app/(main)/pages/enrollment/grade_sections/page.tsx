@@ -31,20 +31,19 @@ const GradeSectionComponent = () => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        try {
-            if (selectedClassificationGrade) {
-                GradeSectionService.getGradeSectionsByClassificationGrade(selectedClassificationGrade).then((data) => {
-                    setGradeSections(data);
+        if (selectedClassificationGrade) {
+            GradeSectionService.getGradeSectionsByClassificationGrade(selectedClassificationGrade).then((data) => {
+                setGradeSections(data);
+            }).catch((err) => {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load sections',
+                    detail: '' + err,
+                    life: 3000
                 });
-            }
-        } catch (err) {
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load sections',
-                detail: '' + err,
-                life: 3000
             });
         }
+
     }, [selectedClassificationGrade]);
 
 
@@ -63,7 +62,6 @@ const GradeSectionComponent = () => {
         let _gradeSections = [...(gradeSections as any)];
         try {
             const newGradeSection = await GradeSectionService.createGradeSection(selectedGradeSection);
-            // _gradeSections.push({ ...selectedGradeSection, _id: newGradeSection._id });
             _gradeSections.push(newGradeSection);
             toast.current?.show({
                 severity: 'success',
@@ -72,7 +70,6 @@ const GradeSectionComponent = () => {
                 life: 1500
             });
         } catch (error) {
-            //console.error(error);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to add grade',
@@ -107,41 +104,6 @@ const GradeSectionComponent = () => {
         }
         setShowRemoveDialog(false);
         setSelectedGradeSection(emptyGradeSection);
-    }
-
-    const syncSubjects = async () => {
-        try {
-            if (!selectedClassificationGrade) {
-                throw Error("Classification Grade Required");
-            }
-            setLoading(true);
-            const sync_data: any[] = await GradeSectionService.syncSectionClasses(selectedClassificationGrade);
-            if (sync_data.length > 0) {
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: `${sync_data.length} section classes synced`,
-                    life: 3000
-                });
-            } else {
-                toast.current?.show({
-                    severity: 'info',
-                    summary: 'Sync Classes',
-                    detail: "Nothing synced. Already up to date.",
-                    life: 3000
-                });
-            }
-
-        } catch (error) {
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to sync',
-                detail: '' + error,
-                life: 1500
-            });
-        } finally {
-            setLoading(false);
-        }
     }
 
     const openAddDialog = () => {
@@ -197,11 +159,7 @@ const GradeSectionComponent = () => {
         return (
             <>
                 <div className="my-2">
-                    <Button label="Activate Next Term" icon="pi pi-fast-forward" severity="help" raised  style={{ marginRight: '10px' }} />
-                </div>
-
-                <div className="my-2">
-                    <Button tooltip="Sync Grade Subjects" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded onClick={syncSubjects} />
+                    ...
                 </div>
 
             </>
@@ -252,6 +210,7 @@ const GradeSectionComponent = () => {
                         <Column expander style={{ width: '4em' }} />
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="section_number" header="Section" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="status" header="Status" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
                     <Dialog

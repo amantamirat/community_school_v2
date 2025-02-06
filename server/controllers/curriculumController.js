@@ -10,8 +10,8 @@ const CurriculumController = {
     // Create a new curriculum
     createCurriculum: async (req, res) => {
         try {
-            const { title, classification, number_of_terms, maximum_point, minimum_pass_mark } = req.body;
-            const curriculum = new Curriculum({ title, classification, number_of_terms, maximum_point, minimum_pass_mark });
+            const { title, classification, number_of_terms, maximum_point, minimum_pass_mark, maximum_load } = req.body;
+            const curriculum = new Curriculum({ title, classification, number_of_terms, maximum_point, minimum_pass_mark, maximum_load });
             const savedCurriculum = await curriculum.save();
             res.status(201).json(savedCurriculum);
         } catch (error) {
@@ -43,15 +43,33 @@ const CurriculumController = {
             if (!existingCurriculum) {
                 return res.status(404).json({ message: "Curriculum not found." });
             }
-            const { title, classification, number_of_terms, maximum_point, minimum_pass_mark } = req.body;
+            const { title, classification, number_of_terms, maximum_point, minimum_pass_mark, maximum_load } = req.body;
 
             //update subjectTerms based on number_of_terms
             const oldNumberOfTerms = existingCurriculum.number_of_terms;
             const oldMaximumPoint = existingCurriculum.maximum_point;
-            if (oldNumberOfTerms !== number_of_terms || oldMaximumPoint !== maximum_point) {
+            const oldMaximumLoad = existingCurriculum.maximum_load;
+            if (oldNumberOfTerms !== number_of_terms || oldMaximumPoint !== maximum_point || oldMaximumLoad !== maximum_load) {
                 const curriculumGrades = await CurriculumGrade.find({ curriculum: id }).select('_id');
                 const curriculumGradeIds = curriculumGrades.map(cg => cg._id);
-                const gradeSubjects = await GradeSubject.find({ curriculum_grade: { $in: curriculumGradeIds } }).select('_id');
+                const gradeSubjects = await GradeSubject.find({ curriculum_grade: { $in: curriculumGradeIds } }).populate('subject').lean();
+                if (oldMaximumLoad > maximum_load) {
+                    const totalLoadPerGrade = {};
+                    gradeSubjects.forEach(({ curriculum_grade, subject }) => {
+                        const load = subject.load;
+                        totalLoadPerGrade[curriculum_grade] =
+                            (totalLoadPerGrade[curriculum_grade] || 0) + load;
+                    });
+                    const maxGrade = Object.entries(totalLoadPerGrade).reduce(
+                        (max, [curriculum_grade, totalLoad]) =>
+                            totalLoad > max.totalLoad ? { curriculum_grade, totalLoad } : max,
+                        { curriculum_grade: null, totalLoad: -Infinity } // Initial value
+                    );
+                    //console.log(`Curriculum grade with max load: ${maxGrade.curriculum_grade}, Load: ${maxGrade.totalLoad}`);
+                    if (maxGrade.totalLoad > maximum_load) {
+                        throw new Error("Can't Update Curriculum, The New Maximum Load Parameter is Minimum Than The Existing Maximum Load");
+                    }
+                }
                 const gradeSubjectIds = gradeSubjects.map(gs => gs._id);
                 if (oldMaximumPoint !== maximum_point) {
                     const isWeightSetted = await SubjectWeight.exists({ grade_subject: { $in: gradeSubjectIds } });
@@ -80,7 +98,7 @@ const CurriculumController = {
             }
             const updatedCurriculum = await Curriculum.findByIdAndUpdate(
                 id,
-                { title, classification, number_of_terms, maximum_point, minimum_pass_mark },
+                { title, classification, number_of_terms, maximum_point, minimum_pass_mark, maximum_load },
                 { new: true }
             );
             if (!updatedCurriculum) {

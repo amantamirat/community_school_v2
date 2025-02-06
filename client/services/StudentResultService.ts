@@ -1,10 +1,10 @@
-import { SectionClass, StudentClass, StudentResult } from "@/types/model";
+import { SectionClass, StudentClass, StudentResult, TermClass } from "@/types/model";
 import { MyService } from "./MyService";
 const CACHE_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
 const storageName = 'studentResults';
 const cacheTimeStampName = 'studentResultsCacheTimestamp'
 const get_endpoint_by_student_class = '/api/student-results/student_class';
-const get_endpoint_by_section_class = '/api/student-results/section_class';
+const get_endpoint_by_term_class = '/api/student-results/term_class';
 const submit_endpoint = '/api/student-results/submit';
 const activate_endpoint = '/api/student-results/activate';
 const delete_endpoint = '/api/student-results/delete';
@@ -14,8 +14,8 @@ const update_student_results_endpoint = '/api/student-results/update-student-res
 
 export const StudentResultService = {
 
-    async getStudentResultsBySectionClass(section_class: SectionClass): Promise<StudentResult[]> {
-        const endpoint = `${get_endpoint_by_section_class}/${section_class._id}`;
+    async getStudentResultsByTerm(term_class: TermClass): Promise<StudentResult[]> {
+        const endpoint = `${get_endpoint_by_term_class}/${term_class._id}`;
         const data = await MyService.get(endpoint);
         return data as StudentResult[];
     },
@@ -31,16 +31,21 @@ export const StudentResultService = {
         return data as StudentResult[];
     },
 
-    async submitStudentResults(section_class: SectionClass): Promise<any> {
-        const data = await MyService.put(`${submit_endpoint}/${section_class._id}`, {});
+    async submitStudentResults(term_class: TermClass): Promise<any> {
+        const data = await MyService.put(`${submit_endpoint}/${term_class._id}`, {});
         return data;
     },
 
-    async activateStudentResults(section_class: SectionClass): Promise<any> {
+    async activateStudentResults(section_class: TermClass): Promise<any> {
         const data = await MyService.put(`${activate_endpoint}/${section_class._id}`, {});
         return data;
     },
 
+    async approveStudentResults(term_class: TermClass): Promise<any> {
+        throw new Error("Unimplemented Function");
+        const data = await MyService.put(`${activate_endpoint}/${term_class._id}`, {});
+        return data;
+    },
     async deleteStudentResult(studentResult: StudentResult): Promise<boolean> {
         if (studentResult._id) {
             const response = await MyService.delete(studentResult._id, delete_endpoint);

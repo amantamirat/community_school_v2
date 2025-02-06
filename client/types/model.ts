@@ -94,12 +94,19 @@ export type GradeSection = {
     status: 'OPEN' | 'CLOSED';
 };
 
-export type SectionClass = {
+export type SectionSubject = {
     _id?: string;
     grade_section: GradeSection | string;
+    grade_subject: GradeSubject | string;
+    teacher?: Teacher | string;
+    status: 'ACTIVE' | 'CLOSED';
+};
+
+export type TermClass = {
+    _id?: string;
+    section_subject: SectionSubject | string;
     subject_term: SubjectTerm | string;
     status: 'ACTIVE' | 'SUBMITTED' | 'APPROVED' | 'PENDING';
-    teacher?: Teacher | string;
 };
 
 export type Student = {
@@ -134,7 +141,7 @@ export type StudentGrade = {
 export type StudentClass = {
     _id?: string;
     student_grade: StudentGrade | string;
-    section_class: SectionClass | string;
+    term_class: TermClass | string;
     status: 'ACTIVE'| 'COMPLETED'|'INCOMPLETE'| 'PENDING';
 };
 

@@ -1,9 +1,9 @@
 'use client';
 import { useClassificationGrade } from "@/app/(main)/contexts/classificationGradeContext";
 import { GradeSectionService } from "@/services/GradeSectionService";
-import { SectionClassService } from "@/services/SectionClassService";
+import { SectionSubjectService } from "@/services/SectionSubjectService";
 import { TeacherService } from "@/services/TeacherService";
-import { GradeSection, GradeSubject, SectionClass, SubjectTerm, Teacher } from "@/types/model";
+import { GradeSection, SectionSubject, Teacher } from "@/types/model";
 import { teacherTemplate } from "@/types/templates";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
@@ -17,17 +17,19 @@ import { useEffect, useRef, useState } from "react";
 
 const TeacherClassPage = () => {
 
-    let emptySectionClass: SectionClass = {
+    let emptySectionSubject: SectionSubject = {
         grade_section: '',
-        subject_term: '',
+        grade_subject: '',
         teacher: '',
-        status: 'PENDING'
+        status: 'ACTIVE'
     };
     const [gradeSections, setGradeSections] = useState<GradeSection[]>([]);
     const [selectedGradeSection, setSelectedGradeSection] = useState<GradeSection | null>(null);
     const { selectedClassificationGrade } = useClassificationGrade();
-    const [sectionClasss, setSectionClasss] = useState<SectionClass[]>([]);
-    const [selectedSectionClass, setSelectedSectionClass] = useState<SectionClass>(emptySectionClass);
+
+    const [selectedSectionSubject, setSelectedSectionSubject] = useState<SectionSubject>(emptySectionSubject);
+    const [sectionSubjects, setSectionSubjects] = useState<SectionSubject[]>([]);
+
     const [showTeacherDialog, setShowTeacherDialog] = useState(false);
     const [showRemoveDialog, setShowRemoveDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -51,7 +53,6 @@ const TeacherClassPage = () => {
 
     useEffect(() => {
         if (selectedClassificationGrade) {
-            setLoading(true);
             GradeSectionService.getGradeSectionsByClassificationGrade(selectedClassificationGrade).then((data) => {
                 setGradeSections(data);
             }).catch((error) => {
@@ -62,19 +63,19 @@ const TeacherClassPage = () => {
                     life: 3000
                 });
             }).finally(() => {
-                setLoading(false);
+
             });
         }
     }, [selectedClassificationGrade]);
 
     useEffect(() => {
         if (selectedGradeSection) {
-            SectionClassService.getActiveSectionClasssByGradeSection(selectedGradeSection).then((data) => {
-                setSectionClasss(data);
+            SectionSubjectService.getSectionClasssByGradeSection(selectedGradeSection).then((data) => {
+                setSectionSubjects(data);
             }).catch((err) => {
                 toast.current?.show({
                     severity: 'error',
-                    summary: 'Failed to load section class',
+                    summary: 'Failed to load section subjects',
                     detail: '' + err,
                     life: 3000
                 });
@@ -87,27 +88,25 @@ const TeacherClassPage = () => {
 
     const saveTeacherClass = async () => {
         setSubmitted(true);
-        if (!selectedSectionClass.teacher) {
+        if (!selectedSectionSubject.teacher) {
             return
         }
         try {
-            let _sectionClasss = [...sectionClasss];
-            if (selectedSectionClass._id) {
-                const data = await SectionClassService.allocateTeacher(selectedSectionClass);
-                if (data > 0) {
-                    for (let i = 0; i < _sectionClasss.length; i++) {
-                        if (((sectionClasss[i].subject_term as SubjectTerm).grade_subject as GradeSubject)._id === ((selectedSectionClass.subject_term as SubjectTerm).grade_subject as GradeSubject)._id) {
-                            _sectionClasss[i] = { ..._sectionClasss[i], teacher: selectedSectionClass.teacher }
-                        }
-                    }
+            if (selectedSectionSubject.status !== "ACTIVE") throw new Error("Non Activated Class Found!");
+            let _sectionSubjects = [...sectionSubjects];
+            if (selectedSectionSubject._id) {
+                const data = await SectionSubjectService.allocateTeacher(selectedSectionSubject);
+                if (data) {
+                    const index = sectionSubjects.findIndex((sub) => sub._id === selectedSectionSubject._id);
+                    _sectionSubjects[index] = { ...selectedSectionSubject };
+                    setSectionSubjects(_sectionSubjects);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Teacher Allocated',
+                        life: 1500
+                    });
                 }
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Teacher Allocated',
-                    life: 1500
-                });
-                setSectionClasss(_sectionClasss);
             }
         } catch (error) {
             console.log(error);
@@ -119,30 +118,25 @@ const TeacherClassPage = () => {
             });
         } finally {
             setShowTeacherDialog(false);
-            setSelectedSectionClass(emptySectionClass);
+            setSelectedSectionSubject(emptySectionSubject);
         }
     }
     const removeTeacherClass = async () => {
         try {
-            if (selectedSectionClass._id) {
-                const deleted = await SectionClassService.removeTeacherClass(selectedSectionClass);
+            if (selectedSectionSubject._id) {
+                if (selectedSectionSubject.status !== "ACTIVE") throw new Error("Non Activated Class Found!");
+                const deleted = await SectionSubjectService.removeTeacher(selectedSectionSubject);
                 if (deleted) {
-                    let _sectionClasss = [...sectionClasss];
-                    for (let i = 0; i < _sectionClasss.length; i++) {
-                        if (
-                            ((sectionClasss[i].subject_term as SubjectTerm).grade_subject as GradeSubject)._id ===
-                            ((selectedSectionClass.subject_term as SubjectTerm).grade_subject as GradeSubject)._id
-                        ) {
-                            _sectionClasss[i] = { ..._sectionClasss[i], teacher: undefined };
-                        }
-                    }
+                    let _sectionSubjects = [...sectionSubjects];
+                    const index = sectionSubjects.findIndex((sub) => sub._id === selectedSectionSubject._id);
+                    _sectionSubjects[index] = { ...selectedSectionSubject, teacher: undefined };
+                    setSectionSubjects(_sectionSubjects);
                     toast.current?.show({
                         severity: 'success',
                         summary: 'Successful',
                         detail: 'Class Deleted',
                         life: 1500
                     });
-                    setSectionClasss(_sectionClasss);
                 }
             }
         } catch (error) {
@@ -154,19 +148,19 @@ const TeacherClassPage = () => {
             });
         } finally {
             setShowRemoveDialog(false);
-            setSelectedSectionClass(emptySectionClass);
+            setSelectedSectionSubject(emptySectionSubject);
         }
     }
 
-    const openTeacherDialog = (sectionClass: SectionClass) => {
-        setSelectedSectionClass(sectionClass);
+    const openTeacherDialog = (sectionSubject: SectionSubject) => {
+        setSelectedSectionSubject(sectionSubject);
         setSubmitted(false);
         setShowTeacherDialog(true);
     };
 
     const hideTeacherDialog = () => {
         setSubmitted(false);
-        setSelectedSectionClass(emptySectionClass);
+        setSelectedSectionSubject(emptySectionSubject);
         setShowTeacherDialog(false);
     };
     const teacherDialogFooter = (
@@ -176,8 +170,8 @@ const TeacherClassPage = () => {
         </>
     );
 
-    const confirmRemoveSectionClass = (sectionClass: SectionClass) => {
-        setSelectedSectionClass(sectionClass);
+    const confirmRemoveSectionClass = (sectionSubject: SectionSubject) => {
+        setSelectedSectionSubject(sectionSubject);
         setShowRemoveDialog(true);
     };
 
@@ -199,30 +193,9 @@ const TeacherClassPage = () => {
         </div>
     );
 
-    const teacherBodyTemplate = (rowData: SectionClass) => {
-        return (<>
-            {typeof rowData.teacher === 'string' ? (
-                rowData.teacher || 'N/A'
-            ) : rowData.teacher && typeof rowData.teacher === 'object' ? (
-                rowData.teacher.first_name + " " + rowData.teacher.last_name || 'N/A'
-            ) : (
-                'N/A'
-            )}
-        </>);
-    };
 
-    const findIndexById = (id: string) => {
-        let index = -1;
-        for (let i = 0; i < (sectionClasss as any)?.length; i++) {
-            if ((sectionClasss as any)[i]._id === id) {
-                index = i;
-                break;
-            }
-        }
-        return index;
-    };
 
-    const actionBodyTemplate = (rowData: SectionClass) => {
+    const actionBodyTemplate = (rowData: SectionSubject) => {
         return (
             <>
                 <Button tooltip="Assign Teacher" icon="pi pi-user" rounded severity="info" style={{ marginRight: '10px' }} onClick={() => openTeacherDialog(rowData)} />
@@ -263,16 +236,17 @@ const TeacherClassPage = () => {
                     </div>
                     <DataTable
                         header={header}
-                        value={sectionClasss}
-                        selection={selectedSectionClass}
-                        onSelectionChange={(e) => setSelectedSectionClass(e.value)}
+                        value={sectionSubjects}
+                        selection={selectedSectionSubject}
+                        onSelectionChange={(e) => setSelectedSectionSubject(e.value)}
                         dataKey="_id"
                         emptyMessage={`No class for ${selectedGradeSection?._id} section found.`}
                         paginator
                         rows={15}
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
-                        <Column field="subject_term.grade_subject.subject.title" header="Subject" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+
+                        <Column field="grade_subject.subject.title" header="Subject" sortable headerStyle={{ minWidth: '10rem' }}></Column>
 
                         <Column header="Teacher" field="teacher.first_name" body={(rowData) =>
                             rowData.teacher
@@ -285,19 +259,19 @@ const TeacherClassPage = () => {
                     <Dialog
                         visible={showTeacherDialog}
                         style={{ width: '450px' }}
-                        header={selectedSectionClass._id ? 'Allocate Teacher' : ''}
+                        header={selectedSectionSubject._id ? 'Allocate Teacher' : ''}
                         modal
                         className="p-fluid"
                         footer={teacherDialogFooter}
                         onHide={hideTeacherDialog}                    >
-                        {selectedSectionClass._id ?
+                        {selectedSectionSubject._id ?
                             <div className="field">
                                 <label htmlFor="teacher">Teacher</label>
                                 <div id="teacher">
                                     <Dropdown
-                                        value={selectedSectionClass.teacher}
+                                        value={selectedSectionSubject?.teacher}
                                         options={teachers}
-                                        onChange={(e) => setSelectedSectionClass({ ...selectedSectionClass, teacher: e.value })}
+                                        onChange={(e) => setSelectedSectionSubject({ ...selectedSectionSubject, teacher: e.value })}
                                         placeholder="Select a Teacher"
                                         optionLabel="_id"
                                         itemTemplate={teacherTemplate}
@@ -306,10 +280,10 @@ const TeacherClassPage = () => {
                                         required
                                         emptyMessage="No Teachers Found."
                                         className={classNames({
-                                            'p-invalid': submitted && !selectedSectionClass.teacher,
+                                            'p-invalid': submitted && !selectedSectionSubject.teacher,
                                         })}
                                     />
-                                    {submitted && !selectedSectionClass.teacher && <small className="p-invalid">Teacher is required.</small>}
+                                    {submitted && !selectedSectionSubject.teacher && <small className="p-invalid">Teacher is required.</small>}
                                 </div>
                             </div>
                             : <></>
@@ -326,9 +300,9 @@ const TeacherClassPage = () => {
                     >
                         <div className="flex align-items-center justify-content-center">
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {selectedSectionClass && (
+                            {selectedSectionSubject.teacher && (
                                 <span>
-                                    Are you sure you want to remove <b>{teacherBodyTemplate(selectedSectionClass)}</b> from class?
+                                    Are you sure you want to remove <b>{(selectedSectionSubject.teacher as Teacher).first_name}</b> from class?
                                 </span>
                             )}
                         </div>
