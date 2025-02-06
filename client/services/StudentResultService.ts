@@ -1,4 +1,4 @@
-import { SectionClass, StudentClass, StudentResult, TermClass } from "@/types/model";
+import { StudentClass, StudentResult, TermClass } from "@/types/model";
 import { MyService } from "./MyService";
 const CACHE_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
 const storageName = 'studentResults';
@@ -26,8 +26,8 @@ export const StudentResultService = {
         return data as StudentResult[];
     },
 
-    async updateStudentResults(results: StudentResult[]): Promise<any> {
-        const data = await MyService.put(update_student_results_endpoint, results);
+    async updateStudentResults(results: StudentResult[], term_class:TermClass): Promise<any> {
+        const data = await MyService.put(`${update_student_results_endpoint}/${term_class._id}`, results);
         return data as StudentResult[];
     },
 
@@ -41,11 +41,7 @@ export const StudentResultService = {
         return data;
     },
 
-    async approveStudentResults(term_class: TermClass): Promise<any> {
-        throw new Error("Unimplemented Function");
-        const data = await MyService.put(`${activate_endpoint}/${term_class._id}`, {});
-        return data;
-    },
+   
     async deleteStudentResult(studentResult: StudentResult): Promise<boolean> {
         if (studentResult._id) {
             const response = await MyService.delete(studentResult._id, delete_endpoint);

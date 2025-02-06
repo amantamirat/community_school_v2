@@ -75,10 +75,6 @@ const ResultEntryPage = () => {
         }
     }, [selectedGradeSection]);
 
-
-
-
-
     useEffect(() => {
         if (selectedSectionSubject) {
             TermClassService.getTermClassesBySubject(selectedSectionSubject).then((data) => {
@@ -87,7 +83,7 @@ const ResultEntryPage = () => {
                 setStudentClasses([]);
                 toast.current?.show({
                     severity: 'error',
-                    summary: 'Failed to load registred students',
+                    summary: 'Failed to load Terms',
                     detail: '' + err,
                     life: 3000
                 });
@@ -113,7 +109,6 @@ const ResultEntryPage = () => {
                     life: 3000
                 });
             });
-            queueStudentResults.current.length = 0;
         }
     }, [selectedSectionSubject]);
 
@@ -122,7 +117,6 @@ const ResultEntryPage = () => {
     useEffect(() => {
         if (selectedTermClass) {
             StudentClassService.getStudentClasssBySectionClass(selectedTermClass).then((data) => {
-                console.log(data);
                 if (data.length === 0) {
                     toast.current?.show({
                         severity: 'error',
@@ -153,6 +147,7 @@ const ResultEntryPage = () => {
                     life: 3000
                 });
             });
+            queueStudentResults.current.length = 0;
         }
     }, [selectedTermClass])
 
@@ -166,6 +161,9 @@ const ResultEntryPage = () => {
 
     const saveStudentResults = async () => {
         try {
+            if (!selectedTermClass) {
+                return;
+            }
             if (selectedSectionSubject?.status !== 'ACTIVE') {
                 throw new Error("Non Active Class Can not be Saved!");
             }
@@ -173,7 +171,7 @@ const ResultEntryPage = () => {
                 throw new Error("You havent update any results");
             }
             setLoading(true);
-            const data = await StudentResultService.updateStudentResults(queueStudentResults.current);
+            const data = await StudentResultService.updateStudentResults(queueStudentResults.current, selectedTermClass);
             if (data.length > 0) {
                 toast.current?.show({
                     severity: 'success',
@@ -181,6 +179,7 @@ const ResultEntryPage = () => {
                     detail: `${data.length} Results Saved`,
                     life: 1500
                 });
+                queueStudentResults.current.length = 0;
             }
         } catch (error) {
             toast.current?.show({
@@ -212,12 +211,12 @@ const ResultEntryPage = () => {
                 const data = await StudentResultService.submitStudentResults(selectedTermClass);
                 if (data) {
                     const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedTermClass);
-                    let _sectionClasses = [...termClasses];
-                    const index = sectionSubjects.findIndex((section) => section._id === selectedTermClass._id);
-                    _sectionClasses[index] = { ...selectedTermClass, status: 'SUBMITTED' };
-                    setTermClasses(_sectionClasses);
                     setStudentClasses(_studentClass);
-                    setSelectedTermClass(_sectionClasses[index]);
+                    let _termClasses = [...termClasses];
+                    const index = termClasses.findIndex((term) => term._id === selectedTermClass._id);
+                    _termClasses[index] = { ...selectedTermClass, status: 'SUBMITTED' };
+                    setTermClasses(_termClasses);                    
+                    setSelectedTermClass(_termClasses[index]);                    
                     toast.current?.show({
                         severity: 'success',
                         summary: 'Successful',
@@ -245,14 +244,13 @@ const ResultEntryPage = () => {
                     throw new Error("Non Submitted Class Can not be Approved");
                 }
                 setLoading2(true);
-                const data = await StudentResultService.approveStudentResults(selectedTermClass);
+                const data = await TermClassService.approveStudentResults(selectedTermClass);
                 if (data) {
-                    //const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedSectionClass);
+                    console.log(data);
                     let _sectionClasses = [...termClasses];
-                    const index = sectionSubjects.findIndex((section) => section._id === selectedTermClass._id);
+                    const index = termClasses.findIndex((section) => section._id === selectedTermClass._id);
                     _sectionClasses[index] = { ...selectedTermClass, status: 'APPROVED' };
                     setTermClasses(_sectionClasses);
-                    //setStudentClasses(_studentClass);
                     setSelectedTermClass(_sectionClasses[index]);
                     toast.current?.show({
                         severity: 'success',
@@ -285,11 +283,11 @@ const ResultEntryPage = () => {
                 const data = await StudentResultService.activateStudentResults(selectedTermClass);
                 if (data) {
                     const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedTermClass);
-                    let _sectionClasses = [...termClasses];
-                    const index = sectionSubjects.findIndex((section) => section._id === selectedTermClass._id);
-                    _sectionClasses[index] = { ...selectedTermClass, status: 'SUBMITTED' };
-                    setTermClasses(_sectionClasses);
                     setStudentClasses(_studentClass);
+                    let _sectionClasses = [...termClasses];
+                    const index = termClasses.findIndex((section) => section._id === selectedTermClass._id);
+                    _sectionClasses[index] = { ...selectedTermClass, status: 'ACTIVE' };
+                    setTermClasses(_sectionClasses);                    
                     setSelectedTermClass(_sectionClasses[index]);
                     toast.current?.show({
                         severity: 'success',
@@ -397,14 +395,14 @@ const ResultEntryPage = () => {
                 <Button label='Save All' text loading={loading} onClick={saveStudentResults} style={{ marginRight: '10px' }} />
                 <Button label='Submit' onClick={submitStudentResults} loading={loading1} style={{ marginRight: '10px' }} />
                 <Button label='Approve' severity='success' onClick={approveStudentResults} loading={loading2} style={{ marginRight: '10px' }} />
-                <Button label='Disapprove' onClick={activateStudentResults} severity='danger' loading={loading3} />
+                <Button label='Activate' onClick={activateStudentResults} severity='danger' loading={loading3} />
             </span>
         </div>
     );
 
     const footer = (
         <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-            <>... footer content</>
+            <>... Call 0918146042</>
         </div>
     );
 
