@@ -36,6 +36,12 @@ const StudentClassController = {
     deleteStudentClass: async (req, res) => {
         try {
             const { id } = req.params;
+            const studentClass = await StudentClass.findById(id);
+            if(studentClass.status!=='ACTIVE'){
+                return res.status(400).json({
+                    message: 'Cannot delete Non Active Student Class.'
+                });
+            }            
             const isReferencedInStudentResult = await StudentResult.exists({ student_class: id });
             if (isReferencedInStudentResult) {
                 return res.status(400).json({

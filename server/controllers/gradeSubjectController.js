@@ -88,6 +88,7 @@ const GradeSubjectController = {
                     message: "Cannot delete. We Will fix it. It is associated with one or more classes.",
                 });
             }
+            
             /*
             const subjectTermIds = await SubjectTerm.distinct('_id', { grade_subject: id });
             const sectionClassIds = await SectionClass.distinct('_id', { subject_term: { $in: subjectTermIds } });

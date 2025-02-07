@@ -1,6 +1,6 @@
 'use client';
 import { SectionSubjectService } from "@/services/SectionSubjectService";
-import { GradeSection, SectionClass, SectionSubject } from "@/types/model";
+import { GradeSection, SectionSubject } from "@/types/model";
 import { Column } from "primereact/column";
 import { DataTable, DataTableExpandedRows } from "primereact/datatable";
 import { Tag } from "primereact/tag";
@@ -64,7 +64,7 @@ const SectionClassComponent = (props: SectionClassProps) => {
         }
     };
 
-    const statusBodyTemplate = (rowData: SectionClass) => {
+    const statusBodyTemplate = (rowData: SectionSubject) => {
         return <Tag value={rowData.status} severity={getSeverity(rowData.status)}></Tag>;
     };
 

@@ -8,6 +8,7 @@ import { Toast } from "primereact/toast";
 import { Toolbar } from "primereact/toolbar";
 import { useEffect, useRef, useState } from "react";
 import StudentResultComponent from "../student_results/page";
+import { Tag } from "primereact/tag";
 
 interface StudentClassProps {
     student_grade: StudentGrade;
@@ -18,7 +19,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
     let emptyStudentClass: StudentClass = {
         student_grade: props.student_grade,
         term_class: '',
-        status:'PENDING'
+        status: 'ACTIVE'
     };
 
     const [studentClasss, setStudentClasss] = useState<StudentClass[]>([]);
@@ -93,12 +94,32 @@ const StudentClassComponent = (props: StudentClassProps) => {
         </>
     );
 
+    const getSeverity = (value: string) => {
+        switch (value) {
+            case 'COMPLETED':
+                return 'success';
+
+            case 'ACTIVE':
+                return 'info';
+
+            case 'INCOMPLETE':
+                return 'danger';
+
+            default:
+                return null;
+        }
+    };
+
+    const statusBodyTemplate = (rowData: StudentClass) => {
+        return <Tag value={rowData.status} severity={getSeverity(rowData.status)}></Tag>;
+    };
+
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h5 className="m-0">Registred Classes</h5>
             <span className="block mt-2 md:mt-0">
                 <div className="my-2">
-                    ...
+                    <Button label="Report" text/>
                 </div>
             </span>
         </div>
@@ -134,7 +155,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
                         <Column expander style={{ width: '4em' }} />
                         <Column field="term_class.subject_term.grade_subject.subject.title" header="Class" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="term_class.subject_term.term" header="Term" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="status" header="Status" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="status" header="Status" sortable body={statusBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 

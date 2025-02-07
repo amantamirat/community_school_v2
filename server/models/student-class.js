@@ -12,9 +12,13 @@ const StudentClassSchema = new mongoose.Schema({
         required: true,
         immutable: true
     },
+    total_result: {
+        type: Number,
+        min:0
+    },
     status: {
         type: String,
-        enum: ['ACTIVE', 'COMPLETED', 'INCOMPLETE', 'PENDING'],
+        enum: ['ACTIVE', 'COMPLETED', 'INCOMPLETE'],
         default: 'ACTIVE',
         required: true
     }

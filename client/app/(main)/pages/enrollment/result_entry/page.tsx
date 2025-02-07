@@ -436,7 +436,7 @@ const ResultEntryPage = () => {
             case 'COMPLETED':
                 return 'success';
 
-            case 'PENDING':
+            case 'ACTIVE':
                 return 'info';
 
             case 'INCOMPLETE':
@@ -554,7 +554,7 @@ const ResultEntryPage = () => {
                                     field={weight._id}
                                     header={`${weight.assessment_type} (${weight.assessment_weight}%)`}
                                     editor={(options) => {
-                                        const isEditable = selectedSectionSubject?.status === 'ACTIVE';
+                                        const isEditable = selectedTermClass?.status === 'ACTIVE';
                                         if (!isEditable) {
                                             return <span>{options.value}</span>;
                                         }
