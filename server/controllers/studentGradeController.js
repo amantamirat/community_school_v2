@@ -19,7 +19,7 @@ const registerStudentClasses = async (grade_section, sectionStudents) => {
         termClasses.map(secTerm => ({
             student_grade: secStud,
             term_class: secTerm._id,
-            status: secTerm.term === 1 ? 'ACTIVE' : 'PENDING'
+            status: 'ACTIVE'
         }))
     );
     return await StudentClass.insertMany(newStudentTermClasses);

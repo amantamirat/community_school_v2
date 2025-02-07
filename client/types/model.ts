@@ -142,7 +142,7 @@ export type StudentClass = {
     _id?: string;
     student_grade: StudentGrade | string;
     term_class: TermClass | string;
-    status: 'ACTIVE'| 'COMPLETED'|'INCOMPLETE'| 'PENDING';
+    status: 'ACTIVE'| 'COMPLETED'|'INCOMPLETE';
 };
 
 export type StudentResult = {

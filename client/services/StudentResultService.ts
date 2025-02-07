@@ -5,8 +5,6 @@ const storageName = 'studentResults';
 const cacheTimeStampName = 'studentResultsCacheTimestamp'
 const get_endpoint_by_student_class = '/api/student-results/student_class';
 const get_endpoint_by_term_class = '/api/student-results/term_class';
-const submit_endpoint = '/api/student-results/submit';
-const activate_endpoint = '/api/student-results/activate';
 const delete_endpoint = '/api/student-results/delete';
 const update_student_results_endpoint = '/api/student-results/update-student-results';
 
@@ -31,16 +29,7 @@ export const StudentResultService = {
         return data as StudentResult[];
     },
 
-    async submitStudentResults(term_class: TermClass): Promise<any> {
-        const data = await MyService.put(`${submit_endpoint}/${term_class._id}`, {});
-        return data;
-    },
-
-    async activateStudentResults(section_class: TermClass): Promise<any> {
-        const data = await MyService.put(`${activate_endpoint}/${section_class._id}`, {});
-        return data;
-    },
-
+    
    
     async deleteStudentResult(studentResult: StudentResult): Promise<boolean> {
         if (studentResult._id) {
