@@ -8,12 +8,13 @@ import { Column } from "primereact/column";
 import { DataTable, DataTableExpandedRows } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
 import { InputNumber } from "primereact/inputnumber";
+import { Tag } from "primereact/tag";
 import { Toast } from "primereact/toast";
 import { Toolbar } from "primereact/toolbar";
 import { classNames } from "primereact/utils";
 import { useEffect, useRef, useState } from "react";
 
-const GradeSectionComponent = () => {
+const GradeSectionPage = () => {
 
     let emptyGradeSection: GradeSection = {
         classification_grade: '',
@@ -28,7 +29,6 @@ const GradeSectionComponent = () => {
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
     const [expandedClassRows, setExpandedClassRows] = useState<any[] | DataTableExpandedRows>([]);
-    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (selectedClassificationGrade) {
@@ -106,6 +106,10 @@ const GradeSectionComponent = () => {
         setSelectedGradeSection(emptyGradeSection);
     }
 
+
+    
+
+
     const openAddDialog = () => {
         let max_section = 0;
         for (let i = 0; i < gradeSections?.length; i++) {
@@ -147,22 +151,30 @@ const GradeSectionComponent = () => {
         </>
     );
 
+
+    const getSeverity = (value: GradeSection) => {
+        switch (value.status) {
+            case 'OPEN':
+                return 'success';
+
+            case 'CLOSED':
+                return 'info';
+
+            default:
+                return null;
+        }
+    };
+
+    const statusBodyTemplate = (rowData: GradeSection) => {
+        return <Tag value={rowData.status} severity={getSeverity(rowData)}></Tag>;
+    };
+
+
     const startToolbarTemplate = () => {
         return (
             <div className="my-2">
                 <Button label="Create Section" icon="pi pi-plus" className="mr-2" severity="success" onClick={openAddDialog} disabled={!selectedClassificationGrade} />
             </div>
-        );
-    };
-
-    const endToolbarTemplate = () => {
-        return (
-            <>
-                <div className="my-2">
-                    ...
-                </div>
-
-            </>
         );
     };
 
@@ -181,12 +193,20 @@ const GradeSectionComponent = () => {
         );
     };
 
+    const handleUpdateSection = (updatedSection: GradeSection) => {
+        let _gradeSections = [...gradeSections]
+        const index = gradeSections.findIndex((sec) => sec._id === updatedSection._id);
+        _gradeSections[index] = { ...updatedSection };
+        setGradeSections(_gradeSections);
+    };
+
+
     return (
         <div className="grid">
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
-                    <Toolbar className="mb-4" start={startToolbarTemplate} end={endToolbarTemplate}></Toolbar>
+                    <Toolbar className="mb-4" start={startToolbarTemplate}></Toolbar>
                     <DataTable
                         header={header}
                         value={gradeSections}
@@ -204,13 +224,14 @@ const GradeSectionComponent = () => {
                         rowExpansionTemplate={(data) => (
                             <SectionClassComponent
                                 gradeSection={data as GradeSection}
+                                onUpdate={handleUpdateSection}
                             />
                         )}
                     >
                         <Column expander style={{ width: '4em' }} />
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="section_number" header="Section" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="status" header="Status" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="status" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
                     <Dialog
@@ -266,4 +287,4 @@ const GradeSectionComponent = () => {
     );
 };
 
-export default GradeSectionComponent;
+export default GradeSectionPage;

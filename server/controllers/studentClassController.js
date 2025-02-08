@@ -32,16 +32,29 @@ const StudentClassController = {
         }
     },
 
+    /*
     // Delete a studentClass by ID
     deleteStudentClass: async (req, res) => {
         try {
             const { id } = req.params;
-            const studentClass = await StudentClass.findById(id);
-            if(studentClass.status!=='ACTIVE'){
+            const studentClass = await StudentClass.findById(id).populate({ path: 'term_class', populate: { path: 'subject_term', populate: { path: 'grade_subject' } } });
+            if (!studentClass) {
+                return res.status(400).json({
+                    message: 'Student Class Not Found.'
+                });
+            }
+            if (!studentClass.term_class.subject_term.grade_subject.optional) {
+                return res.status(400).json({
+                    message: 'Cannot delete Non Optional Student Class.'
+                });
+            }
+
+            //const studentClass = await StudentClass.findById(id);
+            if (studentClass.status !== 'ACTIVE') {
                 return res.status(400).json({
                     message: 'Cannot delete Non Active Student Class.'
                 });
-            }            
+            }
             const isReferencedInStudentResult = await StudentResult.exists({ student_class: id });
             if (isReferencedInStudentResult) {
                 return res.status(400).json({
@@ -57,6 +70,8 @@ const StudentClassController = {
             res.status(500).json({ message: error.message });
         }
     },
+    */
+
 };
 
 module.exports = StudentClassController;

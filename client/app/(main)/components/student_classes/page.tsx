@@ -3,12 +3,10 @@ import { StudentClass, StudentGrade } from "@/types/model";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable, DataTableExpandedRows } from "primereact/datatable";
-import { Dialog } from "primereact/dialog";
+import { Tag } from "primereact/tag";
 import { Toast } from "primereact/toast";
-import { Toolbar } from "primereact/toolbar";
 import { useEffect, useRef, useState } from "react";
 import StudentResultComponent from "../student_results/page";
-import { Tag } from "primereact/tag";
 
 interface StudentClassProps {
     student_grade: StudentGrade;
@@ -24,9 +22,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
 
     const [studentClasss, setStudentClasss] = useState<StudentClass[]>([]);
     const [selectedStudentClass, setSelectedStudentClass] = useState<StudentClass>(emptyStudentClass);
-    const [showRemoveDialog, setShowRemoveDialog] = useState(false);
     const toast = useRef<Toast>(null);
-    const [loading, setLoading] = useState(false);
     const [expandedClassRows, setExpandedClassRows] = useState<any[] | DataTableExpandedRows>([]);
 
     useEffect(() => {
@@ -48,51 +44,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
             });
         }
     };
-
-
-    const deleteStudentClass = async () => {
-        try {
-            if (selectedStudentClass) {
-                const deleted = await StudentClassService.deleteStudentClass(selectedStudentClass);
-                if (deleted) {
-                    let _studentClasss = (studentClasss as any)?.filter((val: any) => val._id !== selectedStudentClass._id);
-                    setStudentClasss(_studentClasss);
-                    toast.current?.show({
-                        severity: 'success',
-                        summary: 'Successful',
-                        detail: 'Class Deleted',
-                        life: 1500
-                    });
-                }
-            }
-        } catch (error) {
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to class',
-                detail: '' + error,
-                life: 1500
-            });
-        }
-        setShowRemoveDialog(false);
-        setSelectedStudentClass(emptyStudentClass);
-    }
-
-
-    const confirmRemoveStudentClass = (studentClass: StudentClass) => {
-        setSelectedStudentClass(studentClass);
-        setShowRemoveDialog(true);
-    };
-
-    const hideRemoveDialog = () => {
-        setShowRemoveDialog(false);
-    };
-
-    const removeDialogFooter = (
-        <>
-            <Button label="Cancel" icon="pi pi-times" text onClick={hideRemoveDialog} />
-            <Button label="Delete" icon="pi pi-check" text onClick={deleteStudentClass} />
-        </>
-    );
+    
 
     const getSeverity = (value: string) => {
         switch (value) {
@@ -125,14 +77,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
         </div>
     );
 
-    const actionBodyTemplate = (rowData: StudentClass) => {
-        return (
-            <>
-                <Button icon="pi pi-trash" rounded severity="warning" onClick={() => confirmRemoveStudentClass(rowData)} />
-            </>
-        );
-    };
-
+    
     return (
         <div className="grid">
             <div className="col-12">
@@ -156,26 +101,10 @@ const StudentClassComponent = (props: StudentClassProps) => {
                         <Column field="term_class.subject_term.grade_subject.subject.title" header="Class" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="term_class.subject_term.term" header="Term" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="status" header="Status" sortable body={statusBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
+                        
                     </DataTable>
 
-                    <Dialog
-                        visible={showRemoveDialog}
-                        style={{ width: '450px' }}
-                        header="Confirm to Delete Class"
-                        modal
-                        footer={removeDialogFooter}
-                        onHide={hideRemoveDialog}
-                    >
-                        <div className="flex align-items-center justify-content-center">
-                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {selectedStudentClass && (
-                                <span>
-                                    Are you sure you want to delete <b>{selectedStudentClass._id}</b>?
-                                </span>
-                            )}
-                        </div>
-                    </Dialog>
+                   
                 </div>
             </div>
         </div>

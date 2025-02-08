@@ -5,8 +5,7 @@ const storageName = 'studentClasss';
 const cacheTimeStampName = 'studentClasssCacheTimestamp'
 const get_endpoint_by_student_grade = '/api/student-classes/student_grade';
 const get_endpoint_by_section_class = '/api/student-classes/term_class';
-const sync_endpoint = '/api/student-classes/sync-student-class';
-const delete_endpoint = '/api/student-classes/delete';
+//const delete_endpoint = '/api/student-classes/delete';
 
 
 
@@ -24,15 +23,5 @@ export const StudentClassService = {
         //console.log(endpoint);
         const data = await MyService.get(endpoint);
         return data as StudentClass[];
-    },
-
-    
-
-    async deleteStudentClass(studentClass: StudentClass): Promise<boolean> {
-        if (studentClass._id) {
-            const response = await MyService.delete(studentClass._id, delete_endpoint);
-            return response;
-        }
-        throw new Error("_id is required.");
     },
 };

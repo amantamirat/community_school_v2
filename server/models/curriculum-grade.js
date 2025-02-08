@@ -13,6 +13,12 @@ const CurriculumGradeSchema = new mongoose.Schema({
         required: true,
         immutable: true
     },
+    status: {
+        type: String,
+        enum: ['ACTIVE', 'CLOSED'],
+        default: 'ACTIVE',
+        required: true
+    },
     entrance_certificate: {
         type: String
     },

@@ -31,6 +31,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
     const [showRemoveDialog, setShowRemoveDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         loadSubjects();
@@ -103,6 +104,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
     }
     const deleteGradeSubject = async () => {
         try {
+            setLoading(true);
             if (selectedGradeSubject._id) {
                 const deleted = await GradeSubjectService.deleteGradeSubject(selectedGradeSubject);
                 if (deleted) {
@@ -124,8 +126,12 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
                 life: 1500
             });
         }
-        setShowRemoveDialog(false);
-        setSelectedGradeSubject(emptyGradeSubject);
+        finally {
+            setLoading(false);
+            setShowRemoveDialog(false);
+            setSelectedGradeSubject(emptyGradeSubject);
+        }
+
     }
 
     const openEditDialog = (rowData: GradeSubject) => {
@@ -163,7 +169,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
     const removeDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideRemoveDialog} />
-            <Button label="Delete" icon="pi pi-check" text onClick={deleteGradeSubject} />
+            <Button label="Delete" icon="pi pi-check" text onClick={deleteGradeSubject} loading={loading} />
         </>
     );
     const header = () => {
@@ -204,12 +210,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
         );
     };
 
-    const subjectBodyTemplete = (rowData: GradeSubject) => {
-        const subject = subjects.find(subject => subject._id === rowData.subject) as Subject;
-        return subjectTemplate(subject);
-
-    }
-
+    
     return (
         <div className="grid">
             <div className="col-12">

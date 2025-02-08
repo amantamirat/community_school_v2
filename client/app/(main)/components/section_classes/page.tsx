@@ -7,9 +7,12 @@ import { Tag } from "primereact/tag";
 import { Toast } from "primereact/toast";
 import { useEffect, useRef, useState } from "react";
 import TermClassComponent from "../term_classes/page";
+import { Button } from "primereact/button";
+import { GradeSectionService } from "@/services/GradeSectionService";
 
 interface SectionClassProps {
     gradeSection: GradeSection;
+    onUpdate: (updatedSection: GradeSection) => void;
 }
 const SectionClassComponent = (props: SectionClassProps) => {
 
@@ -24,6 +27,7 @@ const SectionClassComponent = (props: SectionClassProps) => {
     const [sectionSubjects, setSectionSubjects] = useState<SectionSubject[]>([]);
     const toast = useRef<Toast>(null);
     const [expandedClassRows, setExpandedClassRows] = useState<any[] | DataTableExpandedRows>([]);
+    const [loading, setLoading] = useState(false);
 
 
     useEffect(() => {
@@ -40,14 +44,84 @@ const SectionClassComponent = (props: SectionClassProps) => {
     }, []);
 
 
+    const closeGradeSection = async () => {
+        try {
+            if (props.gradeSection) {
+                if (props.gradeSection.status === 'CLOSED') {
+                    throw new Error('Section Already Closed');
+                }
+                setLoading(true);
+                if(sectionSubjects.length===0){
+                    throw new Error('Cannot close section, No Subjects Found.');
+                }
+                const hasActiveSubject = sectionSubjects.some(subject => subject.status === 'ACTIVE');
+                if (hasActiveSubject) {
+                    throw new Error('Cannot close section, active class exist');
+                }
+                const closedSection = await GradeSectionService.closeGradeSection(props.gradeSection);
+                if (closedSection.status === 'CLOSED') {
+                    props.onUpdate(closedSection);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Section Closed',
+                        life: 1500
+                    });
+                }
+            }
+        } catch (error) {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to close section',
+                detail: '' + error,
+                life: 1500
+            });
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const openGradeSection = async () => {
+        try {
+            if (props.gradeSection) {
+                if (props.gradeSection.status === 'OPEN') {
+                    throw new Error('Section Already Opened');
+                }
+                setLoading(true);
+                const openedSection = await GradeSectionService.openGradeSection(props.gradeSection);
+                if (openedSection.status === 'OPEN') {
+                    props.onUpdate(openedSection);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Section Opened!',
+                        life: 1500
+                    });
+                }
+            }
+        } catch (error) {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to open section',
+                detail: '' + error,
+                life: 1500
+            });
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h6 className="m-0">Section Classes</h6>
+            <span className="block mt-2">
+                {props.gradeSection.status === 'OPEN' ?
+                    <Button label='Close Section' severity='info' icon="pi pi-lock" onClick={closeGradeSection} loading={loading} />
+                    : <Button label='Open Section' severity='success' icon="pi pi-lock-open" onClick={openGradeSection} loading={loading} />
+                }
+            </span>
         </div>
     );
-
-
 
     const getSeverity = (value: string) => {
         switch (value) {

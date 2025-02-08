@@ -80,7 +80,7 @@ const ResultEntryPage = () => {
         if (selectedSectionSubject) {
             TermClassService.getTermClassesBySubject(selectedSectionSubject).then((data) => {
                 setTermClasses(data);
-                console.log(data);
+                //console.log(data);
             }).catch((err) => {
                 setStudentClasses([]);
                 toast.current?.show({
@@ -118,7 +118,7 @@ const ResultEntryPage = () => {
 
     useEffect(() => {
         if (selectedTermClass) {
-            console.log('selected term class', selectedTermClass);
+            queueStudentResults.current.length = 0;
             StudentClassService.getStudentClasssBySectionClass(selectedTermClass).then((data) => {
                 if (data.length === 0) {
                     toast.current?.show({
@@ -150,7 +150,6 @@ const ResultEntryPage = () => {
                     life: 3000
                 });
             });
-            queueStudentResults.current.length = 0;
         }
     }, [selectedTermClass])
 
@@ -159,7 +158,7 @@ const ResultEntryPage = () => {
         if (studentClasses.length > 0 && subjectWeights.length > 0) {
             setResultEntries(prepareResultEntries());
         }
-    }, [studentClasses, studentResults, subjectWeights]);
+    }, [studentClasses, studentResults, subjectWeights, selectedTermClass, selectedSectionSubject]);
 
 
     const saveStudentResults = async () => {
@@ -212,7 +211,7 @@ const ResultEntryPage = () => {
                     throw new Error('At least 75% result must be saved. Please enter results and save all first!');
                 }
                 const data = await TermClassService.submitStudentResults(selectedTermClass);
-                if (data.status=="SUBMITTED") {
+                if (data.status == "SUBMITTED") {
                     const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedTermClass);
                     setStudentClasses(_studentClass);
                     let _termClasses = [...termClasses];
@@ -248,7 +247,7 @@ const ResultEntryPage = () => {
                 }
                 setLoading2(true);
                 const data = await TermClassService.approveStudentResults(selectedTermClass);
-                if (data.status==="APPROVED") {
+                if (data.status === "APPROVED") {
                     let _termClasses = [...termClasses];
                     const index = termClasses.findIndex((termClass) => termClass._id === selectedTermClass._id);
                     _termClasses[index] = { ...selectedTermClass, status: 'APPROVED' };
@@ -294,7 +293,7 @@ const ResultEntryPage = () => {
                 }
                 setLoading3(true);
                 const data = await TermClassService.activateStudentResults(selectedTermClass);
-                if (data.status==="ACTIVE") {
+                if (data.status === "ACTIVE") {
                     const _studentClass = await StudentClassService.getStudentClasssBySectionClass(selectedTermClass);
                     setStudentClasses(_studentClass);
                     let _sectionClasses = [...termClasses];
@@ -327,14 +326,14 @@ const ResultEntryPage = () => {
         try {
             if (selectedTermClass && selectedSectionSubject && selectedGradeSection) {
                 if (selectedGradeSection.status !== 'OPEN') {
-                    throw new Error("The Closed Section Class Can not be Revoked");
+                   throw new Error("Closed Section Class Can not be Revoked");
                 }
                 if (selectedTermClass.status !== 'APPROVED') {
                     throw new Error("Non Approved Class Can not be Revoked");
                 }
                 setLoading4(true);
                 const data = await TermClassService.revokeStudentResults(selectedTermClass);
-                if (data.status==="SUBMITTED") {
+                if (data.status === "SUBMITTED") {
                     let _termClasses = [...termClasses];
                     const index = termClasses.findIndex((termClass) => termClass._id === selectedTermClass._id);
                     _termClasses[index] = { ...selectedTermClass, status: 'SUBMITTED' };
@@ -393,7 +392,7 @@ const ResultEntryPage = () => {
 
     const onCellEditComplete = (e: any) => {
         let { rowData, newValue, field, originalEvent: event } = e;
-        if (!newValue) {
+        if (!newValue && newValue !== 0) {
             event.preventDefault();
             return
         }

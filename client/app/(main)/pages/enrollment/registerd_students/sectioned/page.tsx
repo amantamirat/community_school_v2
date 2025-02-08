@@ -163,7 +163,7 @@ const SectionedStudentsPage = () => {
                         disabled={selectedRegisteredStudents.length === 0}
                         onClick={openDetachSectionDialog}
                     />
-                    <Button tooltip="Sync Student Classes" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncStudClasses} />
+                    <Button tooltip="Fix Classes" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncStudClasses} />
                 </div>
             </span>
         </div>

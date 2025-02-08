@@ -7,6 +7,53 @@ const mongoose = require('mongoose');
 
 // Controller methods
 const ClassificationGradeController = {
+    getClassificationGradesByClassification: async (req, res) => {
+        try {
+            const { admission_classification } = req.params;
+            const classificationGrades = await ClassificationGrade.find({ admission_classification: admission_classification }).populate({
+                path: 'curriculum_grade',
+                populate: { path: 'grade', },
+            });
+            res.status(200).json(classificationGrades);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    openGrade: async (req, res) => {
+        const { id } = req.params;
+        //check the curriculum
+        const classificationGrade = await ClassificationGrade.findById(id);
+        if (!classificationGrade) {
+            return res.status(404).json({ message: 'Grade not found' });
+        }
+        if (classificationGrade.status === 'OPEN') {
+            return res.status(400).json({ message: 'Grade already Open' });
+        }
+        classificationGrade.status = "OPEN";
+        const savedGrade = await classificationGrade.save();
+        return res.status(200).json(savedGrade);
+    },
+
+    closeGrade: async (req, res) => {
+        const { id } = req.params;
+        const classificationGrade = await ClassificationGrade.findById(id);
+        if (!classificationGrade) {
+            return res.status(404).json({ message: 'Grade not found' });
+        }
+        if (classificationGrade.status === 'CLOSED') {
+            return res.status(400).json({ message: 'Grade already closed' });
+        }
+        const gradeSections = await GradeSection.find({ classification_grade: id }).lean();
+        if (gradeSections.length === 0) { return res.status(400).json({ message: 'Empty grade can not be closed.' }); }
+        const hasOpenSection = gradeSections.some(sec => sec.status === 'OPEN');
+        if (hasOpenSection) {
+            return res.status(400).json({ message: 'Cannot close grade, open class found.' });
+        }
+        classificationGrade.status = "CLOSED";
+        const savedGrade = await classificationGrade.save();
+        return res.status(200).json(savedGrade);
+    },
 
     syncCurriculumGrades: async (req, res) => {
         try {
@@ -39,19 +86,6 @@ const ClassificationGradeController = {
         } catch (error) {
             res.status(400).json({ message: error.message });
             //console.log(error);
-        }
-    },
-
-    getClassificationGradesByClassification: async (req, res) => {
-        try {
-            const { admission_classification } = req.params;
-            const classificationGrades = await ClassificationGrade.find({ admission_classification: admission_classification }).populate({
-                path: 'curriculum_grade',
-                populate: { path: 'grade', },
-            });
-            res.status(200).json(classificationGrades);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
         }
     },
 

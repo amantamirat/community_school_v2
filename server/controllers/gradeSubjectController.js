@@ -1,12 +1,9 @@
-const mongoose = require('mongoose');
 const GradeSubject = require('../models/grade-subject');
 const CurriculumGrade = require('../models/curriculum-grade');
 const SubjectTerm = require('../models/subject-term');
 const SubjectWeight = require('../models/subject-weight');
-const SectionClass = require("../models/section-class");
-const StudentClass = require('../models/student-class');
 const Subject = require('../models/subject');
-const { createSectionSubjectsByGradeSubject } = require('../services/sectionSubjectService');
+const { createSectionSubjectsByGradeSubject, removeSectionSubjectsByGradeSubject } = require('../services/sectionSubjectService');
 const SectionSubject = require('../models/section-subject');
 
 const GradeSubjectController = {
@@ -57,14 +54,9 @@ const GradeSubjectController = {
             const { id } = req.params;
             const { optional } = req.body;
             const classExists = await SectionSubject.findOne({ grade_subject: id });
-            if (classExists) {
-                return res.status(400).json({
-                    message: "Cannot Update, Subject Aleady Registred. It is associated with one or more classes.",
-                });
-            }
-            const updatedGradeSubject = await GradeSubject.findByIdAndUpdate(
-                id, { optional }, { new: true }
-            );
+            if (classExists) return res.status(400).json({ message: "Cannot Update, Subject Aleady Registred." });
+
+            const updatedGradeSubject = await GradeSubject.findByIdAndUpdate(id, { optional }, { new: true });
             if (!updatedGradeSubject) {
                 return res.status(404).json({ message: 'GradeSubject not found' });
             }
@@ -76,36 +68,17 @@ const GradeSubjectController = {
     deleteGradeSubject: async (req, res) => {
         try {
             const { id } = req.params;
+            const gradeSubject = await GradeSubject.findById(id);
+            if (!gradeSubject) return res.status(400).json({ message: "Grade Subject Not Found." });
+
             const weightExists = await SubjectWeight.exists({ grade_subject: id });
-            if (weightExists) {
-                return res.status(400).json({
-                    message: "Cannot delete. It is associated with one or more weights.",
-                });
-            }
-            const subjectExists = await SectionSubject.exists({ grade_subject: id });            
-            if (subjectExists) {
-                return res.status(400).json({
-                    message: "Cannot delete. We Will fix it. It is associated with one or more classes.",
-                });
-            }
-            
-            /*
-            const subjectTermIds = await SubjectTerm.distinct('_id', { grade_subject: id });
-            const sectionClassIds = await SectionClass.distinct('_id', { subject_term: { $in: subjectTermIds } });
-            if (sectionClassIds.length > 0) {
-                await StudentClass.deleteMany({ section_class: { $in: sectionClassIds } });
-                await SectionClass.deleteMany({ _id: { $in: sectionClassIds } });
-            }
-            await SubjectTerm.deleteMany({ _id: { $in: subjectTermIds } });
-            */            
-            const deletedGradeSubject = await GradeSubject.findByIdAndDelete(id);
-            if (!deletedGradeSubject) {
-                return res.status(404).json({ message: 'Grade Subject not found' });
-            }
+            if (weightExists) return res.status(400).json({ message: "Cannot delete. It is associated with one or more weights.", });
+            await removeSectionSubjectsByGradeSubject(gradeSubject);
             await SubjectTerm.deleteMany({ grade_subject: id });
-            res.status(200).json(deletedGradeSubject);
+            await GradeSubject.findByIdAndDelete(id);
+            res.status(200).json({ message: 'Subject deleted successfully' });
         } catch (err) {
-            res.status(500).json({ message: 'Error deleting GradeSubject', error: err.message });
+            res.status(500).json({ message: err.message });
         }
     }
 

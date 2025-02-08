@@ -36,6 +36,7 @@ const CurriculumPage = () => {
     const [globalFilter, setGlobalFilter] = useState('');
     const [filters, setFilters] = useState<DataTableFilterMeta>({});
     const [expandedGradeRows, setExpandedGradeRows] = useState<any[] | DataTableExpandedRows>([]);
+    
 
 
     useEffect(() => {
@@ -135,8 +136,11 @@ const CurriculumPage = () => {
                 life: 3000
             });
         }
-        setShowDeleteDialog(false);
-        setSelectedCurriculum(emptyCurriculum);
+        finally{           
+            setShowDeleteDialog(false);
+            setSelectedCurriculum(emptyCurriculum);
+        }
+       
     };
 
 

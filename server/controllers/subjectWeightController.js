@@ -2,6 +2,21 @@ const SubjectWeight = require('../models/subject-weight');
 const StudentResult = require('../models/student-result');
 const GradeSubject = require('../models/grade-subject');
 const SubjectWeightController = {
+
+    // Get all SubjectWeight entries for a specific grade_subject
+    getByGradeSubject: async (req, res) => {
+        const { grade_subject } = req.params;
+        if (!grade_subject) {
+            return res.status(400).json({ message: 'grade_subject is required.' });
+        }
+        try {
+            const subjectWeights = await SubjectWeight.find({ grade_subject: grade_subject });
+            return res.status(200).json(subjectWeights);
+        } catch (error) {
+            //console.error(error);
+            return res.status(500).json({ message: 'Failed to retrieve SubjectWeight entries.' });
+        }
+    },
     // Create multiple SubjectWeight entries for a specific grade_subject
     createByGradeSubject: async (req, res) => {
         try {
@@ -34,11 +49,9 @@ const SubjectWeightController = {
     deleteByGradeSubject: async (req, res) => {
         try {
             const { grade_subject } = req.params;
-
             if (!grade_subject) {
                 return res.status(400).json({ message: 'grade_subject is required.' });
             }
-
             const subjectWeights = await SubjectWeight.find({ grade_subject: grade_subject }, { _id: 1 }).lean();
             const subjectWeightIds = subjectWeights.map(sub => sub._id);
             const referencedSubjectWeight = await StudentResult.exists({
@@ -57,20 +70,7 @@ const SubjectWeightController = {
         }
     },
 
-    // Get all SubjectWeight entries for a specific grade_subject
-    getByGradeSubject: async (req, res) => {
-        const { grade_subject } = req.params;
-        if (!grade_subject) {
-            return res.status(400).json({ message: 'grade_subject is required.' });
-        }
-        try {
-            const subjectWeights = await SubjectWeight.find({ grade_subject: grade_subject });
-            return res.status(200).json(subjectWeights);
-        } catch (error) {
-            //console.error(error);
-            return res.status(500).json({ message: 'Failed to retrieve SubjectWeight entries.' });
-        }
-    },
+    
 };
 
 module.exports = SubjectWeightController;

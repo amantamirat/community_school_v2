@@ -7,6 +7,8 @@ const get_endpoint = '/api/classification-grades/admission_classification';
 const sync_endpoint = '/api/classification-grades/sync-curriculum-grades';
 const create_endpoint = '/api/classification-grades/create';
 const delete_endpoint = '/api/classification-grades/delete';
+const open_endpoint = "/api/classification-grades/open";
+const close_endpoint = "/api/classification-grades/close";
 
 
 function sanitize(class_grade: Partial<ClassificationGrade>) {
@@ -39,7 +41,7 @@ export const ClassificationGradeService = {
 
     },
 
-   
+
 
     async syncCurriculumGrades(admission_classification: AdmissionClassification): Promise<ClassificationGrade[]> {
         const createdData = await MyService.create({}, `${sync_endpoint}/${admission_classification._id}`) as ClassificationGrade[];
@@ -67,5 +69,28 @@ export const ClassificationGradeService = {
             return response;
         }
         throw new Error("_id is required.");
+    },
+    async openGrade(classificationGrade: ClassificationGrade): Promise<ClassificationGrade> {
+        const data: ClassificationGrade = await MyService.put(`${open_endpoint}/${classificationGrade._id}`, {});
+        const cachedData = localStorage.getItem(storageName);
+        if (cachedData) {
+            let gradeData = JSON.parse(cachedData) as ClassificationGrade[];
+            const index = gradeData.findIndex((grade) => grade._id === data._id);
+            gradeData[index] = { ...gradeData[index], status: 'OPEN' }
+            localStorage.setItem(storageName, JSON.stringify(gradeData));
+        }
+        return data;
+    },
+
+    async closeGrade(classificationGrade: ClassificationGrade): Promise<ClassificationGrade> {
+        const data: ClassificationGrade = await MyService.put(`${close_endpoint}/${classificationGrade._id}`, {});
+        const cachedData = localStorage.getItem(storageName);
+        if (cachedData) {
+            let gradeData = JSON.parse(cachedData) as ClassificationGrade[];
+            const index = gradeData.findIndex((grade) => grade._id === data._id);
+            gradeData[index] = { ...gradeData[index], status: 'CLOSED' }
+            localStorage.setItem(storageName, JSON.stringify(gradeData));
+        }
+        return data;
     },
 };

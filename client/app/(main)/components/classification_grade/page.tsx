@@ -3,11 +3,13 @@ import { AdmissionClassification, ClassificationGrade } from "@/types/model";
 import { classificationGradeTemplate } from "@/types/templates";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
-import { DataTable } from "primereact/datatable";
+import { DataTable, DataTableExpandedRows } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
 import { Toast } from "primereact/toast";
 import { Toolbar } from "primereact/toolbar";
 import { useEffect, useRef, useState } from "react";
+import GradeSectionComponent from "../grade_section/page";
+import { Tag } from "primereact/tag";
 
 interface ClassificationGradeProps {
     addmission_classification: AdmissionClassification;
@@ -18,33 +20,30 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
     let emptyClassificationGrade: ClassificationGrade = {
         admission_classification: props.addmission_classification,
         curriculum_grade: '',
-        status:'OPEN'
+        status: 'OPEN'
     };
-
     const [classificationGrades, setClassificationGrades] = useState<ClassificationGrade[]>([]);
     const [selectedClassificationGrade, setSelectedClassificationGrade] = useState<ClassificationGrade>(emptyClassificationGrade);
     const [showRemoveDialog, setShowRemoveDialog] = useState(false);
     const toast = useRef<Toast>(null);
     const [loading, setLoading] = useState(false);
-
+    const [expandedRows, setExpandedRows] = useState<any[] | DataTableExpandedRows>([]);
     useEffect(() => {
         loadClassificationGrades();
     }, []);
 
-
     const loadClassificationGrades = async () => {
-        try {
-            ClassificationGradeService.getClassificationGradesByClassification(props.addmission_classification).then((data) => {
-                setClassificationGrades(data);
-            });
-        } catch (err) {
+        ClassificationGradeService.getClassificationGradesByClassification(props.addmission_classification).then((data) => {
+            setClassificationGrades(data);
+        }).catch((err) => {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed to load curr grades',
+                summary: 'Failed to load classificatoin grades',
                 detail: '' + err,
                 life: 3000
-            });
-        }
+            })
+        });
+
     };
 
     const syncCurriculumGrades = async () => {
@@ -128,6 +127,23 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
         </>
     );
 
+    const getSeverity = (value: ClassificationGrade) => {
+        switch (value.status) {
+            case 'OPEN':
+                return 'success';
+
+            case 'CLOSED':
+                return 'info';
+
+            default:
+                return null;
+        }
+    };
+
+    const statusBodyTemplate = (rowData: ClassificationGrade) => {
+        return <Tag value={rowData.status} severity={getSeverity(rowData)}></Tag>;
+    };
+
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h5 className="m-0">Classfication Grades</h5>
@@ -147,6 +163,13 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
         );
     };
 
+    const handleUpdateGrade = (updatedGrade: ClassificationGrade) => {
+        let _classificationGrades = [...classificationGrades]
+        const index = classificationGrades.findIndex((grd) => grd._id === updatedGrade._id);
+        _classificationGrades[index] = { ...updatedGrade };
+        setClassificationGrades(_classificationGrades);
+    };
+
     return (
         <div className="grid">
             <div className="col-12">
@@ -164,9 +187,18 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
                         rowsPerPageOptions={[5, 10, 25]}
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} grades"
+                        expandedRows={expandedRows}
+                        onRowToggle={(e) => setExpandedRows(e.data)}
+                        rowExpansionTemplate={(data) => (
+                            <GradeSectionComponent
+                                classificationGrade={data as ClassificationGrade}
+                                onUpdate={handleUpdateGrade}
+                            />
+                        )}
                     >
-                        <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
+                        <Column expander style={{ width: '3em' }} />
                         <Column header="Classfication Grade" field="curriculum_grade.grade.level" body={classificationGradeTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="status" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 

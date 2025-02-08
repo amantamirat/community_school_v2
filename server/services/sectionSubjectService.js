@@ -4,6 +4,7 @@ const GradeSubject = require('../models/grade-subject');
 const SubjectTerm = require('../models/subject-term');
 const TermClass = require('../models/term-class');
 const GradeSection = require('../models/grade-sections');
+const StudentClass = require('../models/student-class');
 
 const createSectionSubjectsByGradeSection = async (gradeSection) => {
     try {
@@ -32,9 +33,21 @@ const createSectionSubjectsByGradeSection = async (gradeSection) => {
                 status: subjectTerm.term === 1 ? 'ACTIVE' : 'PENDING',
             }));
         });
-        await TermClass.insertMany(termClasses);
+        return await TermClass.insertMany(termClasses);
     } catch (error) {
         console.error("Error creating section subjects:", error);
+        throw error;
+    }
+};
+
+
+const removeSectionSubjects = async (gradeSection) => {
+    try {
+        const sectionSubjectsIds = await SectionSubject.distinct('_id', { gradeSection: gradeSection._id });
+        await TermClass.deleteMany({ section_subject: { $in: sectionSubjectsIds } });
+        await SectionSubject.deleteMany({ grade_section: gradeSection.id });
+    } catch (error) {
+        console.error("Error removing section subjects:", error);
         throw error;
     }
 };
@@ -58,13 +71,45 @@ const createSectionSubjectsByGradeSubject = async (curriculumGrade, gradeSubject
                 status: subjectTerm.term === 1 ? 'ACTIVE' : 'PENDING',
             }));
         });
-        await TermClass.insertMany(termClasses);
+        return await TermClass.insertMany(termClasses);
     } catch (error) {
         console.error("Error creating section subjects:", error);
         throw error;
     }
 };
 
+const removeSectionSubjectsByGradeSubject = async (gradeSubject) => {
+    try {
+
+        const sectionSubjects = await SectionSubject.find({ grade_subject: gradeSubject._id }).lean();
+        if (!sectionSubjects.length) return;
+        if (sectionSubjects.some(subject => subject.teacher !== null && subject.teacher !== undefined)) {
+            throw new Error('Cannot remove subject, teacher is assigned');
+        }
+        const sectionSubjectIds = sectionSubjects.map(sub => sub._id);
+
+        /*
+        //but if there is no weight it can not be closed so you can skip this checking
+        if (sectionSubjects.some(subject => subject.status === 'CLOSED')) {
+            throw new Error('Cannot remove subject, closed class found');
+        }
+        // Again if there is no weght it can't be submitted or approved, so uncessarly work here
+        const termClasses = await TermClass.find({ section_subject: { $in: sectionSubjectIds } }).lean();
+        if (termClasses.some(term => ['SUBMITTED', 'APPROVED'].includes(term.status))) {
+            throw new Error('Cannot remove terms, submitted or approved term found.');
+        }
+        */
+        const termClassIds = await TermClass.distinct('_id', { section_subject: { $in: sectionSubjectIds } });            
+        await StudentClass.deleteMany({ term_class: { $in: termClassIds } });
+        await TermClass.deleteMany({ _id: { $in: termClassIds } });
+        await SectionSubject.deleteMany({ _id: { $in: sectionSubjectIds } });
+    } catch (error) {
+        // console.error("Error removing section subjects:", error);
+        throw error;
+    }
+};
+
 module.exports = {
-    createSectionSubjectsByGradeSection, createSectionSubjectsByGradeSubject
+    createSectionSubjectsByGradeSection, createSectionSubjectsByGradeSubject,
+    removeSectionSubjects, removeSectionSubjectsByGradeSubject
 };
