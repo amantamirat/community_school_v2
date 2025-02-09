@@ -2,7 +2,7 @@ const ExternalStudentPriorInfo = require('../models/external-student-info');
 const ClassificationGrade = require('../models/classification-grade');
 const Student = require("../models/student");
 const StudentGrade = require("../models/student-grade");
-const gradeController = require('../controllers/gradeController');
+const { getPreviousGrade } = require('../services/gradeService');
 
 
 const externalStudentPriorInfoController = {
@@ -42,7 +42,7 @@ const externalStudentPriorInfoController = {
             const grade = classificationGrade.curriculum_grade.grade;
             //const academic_year = classificationGrade.admission_classification.academic_session.academic_year;
             //const classification = classificationGrade.admission_classification.classification;
-            const prevGrade = await gradeController.getPreviousGrade(grade);
+            const prevGrade = await getPreviousGrade(grade);
             let query;
             if (!prevGrade) {
                 query = { grade: grade, status: "FAILED", is_referred: false };

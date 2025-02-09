@@ -2,6 +2,7 @@ const GradeSection = require('../models/grade-sections');
 const StudentGrade = require("../models/student-grade");
 const { createSectionSubjectsByGradeSection, removeSectionSubjects } = require('../services/sectionSubjectService');
 const SectionSubject = require('../models/section-subject');
+const ClassificationGrade = require('../models/classification-grade');
 
 
 const GradeSectionController = {
@@ -18,13 +19,14 @@ const GradeSectionController = {
 
     openSection: async (req, res) => {
         const { id } = req.params;
-        const gradeSection = await GradeSection.findById(id);
+        const gradeSection = await GradeSection.findById(id).populate('classification_grade');
         if (!gradeSection) {
             return res.status(404).json({ message: 'Grade section not found' });
         }
         if (gradeSection.status === 'OPEN') {
             return res.status(400).json({ message: 'Section already Open' });
         }
+        if (gradeSection.classification_grade.status === "CLOSED") return res.status(404).json({ message: 'Can not Open Section, Classification Grade is Closed.' });
         gradeSection.status = "OPEN";
         const savedGradeSection = await gradeSection.save();
         return res.status(200).json(savedGradeSection);
@@ -40,7 +42,7 @@ const GradeSectionController = {
             return res.status(400).json({ message: 'Section already closed' });
         }
         const sectionSubjects = await SectionSubject.find({ grade_section: id }).lean();
-        if(sectionSubjects.length===0){return res.status(400).json({ message: 'Empty section can not be closed.' });}
+        if (sectionSubjects.length === 0) { return res.status(400).json({ message: 'Empty section can not be closed.' }); }
         const hasActiveSubject = sectionSubjects.some(subject => subject.status === 'ACTIVE');
         if (hasActiveSubject) {
             return res.status(400).json({ message: 'Cannot close section, active class found' });
@@ -54,12 +56,9 @@ const GradeSectionController = {
     createSection: async (req, res) => {
         try {
             const { classification_grade, section_number, status } = req.body;
-            /*
             const classificationGrade = await ClassificationGrade.findById(classification_grade);
-            if (!classificationGrade) {
-                return res.status(404).json({ message: 'Classification grade not found' });
-            }
-            */
+            if (!classificationGrade) return res.status(404).json({ message: 'Classification grade not found' });
+            if (classificationGrade.status === "CLOSED") return res.status(404).json({ message: 'Classification Grade is Closed.' });
             const gradeSection = new GradeSection({ classification_grade, section_number, status });
             const savedGradeSection = await gradeSection.save();
             await createSectionSubjectsByGradeSection(savedGradeSection);

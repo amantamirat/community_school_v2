@@ -15,7 +15,7 @@ const CurriculumGradeSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['ACTIVE', 'CLOSED'],
+        enum: ['ACTIVE', 'LOCKED'],
         default: 'ACTIVE',
         required: true
     },

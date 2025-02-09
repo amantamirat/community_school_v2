@@ -42,6 +42,7 @@ export type CurriculumGrade = {
     _id?: string;
     curriculum: string | Curriculum;
     grade: string | Grade;
+    status: 'ACTIVE' | 'LOCKED';
 }
 
 export type GradeSubject = {

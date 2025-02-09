@@ -72,14 +72,16 @@ const GradeSectionPage = () => {
         } catch (error) {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed to add grade',
+                summary: 'Failed to create section',
                 detail: '' + error,
                 life: 1500
             });
+        } finally {
+            setGradeSections(_gradeSections);
+            setShowAddDialog(false);
+            setSelectedGradeSection(emptyGradeSection);
         }
-        setGradeSections(_gradeSections);
-        setShowAddDialog(false);
-        setSelectedGradeSection(emptyGradeSection);
+
     }
     const deleteGradeSection = async () => {
         try {
@@ -105,9 +107,6 @@ const GradeSectionPage = () => {
         setShowRemoveDialog(false);
         setSelectedGradeSection(emptyGradeSection);
     }
-
-
-    
 
 
     const openAddDialog = () => {
@@ -173,7 +172,7 @@ const GradeSectionPage = () => {
     const startToolbarTemplate = () => {
         return (
             <div className="my-2">
-                <Button label="Create Section" icon="pi pi-plus" className="mr-2" severity="success" onClick={openAddDialog} disabled={!selectedClassificationGrade} />
+                <Button label="Create Section" icon="pi pi-plus" className="mr-2" severity="success" onClick={openAddDialog} disabled={!selectedClassificationGrade || selectedClassificationGrade.status === 'CLOSED'} />
             </div>
         );
     };
@@ -223,6 +222,7 @@ const GradeSectionPage = () => {
                         onRowToggle={(e) => setExpandedClassRows(e.data)}
                         rowExpansionTemplate={(data) => (
                             <SectionClassComponent
+                                classificationGrade={selectedClassificationGrade}
                                 gradeSection={data as GradeSection}
                                 onUpdate={handleUpdateSection}
                             />

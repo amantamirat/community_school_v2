@@ -20,7 +20,8 @@ interface CurriculumGradeProps {
 const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
     let emptyCurriculumGrade: CurriculumGrade = {
         curriculum: props.curriculum,
-        grade: ''
+        grade: '',
+        status:'ACTIVE'
     };
     const [grades, setGrades] = useState<Grade[]>([]);
     const [curriculumGrades, setCurriculumGrades] = useState<CurriculumGrade[]>([]);
@@ -201,6 +202,7 @@ const CurriculumGradeComponent = (props: CurriculumGradeProps) => {
                     >
                         <Column expander style={{ width: '3em' }} />
                         <Column field="grade" body={(rowData) => gradeTemplate(grades.find(grade => grade._id === rowData.grade) as Grade)} header='Grade'></Column>
+                        <Column field="status" header="Status" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
                     <Dialog

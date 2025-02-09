@@ -58,10 +58,7 @@ const StudentResultController = {
         } catch (error) {
             return res.status(500).json({ message: error.message });
         }
-    }, 
-
-
-   
+    },   
 
 
     deleteStudentResult: async (req, res) => {

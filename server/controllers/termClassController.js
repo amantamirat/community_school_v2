@@ -36,7 +36,7 @@ const TermClassController = {
             const subjectWeightIds = await SubjectWeight.distinct('_id', { grade_subject: subjectTerm.grade_subject });
             if (subjectWeightIds.length === 0) return res.status(400).json({ message: 'No weights are found in the subject' });
 
-            const studentClasses = await StudentClass.find({ term_class: term_class });
+            const studentClasses = await StudentClass.find({ term_class: term_class }).lean();
             if (studentClasses.length === 0) return res.status(400).json({ message: 'No students found in this section class' });
             const studentClassIds = studentClasses.map(sc => sc._id);
 

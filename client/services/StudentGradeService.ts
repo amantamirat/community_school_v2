@@ -8,7 +8,6 @@ const register_first_level_students_endpoint = '/api/student-grades/register_fir
 const deregister_students_endpoint = '/api/student-grades/deregister_students';
 const allocate_section_endpoint = '/api/student-grades/allocate_section';
 const detach_section_endpoint = '/api/student-grades/detach_section';
-const sync_endpoint = "/api/student-grades/sync-student-classes";
 const update_endpoint = '/api/student-grades/update';
 const delete_endpoint = '/api/student-grades/delete';
 
@@ -62,9 +61,6 @@ export const StudentGradeService = {
         throw new Error('I told you, grade section is required');
     },
 
-    async syncStudentClasses(grade_section: GradeSection): Promise<any> {
-        const createdData = await MyService.create({}, `${sync_endpoint}/${grade_section._id}`);
-        return createdData;
-    },
+    
 
 };

@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 const express = require('express');
 const cors = require('cors');
-
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+const { initializeGrades } = require('./services/gradeService');
 const gradeRoutes = require('./routes/gradeRoutes');
 app.use('/api/grades', gradeRoutes);
 const departmentRoutes = require("./routes/departmentRoutes");
@@ -51,11 +51,10 @@ const sectionClassRoutes = require("./routes/sectionClassRoutes");
 app.use("/api/section-classs", sectionClassRoutes);
 
 require('dotenv').config();
-const gradeController = require('./controllers/gradeController');
 mongoose.connect(process.env.MONGO_URL)
   .then(async () => {
     console.log('databased connection established');
-    await gradeController.initializeGrades();
+    await initializeGrades();
   })
   .catch(err => {
     console.error('database connection error:', err);

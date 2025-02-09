@@ -1,6 +1,7 @@
 const StudentClass = require('../models/student-class');
 const StudentGrade = require("../models/student-grade");
 const StudentResult = require("../models/student-result");
+const SectionSubject = require("../models/section-subject");
 
 const StudentClassController = {
 
@@ -28,6 +29,43 @@ const StudentClassController = {
             //console.log(studentClasss);
             res.status(200).json(studentClasss);
         } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    syncClasses: async (req, res) => {
+        try {
+            const { grade_section } = req.params;
+            const studentGrades = await StudentGrade.find({ grade_section: grade_section }).lean();
+            const studentGradeIds = studentGrades.map(stud => stud._id);
+
+            const existingStudentClasses = await StudentClass.find({ student_grade: { $in: studentGradeIds } })
+                .select('student_grade term_class');
+
+            const studentClassMap = new Map();
+            studentGradeIds.forEach(studId => studentClassMap.set(studId.toString(), new Set()));
+
+            existingStudentClasses.forEach(({ student_grade, term_class }) => {
+                studentClassMap.get(student_grade.toString()).add(term_class.toString());
+            });
+            const sectionSubjects = await SectionSubject.find({ grade_section: grade_section });
+            const sectionSubjectsIds = sectionSubjects.map(sub => sub._id.toString());
+            const termClasses = await TermClass.find({ section_subject: { $in: sectionSubjectsIds } });
+            const termClassIds = termClasses.map(term => term._id.toString());
+
+            const newStudentClasses = [];
+            studentGradeIds.forEach(studId => {
+                const existingClass = studentClassMap.get(studId.toString());
+                termClassIds.forEach(termClass => {
+                    if (!existingClass.has(termClass)) {
+                        newStudentClasses.push({ student_grade: studId, term_class: termClass });
+                    }
+                });
+            });
+            const insertedClasses = await StudentClass.insertMany(newStudentClasses);
+            res.status(201).json(insertedClasses);
+        } catch (error) {
+            console.log(error);
             res.status(500).json({ message: error.message });
         }
     },

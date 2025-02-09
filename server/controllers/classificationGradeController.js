@@ -3,7 +3,9 @@ const StudentGrade = require("../models/student-grade");
 const GradeSection = require('../models/grade-sections');
 const AdmissionClassification = require("../models/admission-classification");
 const CurriculumGrade = require('../models/curriculum-grade');
-const mongoose = require('mongoose');
+const SectionSubject = require('../models/section-subject');
+const { determineStudentStatus } = require('../services/studentGradeService');
+
 
 // Controller methods
 const ClassificationGradeController = {
@@ -22,7 +24,6 @@ const ClassificationGradeController = {
 
     openGrade: async (req, res) => {
         const { id } = req.params;
-        //check the curriculum
         const classificationGrade = await ClassificationGrade.findById(id);
         if (!classificationGrade) {
             return res.status(404).json({ message: 'Grade not found' });
@@ -30,8 +31,22 @@ const ClassificationGradeController = {
         if (classificationGrade.status === 'OPEN') {
             return res.status(400).json({ message: 'Grade already Open' });
         }
+
+        const curriculumGrade = await CurriculumGrade.findById(classificationGrade.curriculum_grade);
+        if (!curriculumGrade) return res.status(404).json({ message: 'Curriculum Grade not found' });
+
         classificationGrade.status = "OPEN";
         const savedGrade = await classificationGrade.save();
+
+        const closedGrades = await ClassificationGrade.countDocuments({ 
+            curriculum_grade: curriculumGrade._id, 
+            status: "CLOSED" 
+        });
+
+        if (closedGrades === 0) {
+            curriculumGrade.status = "ACTIVE";
+            await curriculumGrade.save();
+        }
         return res.status(200).json(savedGrade);
     },
 
@@ -49,6 +64,20 @@ const ClassificationGradeController = {
         const hasOpenSection = gradeSections.some(sec => sec.status === 'OPEN');
         if (hasOpenSection) {
             return res.status(400).json({ message: 'Cannot close grade, open class found.' });
+        }
+        const gradeSectionIds = gradeSections.map(sec => sec._id);
+        const sectionSubjects = await SectionSubject.find({ grade_section: { $in: gradeSectionIds } }).lean();
+        const hasActiveSubject = sectionSubjects.some(subject => subject.status === 'ACTIVE');
+        if (hasActiveSubject) {
+            return res.status(400).json({ message: 'Cannot close grade, active class found' });
+        }
+        const curriculumGrade = await CurriculumGrade.findById(classificationGrade.curriculum_grade);
+        if (!curriculumGrade) return res.status(404).json({ message: 'Curriculum Grade not found' });
+
+        await determineStudentStatus(classificationGrade);
+        if (curriculumGrade.status === 'ACTIVE') {
+            curriculumGrade.status = "LOCKED";
+            await curriculumGrade.save();
         }
         classificationGrade.status = "CLOSED";
         const savedGrade = await classificationGrade.save();
@@ -93,11 +122,10 @@ const ClassificationGradeController = {
     deleteClassificationGrade: async (req, res) => {
         try {
             const { id } = req.params;
-
-            if (!mongoose.Types.ObjectId.isValid(id)) {
-                return res.status(400).json({ message: 'Invalid Classification Grade ID' });
+            const classificationGrade = await ClassificationGrade.findById(id);
+            if (!classificationGrade) {
+                return res.status(404).json({ message: 'Grade not found' });
             }
-
             const [studentGradeRef, gradeSectionRef] = await Promise.all([
                 StudentGrade.exists({ classification_grade: id }),
                 GradeSection.exists({ classification_grade: id })
@@ -108,12 +136,7 @@ const ClassificationGradeController = {
                     message: 'Cannot delete Classification Grade because students are registered to the grade or section that has been created.'
                 });
             }
-
-            const deletedClassificationGrade = await ClassificationGrade.findByIdAndDelete(id);
-            if (!deletedClassificationGrade) {
-                return res.status(404).json({ message: 'Classification Grade not found' });
-            }
-
+            await ClassificationGrade.findByIdAndDelete(id);
             res.status(200).json({ message: 'Classification Grade deleted successfully' });
         } catch (error) {
             res.status(500).json({ message: error.message });

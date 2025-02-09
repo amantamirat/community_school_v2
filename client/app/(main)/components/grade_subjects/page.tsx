@@ -175,7 +175,7 @@ const GradeSubjectComponent = (props: GradeSubjectProps) => {
     const header = () => {
         return (
             <>
-                <Button label="Add Subject" icon="pi pi-plus" onClick={openAddDialog} />
+                <Button label="Add Subject" icon="pi pi-plus" onClick={openAddDialog} disabled={props.curriculumGrade.status==='LOCKED'} />
             </>
         );
     }

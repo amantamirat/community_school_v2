@@ -2,6 +2,7 @@
 import StudentClassComponent from '@/app/(main)/components/student_classes/page';
 import { useClassificationGrade } from '@/app/(main)/contexts/classificationGradeContext';
 import { GradeSectionService } from '@/services/GradeSectionService';
+import { StudentClassService } from '@/services/StudentClassService';
 import { StudentGradeService } from '@/services/StudentGradeService';
 import { GradeSection, StudentGrade } from '@/types/model';
 import { Button } from 'primereact/button';
@@ -106,7 +107,7 @@ const SectionedStudentsPage = () => {
                 throw Error("Section Required");
             }
             setLoading(true);
-            const sync_data: any[] = await StudentGradeService.syncStudentClasses(selectedGradeSection);
+            const sync_data: any[] = await StudentClassService.syncStudentClasses(selectedGradeSection);
             if (sync_data.length > 0) {
                 toast.current?.show({
                     severity: 'success',

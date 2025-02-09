@@ -43,7 +43,6 @@ const NewExternalStudentsComponent = () => {
     };
 
     useEffect(() => {
-
         if (selectedClassificationGrade) {
             setLoading(true);
             ExternalStudentInfoService.getExternalElligibleStudentsByGrade(selectedClassificationGrade).then((data) => {

@@ -14,7 +14,8 @@ const GradeSubjectController = {
 
             const curriculumGrade = await CurriculumGrade.findById(curriculum_grade).populate('curriculum').lean();
             if (!curriculumGrade) return res.status(404).json({ message: 'Curriculum Grade not found' });
-
+            if (curriculumGrade.status === "LOCKED") return res.status(404).json({ message: 'Can not add new subjects, grade locked.' });
+            
             const _subject = await Subject.findById(subject).lean();
             if (!_subject) return res.status(404).json({ message: 'Subject not found' });
 

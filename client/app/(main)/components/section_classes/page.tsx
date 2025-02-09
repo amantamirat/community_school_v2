@@ -1,6 +1,6 @@
 'use client';
 import { SectionSubjectService } from "@/services/SectionSubjectService";
-import { GradeSection, SectionSubject } from "@/types/model";
+import { ClassificationGrade, GradeSection, SectionSubject } from "@/types/model";
 import { Column } from "primereact/column";
 import { DataTable, DataTableExpandedRows } from "primereact/datatable";
 import { Tag } from "primereact/tag";
@@ -11,6 +11,7 @@ import { Button } from "primereact/button";
 import { GradeSectionService } from "@/services/GradeSectionService";
 
 interface SectionClassProps {
+    classificationGrade?: ClassificationGrade;
     gradeSection: GradeSection;
     onUpdate: (updatedSection: GradeSection) => void;
 }
@@ -51,7 +52,7 @@ const SectionClassComponent = (props: SectionClassProps) => {
                     throw new Error('Section Already Closed');
                 }
                 setLoading(true);
-                if(sectionSubjects.length===0){
+                if (sectionSubjects.length === 0) {
                     throw new Error('Cannot close section, No Subjects Found.');
                 }
                 const hasActiveSubject = sectionSubjects.some(subject => subject.status === 'ACTIVE');
@@ -83,11 +84,17 @@ const SectionClassComponent = (props: SectionClassProps) => {
 
     const openGradeSection = async () => {
         try {
+            setLoading(true);
+            if (!props.classificationGrade) {
+                throw new Error('Grade required');
+            }
+            if (props.classificationGrade.status === "CLOSED") {
+                throw new Error('Can not Open Section, Grade is Closed');
+            }
             if (props.gradeSection) {
                 if (props.gradeSection.status === 'OPEN') {
                     throw new Error('Section Already Opened');
                 }
-                setLoading(true);
                 const openedSection = await GradeSectionService.openGradeSection(props.gradeSection);
                 if (openedSection.status === 'OPEN') {
                     props.onUpdate(openedSection);
