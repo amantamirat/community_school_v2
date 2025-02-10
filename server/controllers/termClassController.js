@@ -29,38 +29,42 @@ const TermClassController = {
             const termClass = await TermClass.findById(term_class);
             if (!termClass) return res.status(404).json({ message: 'Section class not found' });
             if (termClass.status !== "ACTIVE") return res.status(400).json({ message: 'Section class is not ACTIVE' });
-
+    
             const subjectTerm = await SubjectTerm.findById(termClass.subject_term);
             if (!subjectTerm) return res.status(404).json({ message: 'Subject Term is not found.' });
-
+    
             const subjectWeightIds = await SubjectWeight.distinct('_id', { grade_subject: subjectTerm.grade_subject });
             if (subjectWeightIds.length === 0) return res.status(400).json({ message: 'No weights are found in the subject' });
-
+    
             const studentClasses = await StudentClass.find({ term_class: term_class }).lean();
             if (studentClasses.length === 0) return res.status(400).json({ message: 'No students found in this section class' });
             const studentClassIds = studentClasses.map(sc => sc._id);
-
+    
             const studentResults = await StudentResult.find({ student_class: { $in: studentClassIds } });
             if (studentResults.length === 0) return res.status(400).json({ message: 'No students found in this section class' });
-
+    
             const studentResultsMap = new Map();
             for (const result of studentResults) {
                 if (!studentResultsMap.has(result.student_class.toString())) {
-                    studentResultsMap.set(result.student_class.toString(), new Set());
+                    studentResultsMap.set(result.student_class.toString(), { totalResult: 0, subjectWeights: new Set() });
                 }
-                studentResultsMap.get(result.student_class.toString()).add(result.subject_weight.toString());
+                studentResultsMap.get(result.student_class.toString()).totalResult += result.result;
+                studentResultsMap.get(result.student_class.toString()).subjectWeights.add(result.subject_weight.toString());
             }
-
+    
             // Prepare bulk updates for student classes
             const bulkStudentClassUpdates = [];
             const bulkStudentResultUpdates = [];
             for (const studentClass of studentClasses) {
-                const studentResultSubjectWeightIds = studentResultsMap.get(studentClass._id.toString()) || new Set();
-                const allSubjectsPresent = subjectWeightIds.every(id => studentResultSubjectWeightIds.has(id.toString()));
+                const studentResultData = studentResultsMap.get(studentClass._id.toString()) || { totalResult: 0, subjectWeights: new Set() };
+                const allSubjectsPresent = subjectWeightIds.every(id => studentResultData.subjectWeights.has(id.toString()));
                 bulkStudentClassUpdates.push({
                     updateOne: {
                         filter: { _id: studentClass._id },
-                        update: { status: allSubjectsPresent ? 'COMPLETED' : 'INCOMPLETE' }
+                        update: { 
+                            status: allSubjectsPresent ? 'COMPLETED' : 'INCOMPLETE',
+                            total_result: studentResultData.totalResult
+                        }
                     }
                 });
                 bulkStudentResultUpdates.push({
@@ -72,7 +76,7 @@ const TermClassController = {
             }
             if (bulkStudentClassUpdates.length > 0) await StudentClass.bulkWrite(bulkStudentClassUpdates);
             if (bulkStudentResultUpdates.length > 0) await StudentResult.bulkWrite(bulkStudentResultUpdates);
-
+    
             termClass.status = "SUBMITTED";
             const savedTermClass = await termClass.save();
             return res.status(200).json(savedTermClass);

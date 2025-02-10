@@ -13,6 +13,8 @@ const determineStudentStatus = async (classificationGrade) => {
             acc[studentClass.student_grade].push(studentClass);
             return acc;
         }, {});
+
+        console.log(studentGradeClass);
         
     } catch (error) {
         throw error
