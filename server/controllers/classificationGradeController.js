@@ -35,18 +35,21 @@ const ClassificationGradeController = {
         const curriculumGrade = await CurriculumGrade.findById(classificationGrade.curriculum_grade);
         if (!curriculumGrade) return res.status(404).json({ message: 'Curriculum Grade not found' });
 
-        classificationGrade.status = "OPEN";
-        const savedGrade = await classificationGrade.save();
-
-        const closedGrades = await ClassificationGrade.countDocuments({ 
-            curriculum_grade: curriculumGrade._id, 
-            status: "CLOSED" 
+        const closedGrades = await ClassificationGrade.countDocuments({
+            curriculum_grade: curriculumGrade._id,
+            status: "CLOSED"
         });
 
         if (closedGrades === 0) {
             curriculumGrade.status = "ACTIVE";
             await curriculumGrade.save();
         }
+        await StudentGrade.updateMany(
+            { classification_grade: classificationGrade._id },
+            { $set: { status: "ACTIVE", average_result: null } }
+        );
+        classificationGrade.status = "OPEN";
+        const savedGrade = await classificationGrade.save();
         return res.status(200).json(savedGrade);
     },
 

@@ -1,6 +1,7 @@
 const StudentClass = require('../models/student-class');
 const StudentGrade = require("../models/student-grade");
-const StudentResult = require("../models/student-result");
+const GradeSection = require('../models/grade-sections');
+const TermClass = require('../models/term-class');
 const SectionSubject = require("../models/section-subject");
 
 const StudentClassController = {
@@ -36,6 +37,13 @@ const StudentClassController = {
     syncClasses: async (req, res) => {
         try {
             const { grade_section } = req.params;
+            const gradeSection = await GradeSection.findById(id);
+            if (!gradeSection) {
+                return res.status(404).json({ message: 'Grade section not found' });
+            }
+            if (gradeSection.status === 'CLOSED') {
+                return res.status(400).json({ message: 'Section already closed' });
+            }
             const studentGrades = await StudentGrade.find({ grade_section: grade_section }).lean();
             const studentGradeIds = studentGrades.map(stud => stud._id);
 

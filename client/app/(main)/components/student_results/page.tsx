@@ -18,7 +18,7 @@ const StudentResultComponent = (props: StudentResultProps) => {
         student_class: props.student_class,
         subject_weight: '',
         result: 0,
-        status:'ACTIVE'
+        status: 'ACTIVE'
     };
 
     const [studentResults, setStudentResults] = useState<StudentResult[]>([]);
@@ -45,7 +45,7 @@ const StudentResultComponent = (props: StudentResultProps) => {
     const deleteStudentResult = async () => {
         try {
             if (selectedStudentResult) {
-                if(selectedStudentResult.status==="CLOSED"){
+                if (selectedStudentResult.status === "CLOSED") {
                     throw new Error('Closed Results Can not be deleted!');
                 }
                 const deleted = await StudentResultService.deleteStudentResult(selectedStudentResult);
@@ -118,7 +118,9 @@ const StudentResultComponent = (props: StudentResultProps) => {
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="subject_weight.assessment_type" header="Assesment" sortable headerStyle={{ minWidth: '10rem' }} />
                         <Column field="subject_weight.assessment_weight" header="Weight" sortable headerStyle={{ minWidth: '10rem' }} />
-                        <Column field="result" header="Result" sortable headerStyle={{ minWidth: '10rem' }} />
+                        <Column field="result" header="Result" sortable headerStyle={{ minWidth: '10rem' }}
+                            footer={`Total: ${studentResults.reduce((sum, item) => sum + (item.result || 0), 0)}`}
+                        />
                         <Column field="status" header="Status" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }} />
                     </DataTable>

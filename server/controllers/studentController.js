@@ -27,7 +27,7 @@ const studentController = {
         //const session = await mongoose.startSession();
         try {
             const { student, external_info } = req.body
-            if (student.has_perior_school_info && external_info === null) {
+            if (student.has_perior_school_info && (external_info === null || !external_info)) {
                 return res.status(404).json({ message: "Student External Information Not Found!" });
             }
             //session.startTransaction();
@@ -59,6 +59,26 @@ const studentController = {
             if (!updatedStudent) {
                 return res.status(404).json({ message: "Student not found" });
             }
+            res.status(200).json(updatedStudent);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    updateStudentPhoto: async (req, res) => {
+        try {
+            const { id } = req.params;
+            if (!req.file) {
+                return res.status(400).json({ message: "No file uploaded" });
+            }
+            const photoPath = `/uploads/students/${req.file.filename}`;
+
+            const updatedStudent = await Student.findByIdAndUpdate(id, { photo: photoPath }, { new: true });
+
+            if (!updatedStudent) {
+                return res.status(404).json({ message: "Student not found" });
+            }
+            
             res.status(200).json(updatedStudent);
         } catch (error) {
             res.status(500).json({ message: error.message });

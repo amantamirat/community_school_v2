@@ -8,7 +8,6 @@ const StudentSchema = new mongoose.Schema(
         },
         middle_name: {
             type: String,
-            required: true
         },
         last_name: {
             type: String,
@@ -32,7 +31,8 @@ const StudentSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
             required: true,
-        }
+        },
+        photo: { type: String }
     }
 );
 

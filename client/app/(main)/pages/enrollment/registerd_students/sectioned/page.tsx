@@ -106,6 +106,9 @@ const SectionedStudentsPage = () => {
             if (!selectedGradeSection) {
                 throw Error("Section Required");
             }
+            if(selectedGradeSection.status==="CLOSED"){
+                throw Error("Section CLOSED");
+            }
             setLoading(true);
             const sync_data: any[] = await StudentClassService.syncStudentClasses(selectedGradeSection);
             if (sync_data.length > 0) {
@@ -232,6 +235,7 @@ const SectionedStudentsPage = () => {
                         <Column field="grade_section.section" header="Section" body={(rowData) => rowData.grade_section ? rowData.grade_section.section_number : "N/A"} sortable headerStyle={{ minWidth: '10rem' }} />
                         <Column field="student.birth_date" header="Birth Date" sortable headerStyle={{ minWidth: '10rem' }}
                             body={(rowData) => new Date(rowData.student.birth_date).toLocaleDateString('en-GB')} />
+                        {selectedClassificationGrade?.status === 'CLOSED' && <Column field="average_result" header="Average" sortable headerStyle={{ minWidth: '10rem' }}></Column>}
                         <Column field="status" header="Status" sortable headerStyle={{ minWidth: '10rem' }} />
                     </DataTable>
                     <Dialog

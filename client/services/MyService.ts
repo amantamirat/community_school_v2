@@ -61,7 +61,7 @@ export const MyService = {
         return updatedData;
     },
 
-    async put(endpoint: string,payload: any): Promise<any> {
+    async put(endpoint: string, payload: any): Promise<any> {
         const url = `${API_CONFIG.baseURL}${endpoint}`;
         const response = await fetch(url, {
             method: "PUT",
@@ -107,4 +107,26 @@ export const MyService = {
         }
         return response.json();
     },
+
+    async uploadByPUT(endpoint: string, payload: FormData): Promise<any> {
+        const url = `${API_CONFIG.baseURL}${endpoint}`;
+
+        const response = await fetch(url, {
+            method: "PUT",
+            body: payload,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to update data");
+        }
+
+        return await response.json();
+    },
+
+    photoURL(endpoint: string): string {
+        return  `${API_CONFIG.baseURL}${endpoint}`;
+    }
+
+
 };

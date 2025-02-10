@@ -44,7 +44,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
             });
         }
     };
-    
+
 
     const getSeverity = (value: string) => {
         switch (value) {
@@ -71,13 +71,13 @@ const StudentClassComponent = (props: StudentClassProps) => {
             <h5 className="m-0">Registred Classes</h5>
             <span className="block mt-2 md:mt-0">
                 <div className="my-2">
-                    <Button label="Report" text/>
+                    <Button label="Report" text />
                 </div>
             </span>
         </div>
     );
 
-    
+
     return (
         <div className="grid">
             <div className="col-12">
@@ -100,11 +100,12 @@ const StudentClassComponent = (props: StudentClassProps) => {
                         <Column expander style={{ width: '4em' }} />
                         <Column field="term_class.subject_term.grade_subject.subject.title" header="Class" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="term_class.subject_term.term" header="Term" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        {props.student_grade.status !== 'ACTIVE' && <Column field="total_result" header="Total" sortable headerStyle={{ minWidth: '10rem' }}></Column>}
                         <Column field="status" header="Status" sortable body={statusBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
-                        
+
                     </DataTable>
 
-                   
+
                 </div>
             </div>
         </div>

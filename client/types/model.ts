@@ -118,6 +118,7 @@ export type Student = {
     sex: "Male" | "Female";
     birth_date: Date | null;
     has_perior_school_info: boolean;
+    photo?:string;
 };
 
 export type ExternalStudentInfo = {

@@ -7,6 +7,7 @@ const get_endpoint = "/api/students/";
 const create_endpoint = '/api/students/create';
 const update_endpoint = '/api/students/update';
 const delete_endpoint = '/api/students/delete';
+const upload_endpoint = '/api/students/upload-photo';
 
 interface ExternalStudent {
     student: Student;
@@ -47,8 +48,19 @@ export const StudentService = {
         throw Error("ID Required!");
     },
 
+    async uploadStudentPhoto(student: Student, photo: File): Promise<Student> {
+        if(!student._id){
+            throw Error("ID Required!");
+        }
+        const formData = new FormData();
+        formData.append('photo', photo);  // 'photo' should match the field name in your backend
+        const data = await MyService.uploadByPUT(`${upload_endpoint}/${student._id}`, formData);
+        return data;
+    },
+
     async deleteStudent(id: string): Promise<boolean> {
         const response = await MyService.delete(id, delete_endpoint);
         return response;
-    }
+    },
+    
 };

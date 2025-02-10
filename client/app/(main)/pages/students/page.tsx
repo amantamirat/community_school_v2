@@ -21,6 +21,8 @@ import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
 import ExternalInfoComponent from '../../components/external_student_info/page';
+import { Avatar } from 'primereact/avatar';
+import { MyService } from '@/services/MyService';
 
 const StudentPage = () => {
     let emptyStudent: Student = {
@@ -41,11 +43,12 @@ const StudentPage = () => {
         status: 'INCOMPLETE',
         transfer_reason: ''
     };
-    const [students, setStudents] = useState<Student[] | null>(null);
+    const [students, setStudents] = useState<Student[]>([]);
     const [selectedStudent, setSelectedStudent] = useState<Student>(emptyStudent);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [showUploadDialog, setShowUploadDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
@@ -73,7 +76,7 @@ const StudentPage = () => {
             const data = await StudentService.getStudents();
             setStudents(data); // Update state with fetched data
         } catch (err) {
-            //console.error('Failed to load students:', err);
+            console.error('Failed to load students:', err);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Failed to load students',
@@ -575,10 +578,55 @@ const StudentPage = () => {
         </>
     );
 
+    const onUpload = async (event: any) => {
+        if (!selectedStudent) {
+            return;
+        }
+        try {
+            let _students = [...students];
+            const file = event.files[0];
+            if (!file) {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'No file selected',
+                    detail: 'Please select a photo to upload',
+                    life: 3000
+                });
+                return;
+            }
+            const updatedStudent = await StudentService.uploadStudentPhoto(selectedStudent, file);
+            //console.log("Updated student:", updatedStudent);
+            if (updatedStudent.photo && updatedStudent._id) {
+                const index = findIndexById(updatedStudent._id);
+                _students[index] = updatedStudent;
+                toast.current?.show({
+                    severity: 'info',
+                    summary: 'Success',
+                    detail: 'File Uploaded',
+                    life: 3000
+                });
+                setStudents(_students);
+            }
+
+        } catch (error) {
+            console.error("Error uploading photo:", error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to upload photo',
+                detail: '' + error,
+                life: 3000
+            });
+        }
+        finally {
+            setShowUploadDialog(false);
+        }
+    };
+
+
     const endToolbarTemplate = () => {
         return (
             <React.Fragment>
-                <FileUpload mode="basic" accept="image/*" disabled={true} maxFileSize={1000000} chooseLabel="Import" className="mr-2 inline-block" />
+                <Button label="Upload Photo" onClick={() => { setShowUploadDialog(true); }} disabled={!selectedStudent} className="mr-2 inline-block" />
             </React.Fragment>
         );
     };
@@ -649,10 +697,30 @@ const StudentPage = () => {
                             body={(rowData, options) => options.rowIndex + 1}
                             style={{ width: '50px' }}
                         />
-                        <Column field="first_name" header="First Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="last_name" header="Last Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
+                        <Column
+                            body={(rowData) => {
+                                const [imgSrc, setImgSrc] = useState(MyService.photoURL(rowData.photo));
+
+                                useEffect(() => {
+                                    setImgSrc(MyService.photoURL(rowData.photo));
+                                }, [rowData.photo]); // Update when the photo changes
+
+                                return (
+                                    <Avatar
+                                        image={imgSrc}
+                                        shape="circle"
+                                        size="large"                                        
+                                    />
+                                );
+                            }}
+                            style={{ width: '6rem' }}
+                        />
+                        <Column field="first_name" header="First Name" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="last_name" header="Last Name" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="sex" header="Sex" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="birth_date" header="Birth Date" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="birth_date" header="Birth Date" sortable headerStyle={{ minWidth: '10rem' }}
+                            body={(rowData) => new Date(rowData.birth_date).toLocaleDateString('en-GB')} />
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
@@ -681,7 +749,7 @@ const StudentPage = () => {
                         onHide={hideSaveDialog}
                     >
                         <div className="dialog-content">
-                            {selectedStudent._id && renderStudentFormContent()}
+                            {selectedStudent?._id && renderStudentFormContent()}
                         </div>
                     </Dialog>
 
@@ -699,6 +767,19 @@ const StudentPage = () => {
                                 <span>
                                     Are you sure you want to delete <b>{selectedStudent.first_name} {selectedStudent.last_name}</b>?
                                 </span>
+                            )}
+                        </div>
+                    </Dialog>
+                    <Dialog
+                        visible={showUploadDialog}
+                        style={{ width: '450px' }}
+                        header="Upload a Photo"
+                        modal
+                        onHide={() => { setShowUploadDialog(false) }}
+                    >
+                        <div className="flex align-items-center justify-content-center">
+                            {selectedStudent && (
+                                <FileUpload name="photo" uploadHandler={onUpload} customUpload accept="image/*" maxFileSize={1000000} emptyTemplate={<p className="m-0">Drag and drop files to here to upload.</p>} />
                             )}
                         </div>
                     </Dialog>

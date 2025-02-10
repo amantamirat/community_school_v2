@@ -11,11 +11,19 @@ const StudentGradeSchema = new mongoose.Schema({
         ref: 'Student',
         required: true
     },
+    grade_section: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'GradeSection'
+    },
+    average_result: {
+        type: Number,
+        min: 0
+    },
     status: {
         type: String,
         required: true,
         default: 'ACTIVE',
-        enum: ['ACTIVE', 'PASSED', 'FAILED', 'INCOMPLETE','PENDING']
+        enum: ['ACTIVE', 'PASSED', 'FAILED', 'INCOMPLETE', 'PENDING']
     },
     external_student_prior_info: {
         type: mongoose.Schema.Types.ObjectId,
@@ -28,11 +36,8 @@ const StudentGradeSchema = new mongoose.Schema({
         ref: 'StudentGrade',
         unique: true,
         sparse: true
-    },
-    grade_section: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'GradeSection'
-    },
+    }
+
 });
 
 StudentGradeSchema.index({ classification_grade: 1, student: 1 }, { unique: true });

@@ -59,6 +59,14 @@ mongoose.connect(process.env.MONGO_URL)
   .catch(err => {
     console.error('database connection error:', err);
   });
+const fs = require('fs');
+const path = require('path');
+const uploadDir = path.join(__dirname, 'uploads/students');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+  console.log('upload folder created!');
+}
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.listen(process.env.SERVER_PORT, () => {
   console.log(`Server is running at http://127.0.0.1:${process.env.SERVER_PORT}`);
 });
