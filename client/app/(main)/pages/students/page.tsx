@@ -701,10 +701,9 @@ const StudentPage = () => {
                         <Column
                             body={(rowData) => {
                                 const [imgSrc, setImgSrc] = useState(MyService.photoURL(rowData.photo));
-
                                 useEffect(() => {
                                     setImgSrc(MyService.photoURL(rowData.photo));
-                                }, [rowData.photo]); // Update when the photo changes
+                                }, [rowData.photo]); 
 
                                 return (
                                     <Avatar

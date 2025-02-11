@@ -22,7 +22,7 @@ async function populateData() {
     // Enum options
     const sexes = ['Male', 'Female'];
     const classifications = ['REGULAR', 'EVENING', 'DISTANCE'];
-    const statuses = ['PASSED', 'FAILED', 'INCOMPLETE'];
+    const statuses = ['PASSED', 'FAILED'];
     const students = [];
     let size = 200;
     for (let i = 0; i < size; i++) {

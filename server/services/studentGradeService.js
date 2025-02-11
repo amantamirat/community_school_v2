@@ -9,7 +9,6 @@ const determineStudentStatus = async (classificationGrade) => {
         if (!curriculumGrade || !curriculumGrade.curriculum) {
             throw new Error("Curriculum or curriculum grade not found.");
         }
-
         const passMark = curriculumGrade.curriculum.minimum_pass_mark;
         const studentGrades = await StudentGrade.find({ classification_grade: classificationGrade._id });
 

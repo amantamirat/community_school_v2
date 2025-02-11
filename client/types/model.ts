@@ -7,11 +7,10 @@ export type Teacher = {
     _id?: string;
     department: string | Department;
     first_name: string;
-    middle_name: string;
+    middle_name?: string;
     last_name: string;
     sex: "Male" | "Female";
-    createdAt?: Date;
-    updatedAt?: Date;
+    photo?:string;
 };
 
 export type Grade = {

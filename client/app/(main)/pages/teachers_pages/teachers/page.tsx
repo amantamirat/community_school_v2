@@ -1,13 +1,16 @@
 'use client';
 import { DepartmentService } from '@/services/DepartmentService';
+import { MyService } from '@/services/MyService';
 import { TeacherService } from '@/services/TeacherService';
 import { Department, Teacher } from '@/types/model';
 import { FilterMatchMode } from 'primereact/api';
+import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
+import { FileUpload } from 'primereact/fileupload';
 import { InputText } from 'primereact/inputtext';
 import { RadioButton } from 'primereact/radiobutton';
 import { Toast } from 'primereact/toast';
@@ -18,7 +21,6 @@ import React, { useEffect, useRef, useState } from 'react';
 const TeacherPage = () => {
     let emptyTeacher: Teacher = {
         first_name: '',
-        middle_name: '',
         last_name: '',
         sex: 'Male',
         department: '', // Reference to department
@@ -29,6 +31,7 @@ const TeacherPage = () => {
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [showUploadDialog, setShowUploadDialog] = useState(false);
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<any>>(null);
     const [globalFilter, setGlobalFilter] = useState('');
@@ -36,9 +39,41 @@ const TeacherPage = () => {
 
     useEffect(() => {
         initFilters();
-        loadDepartments();
-        loadTeachers();
+        DepartmentService.getDepartments().then((data) => {
+            setDepartments(data);
+        }).catch((err) => {
+            console.error('Failed to load departments:', err);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to load departments',
+                detail: '' + err,
+                life: 3000
+            });
+        });
+
     }, []);
+
+    useEffect(() => {
+        if (departments.length > 0) {
+            TeacherService.getTeachers().then((data) => {
+                const teachersWithDepartments = data.map((teacher) => ({
+                    ...teacher,
+                    department: departments.find((dept) => dept._id === teacher.department) || teacher.department
+                }));
+                setTeachers(teachersWithDepartments);
+            }).catch((err) => {
+                console.error('Failed to load teachers:', err);
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to load teachers',
+                    detail: '' + err,
+                    life: 3000
+                });
+            });
+        }
+    }, [departments]);
+
+
 
     const initFilters = () => {
         setFilters({
@@ -55,40 +90,10 @@ const TeacherPage = () => {
         setGlobalFilter(value);
     };
 
-    const loadDepartments = async () => {
-        try {
-            DepartmentService.getDepartments().then((data) => {
-                setDepartments(data);
-            });
-        } catch (err) {
-            console.error('Failed to load departments:', err);
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load departments',
-                detail: '' + err,
-                life: 3000
-            });
-        }
-    };
 
-    const loadTeachers = async () => {
-        try {
-            TeacherService.getPopulatedTeachers().then((data) => {
-                setTeachers(data);
-            });
-        } catch (err) {
-            //console.error('Failed to load teachers:', err);
-            toast.current?.show({
-                severity: 'error',
-                summary: 'Failed to load teachers',
-                detail: '' + err,
-                life: 3000
-            });
-        }
-    };
 
     const validateTeacher = (teacher: Teacher) => {
-        if (teacher.first_name.trim() === '' || teacher.last_name.trim() === '' || teacher.middle_name.trim() === '' || !teacher.department) {
+        if (teacher.first_name.trim() === '' || teacher.last_name.trim() === '' || !teacher.department) {
             return false;
         }
         return true;
@@ -102,20 +107,18 @@ const TeacherPage = () => {
         let _teachers = [...(teachers as any)];
         try {
             if (selectedTeacher._id) {
-                TeacherService.updateTeacher(selectedTeacher).then((updatedTeacher) => {
-                    if (updatedTeacher._id) {
-                        const teacher = { ...selectedTeacher }
-                        const index = findIndexById(updatedTeacher._id);
-                        _teachers[index] = teacher;
-                        setTeachers(_teachers);
-                    }
-                });
+                const updatedTeacher = await TeacherService.updateTeacher(selectedTeacher);
+                if (updatedTeacher._id) {
+                    const teacher = { ...updatedTeacher, department: departments.find((dept) => dept._id === updatedTeacher.department) || updatedTeacher.department }
+                    const index = teachers.findIndex((teacher) => teacher._id === updatedTeacher._id);
+                    _teachers[index] = teacher;
+                }
             } else {
-                TeacherService.createTeacher(selectedTeacher).then((newTeacher) => {
+                const newTeacher = await TeacherService.createTeacher(selectedTeacher);
+                if (newTeacher._id) {
                     const teacher = { ...selectedTeacher, _id: newTeacher._id }
                     _teachers.push(teacher);
-                    setTeachers(_teachers);
-                });
+                }
             }
             toast.current?.show({
                 severity: 'success',
@@ -127,24 +130,16 @@ const TeacherPage = () => {
             //console.error(error);
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed to update teacher',
+                summary: `Faild to ${selectedTeacher._id ? "update" : 'create'} teacher!`,
                 detail: '' + error,
                 life: 3000
             });
         }
-        setShowSaveDialog(false);
-        setSelectedTeacher(emptyTeacher);
-    };
-
-    const findIndexById = (id: string) => {
-        let index = -1;
-        for (let i = 0; i < (teachers as any)?.length; i++) {
-            if ((teachers as any)[i]._id === id) {
-                index = i;
-                break;
-            }
+        finally {
+            setShowSaveDialog(false);
+            setSelectedTeacher(emptyTeacher);
+            setTeachers(_teachers);
         }
-        return index;
     };
 
     const deleteTeacher = async () => {
@@ -182,13 +177,6 @@ const TeacherPage = () => {
     };
 
     const openEditDialog = (teacher: Teacher) => {
-        /*
-        setSelectedTeacher({
-            ...teacher,
-            department: (teacher.department && typeof teacher.department === 'string')
-                ? findDepartmentById(teacher.department) || teacher.department
-                : teacher.department
-        });*/
         setSelectedTeacher(teacher);
         setSubmitted(false);
         setShowSaveDialog(true);
@@ -222,6 +210,48 @@ const TeacherPage = () => {
         </>
     );
 
+    const onUpload = async (event: any) => {
+        if (!selectedTeacher) return;
+        const file = event.files[0];
+        if (!file) return;
+
+        let _teachers = [...teachers];
+        try {
+            const updatedTeacher = await TeacherService.uploadTeacherPhoto(selectedTeacher, file);
+            if (updatedTeacher.photo && updatedTeacher._id) {
+                const index = _teachers.findIndex((tea) => tea._id === updatedTeacher._id);
+                if (index !== -1) {
+                    _teachers[index] = { ..._teachers[index], photo: updatedTeacher.photo };
+                }
+                toast.current?.show({
+                    severity: 'info',
+                    summary: 'Success',
+                    detail: 'File Uploaded',
+                    life: 3000
+                });
+            }
+        } catch (error) {
+            console.error("Error uploading photo:", error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to upload photo',
+                detail: '' + error,
+                life: 3000
+            });
+        } finally {
+            setTeachers(_teachers); // Ensure state update triggers re-render
+            setShowUploadDialog(false);
+        }
+    };
+
+    const endToolbarTemplate = () => {
+        return (
+            <React.Fragment>
+                <Button label="Upload Photo" onClick={() => { setShowUploadDialog(true); }} disabled={!selectedTeacher} className="mr-2 inline-block" />
+            </React.Fragment>
+        );
+    };
+
     const startToolbarTemplate = () => {
         return (
             <React.Fragment>
@@ -252,23 +282,13 @@ const TeacherPage = () => {
     };
 
 
-    {/*
-        const findDepartmentById = (id: string): Department | undefined => {
-        return departments.find(department => department._id === id);
-    };
-    const departmentBodyTemplate = (rowData: Teacher) => {
-        const department = typeof rowData.department === "string" ? findDepartmentById(rowData.department) : rowData.department;
-        return department ? departmentTemplate(department as Department) : <></>;
-    };
-        <Column header="Department" body={departmentBodyTemplate} sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                        */}
 
     return (
         <div className="grid">
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
-                    <Toolbar className="mb-4" start={startToolbarTemplate}></Toolbar>
+                    <Toolbar className="mb-4" start={startToolbarTemplate} end={endToolbarTemplate}></Toolbar>
                     <DataTable
                         ref={dt}
                         value={teachers}
@@ -276,7 +296,7 @@ const TeacherPage = () => {
                         onSelectionChange={(e) => setSelectedTeacher(e.value as Teacher)}
                         dataKey="_id"
                         paginator
-                        rows={10}
+                        rows={5}
                         rowsPerPageOptions={[5, 10, 25]}
                         className="datatable-responsive"
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
@@ -292,6 +312,19 @@ const TeacherPage = () => {
                             header="#"
                             body={(rowData, options) => options.rowIndex + 1}
                             style={{ width: '50px' }}
+                        />
+                        <Column
+                            body={(rowData) => {
+                                const imgSrc = MyService.photoURL(rowData.photo);
+                                return (
+                                    <Avatar
+                                        image={imgSrc}
+                                        shape="circle"
+                                        size="large"
+                                    />
+                                );
+                            }}
+                            style={{ width: '6rem' }}
                         />
                         <Column field="first_name" header="First Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column field="last_name" header="Last Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
@@ -330,12 +363,7 @@ const TeacherPage = () => {
                                     id="middle_name"
                                     value={selectedTeacher.middle_name}
                                     onChange={(e) => setSelectedTeacher({ ...selectedTeacher, middle_name: e.target.value })}
-                                    required
-                                    className={classNames({
-                                        'p-invalid': submitted && !selectedTeacher.middle_name,
-                                    })}
                                 />
-                                {submitted && !selectedTeacher.middle_name && <small className="p-invalid">Middle Name is required.</small>}
                             </div>
                             <div className="field">
                                 <label htmlFor="last_name">Last Name</label>
@@ -387,6 +415,20 @@ const TeacherPage = () => {
                                 {submitted && !selectedTeacher.department && <small className="p-invalid">Department is required.</small>}
                             </div>
                         </>) : <></>}
+                    </Dialog>
+
+                    <Dialog
+                        visible={showUploadDialog}
+                        style={{ width: '450px' }}
+                        header="Upload a Photo"
+                        modal
+                        onHide={() => { setShowUploadDialog(false) }}
+                    >
+                        <div className="flex align-items-center justify-content-center">
+                            {selectedTeacher && (
+                                <FileUpload name="photo" uploadHandler={onUpload} customUpload accept="image/*" maxFileSize={1000000} emptyTemplate={<p className="m-0">Drag and drop files to here to upload.</p>} />
+                            )}
+                        </div>
                     </Dialog>
 
                     <Dialog

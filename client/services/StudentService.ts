@@ -54,7 +54,7 @@ export const StudentService = {
         }
         const formData = new FormData();
         formData.append('photo', photo);  // 'photo' should match the field name in your backend
-        const data = await MyService.uploadByPUT(`${upload_endpoint}/${student._id}`, formData);
+        const data = await MyService.uploadByPUT(`${upload_endpoint}/student/${student._id}`, formData);
         return data;
     },
 

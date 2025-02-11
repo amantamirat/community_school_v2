@@ -12,7 +12,6 @@ const TeacherSchema = new mongoose.Schema(
         },
         middle_name: {
             type: String,
-            required: true
         },
         last_name: {
             type: String,
@@ -24,9 +23,7 @@ const TeacherSchema = new mongoose.Schema(
             default: 'Male',
             enum: ['Male', 'Female']
         },
-    },
-    {
-        timestamps: true // Automatically adds `createdAt` and `updatedAt` fields
+        photo: { type: String }
     }
 );
 

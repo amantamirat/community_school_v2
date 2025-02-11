@@ -1,5 +1,4 @@
 const Teacher = require("../models/teacher");
-//const Department = require("../models/department");
 const SectionClass = require("../models/section-class");
 
 const teacherController = {
@@ -7,28 +6,11 @@ const teacherController = {
     createTeacher: async (req, res) => {
         try {
             const { department, first_name, middle_name, last_name, sex } = req.body;
-            /*
-            // Verify department exists
-            const departmentExists = await Department.findById(department);
-            if (!departmentExists) {
-                return res.status(404).json({ message: "Department not found" });
-            }
-            */
             const newTeacher = new Teacher({ department, first_name, middle_name, last_name, sex });
             await newTeacher.save();
             res.status(201).json(newTeacher);
         } catch (error) {
             res.status(500).json({ message: "Error creating teacher", error });
-        }
-    },
-
-
-    getAllTeachers: async (req, res) => {
-        try {
-            const teachers = await Teacher.find().populate('department');
-            res.status(200).json(teachers);
-        } catch (error) {
-            res.status(500).json({ message: "Error fetching teachers", error });
         }
     },
 
@@ -46,15 +28,6 @@ const teacherController = {
         try {
             const { id } = req.params;
             const { department, first_name, middle_name, last_name, sex } = req.body;
-            // Verify department exists if provided
-            /*
-            if (department) {
-                const departmentExists = await Department.findById(department);
-                if (!departmentExists) {
-                    return res.status(404).json({ message: "Department not found" });
-                }
-            }
-            */
             const updatedTeacher = await Teacher.findByIdAndUpdate(
                 id,
                 { department, first_name, middle_name, last_name, sex },
@@ -65,6 +38,25 @@ const teacherController = {
                 return res.status(404).json({ message: "Teacher not found" });
             }
 
+            res.status(200).json(updatedTeacher);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+
+    updateTeacherPhoto: async (req, res) => {
+        try {
+            const { id } = req.params;
+            if (!req.file) {
+                return res.status(400).json({ message: "No file uploaded" });
+            }
+            const photoPath = `/uploads/teachers/${req.file.filename}`;
+            const updatedTeacher = await Teacher.findByIdAndUpdate(id, { photo: photoPath }, { new: true });
+
+            if (!updatedTeacher) {
+                return res.status(404).json({ message: "Teacher not found" });
+            }            
             res.status(200).json(updatedTeacher);
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -84,6 +76,7 @@ const teacherController = {
             if (!teacher) {
                 return res.status(404).json({ message: "Teacher not found" });
             }
+            //delete the old one the photo
             res.status(200).json({ message: "Teacher deleted successfully" });
         } catch (error) {
             res.status(500).json({ message: error.message });

@@ -37,7 +37,7 @@ const ExternalStudentPriorInfoSchema = new mongoose.Schema({
     status: {
         type: String,
         required: true,
-        enum: ['PASSED', 'FAILED', 'INCOMPLETE']
+        enum: ['PASSED', 'FAILED']
     },
     transfer_reason: {
         type: String,
