@@ -281,8 +281,6 @@ const TeacherPage = () => {
         );
     };
 
-
-
     return (
         <div className="grid">
             <div className="col-12">
@@ -315,7 +313,7 @@ const TeacherPage = () => {
                         />
                         <Column
                             body={(rowData) => {
-                                const imgSrc = MyService.photoURL(rowData.photo);
+                                const imgSrc = rowData.photo ? MyService.photoURL(rowData.photo) : rowData.sex === 'Female' ? '/images/default_female_teacher.jpg' : '/images/default_male_teacher.jpg';
                                 return (
                                     <Avatar
                                         image={imgSrc}

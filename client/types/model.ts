@@ -118,6 +118,7 @@ export type Student = {
     birth_date: Date | null;
     has_perior_school_info: boolean;
     photo?:string;
+    registered?:boolean;
 };
 
 export type ExternalStudentInfo = {
@@ -130,6 +131,7 @@ export type ExternalStudentInfo = {
     average_result: number;
     status: 'PASSED' | 'FAILED' | 'INCOMPLETE';
     transfer_reason?: string;
+    registered?:boolean
 };
 export type StudentGrade = {
     _id?: string;

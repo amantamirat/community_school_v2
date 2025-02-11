@@ -39,44 +39,45 @@ const ExternalInfoComponent = (props: ExternalInfoProps) => {
     const toast = useRef<Toast>(null);
     //const [loading, setLoading] = useState(false);       
 
-
     useEffect(() => {
-        loadGrades();
-        ExternalStudentInfoService.getExternalInfoByStudent(props.student).then((data) => {
-            setExternalInfos(data);
+        GradeService.getGrades().then((data) => {
+            setGrades(data);
         }).catch((err) => {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed to load student info',
+                summary: 'Failed to load grades',
                 detail: '' + err,
                 life: 3000
             });
         });
     }, []);
 
-    const loadGrades = async () => {
-            try {
-                const data = await GradeService.getGrades();
-                setGrades(data);
-            } catch (err) {
-                //console.error('Failed to load grades:', err);
+
+    useEffect(() => {
+        if (grades.length > 0) {
+            ExternalStudentInfoService.getExternalInfoByStudent(props.student).then((data) => {
+                const infoWithInfos = data.map((externalInfo) => ({
+                    ...externalInfo,
+                    grade: grades.find((grade) => grade._id === externalInfo.grade) || externalInfo.grade
+                }));
+                setExternalInfos(infoWithInfos);
+            }).catch((err) => {
                 toast.current?.show({
                     severity: 'error',
-                    summary: 'Failed to load grades',
+                    summary: 'Failed to load student info',
                     detail: '' + err,
                     life: 3000
                 });
-            }
-        };
-    
-
+            });
+        }
+    }, [grades]);
 
     const validateExternalInfo = (externalInfo: ExternalStudentInfo) => {
         if (externalInfo.school_name.trim() === '' ||
             externalInfo.status.trim() === '' ||
             externalInfo.classification.trim() === '' ||
             isNaN(externalInfo.academic_year) ||
-            isNaN(externalInfo.average_result)||
+            isNaN(externalInfo.average_result) ||
             !externalInfo.grade
         ) {
             return false;
@@ -90,19 +91,18 @@ const ExternalInfoComponent = (props: ExternalInfoProps) => {
         if (!validateExternalInfo(selectedExternalInfo)) {
             return;
         }
-        let _extrnalInfos = [...(externalInfos as any)];
+        let _extrnalInfos = [...externalInfos];
         try {
-            if (selectedExternalInfo._id) {
-                let id = selectedExternalInfo._id;
+            if (selectedExternalInfo._id) {                
                 const updatedInfo = await ExternalStudentInfoService.updateExternalStudentInfo(selectedExternalInfo);
                 if (updatedInfo) {
-                    const index = findIndexById(id);
-                    _extrnalInfos[index] = selectedExternalInfo;
+                    const index = externalInfos.findIndex((info) => info._id === updatedInfo._id);
+                    _extrnalInfos[index] = { ...updatedInfo, grade: selectedExternalInfo.grade }
                 }
             } else {
                 const newInfo = await ExternalStudentInfoService.createExternalStudentInfo(selectedExternalInfo);
-                if (newInfo) {
-                    _extrnalInfos.push(newInfo);
+                if (newInfo._id) {
+                    _extrnalInfos.push({ ...newInfo, grade: selectedExternalInfo.grade });
                 }
             }
             toast.current?.show({
@@ -126,19 +126,8 @@ const ExternalInfoComponent = (props: ExternalInfoProps) => {
         }
     };
 
-    const findIndexById = (id: string) => {
-        let index = -1;
-        for (let i = 0; i < (externalInfos as any)?.length; i++) {
-            if ((externalInfos as any)[i]._id === id) {
-                index = i;
-                break;
-            }
-        }
-        return index;
-    };
-
     const openSaveDialog = () => {
-        setSelectedExternalInfo(emptyExternalInfo);        
+        setSelectedExternalInfo(emptyExternalInfo);
         setSubmitted(false);
         setShowSaveDialog(true);
     };
@@ -319,7 +308,7 @@ const ExternalInfoComponent = (props: ExternalInfoProps) => {
                         <Dropdown
                             id="status"
                             value={selectedExternalInfo.status}
-                            options={[{ label: 'Passed', value: 'PASSED' }, { label: 'Failed', value: 'FAILED' }, { label: 'Incomplete', value: 'INCOMPLETE' }]}
+                            options={[{ label: 'Passed', value: 'PASSED' }, { label: 'Failed', value: 'FAILED' }]}
                             onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, status: e.value })}
                             required
                             placeholder="Select Status"

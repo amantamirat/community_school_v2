@@ -520,7 +520,7 @@ const StudentPage = () => {
                             <Dropdown
                                 id="status"
                                 value={selectedExternalInfo.status}
-                                options={[{ label: 'Passed', value: 'PASSED' }, { label: 'Failed', value: 'FAILED' }, { label: 'Incomplete', value: 'INCOMPLETE' }]}
+                                options={[{ label: 'Passed', value: 'PASSED' }, { label: 'Failed', value: 'FAILED' }]}
                                 onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, status: e.value })}
                                 required
                                 placeholder="Select Status"
@@ -699,12 +699,8 @@ const StudentPage = () => {
                         />
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column
-                            body={(rowData) => {
-                                const [imgSrc, setImgSrc] = useState(MyService.photoURL(rowData.photo));
-                                useEffect(() => {
-                                    setImgSrc(MyService.photoURL(rowData.photo));
-                                }, [rowData.photo]); 
-
+                            body={(rowData) => {                               
+                                const imgSrc = rowData.photo ? MyService.photoURL(rowData.photo) : rowData.sex==='Female'?'/images/default_female_student.png':'/images/default_male_student.png';                        
                                 return (
                                     <Avatar
                                         image={imgSrc}

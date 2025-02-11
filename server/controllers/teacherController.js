@@ -1,5 +1,6 @@
 const Teacher = require("../models/teacher");
 const SectionClass = require("../models/section-class");
+const { removePhoto } = require('../services/photoService');
 
 const teacherController = {
 
@@ -37,7 +38,6 @@ const teacherController = {
             if (!updatedTeacher) {
                 return res.status(404).json({ message: "Teacher not found" });
             }
-
             res.status(200).json(updatedTeacher);
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -47,41 +47,51 @@ const teacherController = {
 
     updateTeacherPhoto: async (req, res) => {
         try {
-            const { id } = req.params;
             if (!req.file) {
                 return res.status(400).json({ message: "No file uploaded" });
             }
-            const photoPath = `/uploads/teachers/${req.file.filename}`;
-            const updatedTeacher = await Teacher.findByIdAndUpdate(id, { photo: photoPath }, { new: true });
-
-            if (!updatedTeacher) {
+            const { id } = req.params;
+            const teacher = await Teacher.findById(id);
+            if (!teacher) {
                 return res.status(404).json({ message: "Teacher not found" });
-            }            
+            }           
+            if (teacher.photo) {  //remove old photo
+                await removePhoto(teacher.photo);
+            }
+            teacher.photo = `/uploads/teachers/${req.file.filename}`;
+            const updatedTeacher = await teacher.save();
+
             res.status(200).json(updatedTeacher);
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
     },
 
+    //remove photo should be added
+
     deleteTeacher: async (req, res) => {
         try {
             const { id } = req.params;
+            const teacher = await Teacher.findById(id);
+            if (!teacher) {
+                return res.status(404).json({ message: "Teacher not found" });
+            }
             const teacherExists = await SectionClass.exists({ teacher: id });
             if (teacherExists) {
                 return res.status(400).json({
                     message: "Cannot delete the teacher. It is associated with one or more class.",
                 });
             }
-            const teacher = await Teacher.findByIdAndDelete(id);
-            if (!teacher) {
-                return res.status(404).json({ message: "Teacher not found" });
+            if (teacher.photo) {
+                await removePhoto(teacher.photo);
             }
-            //delete the old one the photo
+            await Teacher.findByIdAndDelete(id);
             res.status(200).json({ message: "Teacher deleted successfully" });
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
     }
+
 };
 
 module.exports = teacherController;

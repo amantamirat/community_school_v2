@@ -19,7 +19,7 @@ async function populateData() {
     //await Student.deleteMany();
     const sexes = ['Male', 'Female'];
     const students = [];
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 30; i++) {
         const student = new Student({
             first_name: faker.name.firstName(),
             middle_name: faker.name.middleName(),

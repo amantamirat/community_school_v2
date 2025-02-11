@@ -43,7 +43,7 @@ const ExternalStudentPriorInfoSchema = new mongoose.Schema({
         type: String,
         required: false
     },
-    is_referred: {
+    registered: {
         type: Boolean,
         default: false,
         required: true,
