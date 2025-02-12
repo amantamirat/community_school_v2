@@ -4,6 +4,7 @@ import { MyService } from "./MyService";
 //const get_endpoint = "/api/external-student-info/";
 const get_by_student_endpoint = "/api/external-student-info/student";
 const get_by_classification_grade_endpoint = "/api/external-student-info/classification_grade";
+const register_external_students_endpoint = '/api/external-student-info/register_external_students';
 const create_endpoint = '/api/external-student-info/create';
 const update_endpoint = '/api/external-student-info/update';
 const delete_endpoint = '/api/external-student-info/delete';
@@ -28,6 +29,12 @@ export const ExternalStudentInfoService = {
         return createdData;
     },
 
+    async registerExternalStudents(classification_grade: ClassificationGrade, external_students: ExternalStudentInfo[]): Promise<any[]> {
+            const selected_external_students = external_students.map(external_candidate => external_candidate?._id);
+            const registeredData = await MyService.create(selected_external_students, `${register_external_students_endpoint}/${classification_grade._id}`);
+            return registeredData;
+        },
+
     async updateExternalStudentInfo(externalInfo: ExternalStudentInfo): Promise<ExternalStudentInfo> {
         if (externalInfo._id) {
             const updatedExternalStudentInfo = await MyService.update(externalInfo._id, externalInfo, update_endpoint);
@@ -43,12 +50,4 @@ export const ExternalStudentInfoService = {
         }
         throw new Error("_id is required.");
     },
-    /*
-    async getExternalStudentInfos(): Promise<ExternalStudentInfo[]> {
-        const data = await MyService.get(get_endpoint);
-        return data as ExternalStudentInfo[];
-    },
-
-    
-    */
 };

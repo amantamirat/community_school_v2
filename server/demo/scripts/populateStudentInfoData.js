@@ -17,7 +17,7 @@ function getRandomEnumValue(enumArray) {
 async function populateData() {
     await connectDB();
     //await Student.deleteMany();
-    //await ExternalStudentPriorInfo.deleteMany();
+    await ExternalStudentPriorInfo.deleteMany();
     const gradeIds = await Grade.find();
     // Enum options
     const sexes = ['Male', 'Female'];
@@ -46,7 +46,7 @@ async function populateData() {
         const info = new ExternalStudentPriorInfo({
             student: student._id,
             school_name: faker.company.companyName(),
-            academic_year: faker.datatype.number({ min: 1970, max: 1974 }),//faker.random.number
+            academic_year: faker.datatype.number({ min: 1970, max: 2000 }),//faker.random.number
             classification: getRandomEnumValue(classifications),
             grade: gradeIds[Math.floor(Math.random() * gradeIds.length)],
             average_result: faker.datatype.number({ min: 0, max: 100 }),

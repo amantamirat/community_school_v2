@@ -10,6 +10,7 @@ import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
+import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
@@ -51,6 +52,13 @@ const UnsectionedStudentsPage = () => {
     useEffect(() => {
         if (selectedClassificationGrade) {
             StudentGradeService.getRegisteredStudents(selectedClassificationGrade).then((data) => {
+                data.forEach(student => {
+                    student.student_type = student.external_student_prior_info
+                        ? "External"
+                        : student.previous_student_grade
+                            ? "Returned"
+                            : "New";
+                });
                 setRegisteredStudents(data);
             }).catch((error) => {
                 toast.current?.show({
@@ -206,6 +214,22 @@ const UnsectionedStudentsPage = () => {
         );
     }, [selectedRegisteredStudents]);
 
+
+    const getSeverity = (value: StudentGrade) => {
+        switch (value.student_type) {
+            case 'External':
+                return 'success';
+            case 'Returned':
+                return 'info';
+            default:
+                return null;
+        }
+    };
+
+    const typeBodyTemplate = (rowData: StudentGrade) => {
+        return <Tag value={rowData.student_type} severity={getSeverity(rowData)}></Tag>;
+    };
+
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h5 className="m-0">Registred Students</h5>
@@ -246,7 +270,7 @@ const UnsectionedStudentsPage = () => {
                         <Column header="#" body={(rowData, options) => options.rowIndex + 1} style={{ width: '50px' }} />
                         <Column field="student.first_name" header="Student" body={(rowData) => `${rowData.student.first_name} ${rowData.student.last_name}`} sortable headerStyle={{ minWidth: '15rem' }} />
                         <Column field="student.sex" header="Gender" sortable headerStyle={{ minWidth: '10rem' }} />
-                        <Column field="grade_section.section" header="Section" body={(rowData) => rowData.grade_section ? rowData.grade_section.section_number : "N/A"} sortable headerStyle={{ minWidth: '10rem' }} />
+                        <Column field="student_type" header="Type" body={typeBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
                         <Column field="student.birth_date" header="Birth Date" sortable headerStyle={{ minWidth: '10rem' }}
                             body={(rowData) => new Date(rowData.student.birth_date).toLocaleDateString('en-GB')} />
                         <Column field="status" header="Status" sortable headerStyle={{ minWidth: '10rem' }} />

@@ -55,11 +55,11 @@ const GradeSectionController = {
 
     createSection: async (req, res) => {
         try {
-            const { classification_grade, section_number, status } = req.body;
+            const { classification_grade, section_number, number_of_seat} = req.body;
             const classificationGrade = await ClassificationGrade.findById(classification_grade);
             if (!classificationGrade) return res.status(404).json({ message: 'Classification grade not found' });
             if (classificationGrade.status === "CLOSED") return res.status(404).json({ message: 'Classification Grade is Closed.' });
-            const gradeSection = new GradeSection({ classification_grade, section_number, status });
+            const gradeSection = new GradeSection({ classification_grade, section_number, number_of_seat});
             const savedGradeSection = await gradeSection.save();
             await createSectionSubjectsByGradeSection(savedGradeSection);
             res.status(201).json(savedGradeSection);

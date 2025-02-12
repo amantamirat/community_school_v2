@@ -113,7 +113,7 @@ const StudentResultComponent = (props: StudentResultProps) => {
                         value={studentResults}
                         selection={selectedStudentResult}
                         onSelectionChange={(e) => setSelectedStudentResult(e.value)}
-                        emptyMessage={`No result found for ${props.student_class}.`}
+                        emptyMessage={'No results found.'}
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="subject_weight.assessment_type" header="Assesment" sortable headerStyle={{ minWidth: '10rem' }} />

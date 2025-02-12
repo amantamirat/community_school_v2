@@ -19,6 +19,12 @@ const AdmissionClassificationSchema = new mongoose.Schema({
         ref: 'Curriculum',
         required: true,
         immutable: true
+    },
+    status: {
+        type: String,
+        enum: ['ACTIVE', 'CLOSED'],
+        default: 'ACTIVE',
+        required: true
     }
 });
 AdmissionClassificationSchema.index({ academic_session: 1, classification: 1 }, { unique: true });

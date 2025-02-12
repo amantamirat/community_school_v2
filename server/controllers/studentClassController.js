@@ -37,7 +37,7 @@ const StudentClassController = {
     syncClasses: async (req, res) => {
         try {
             const { grade_section } = req.params;
-            const gradeSection = await GradeSection.findById(id);
+            const gradeSection = await GradeSection.findById(grade_section);
             if (!gradeSection) {
                 return res.status(404).json({ message: 'Grade section not found' });
             }

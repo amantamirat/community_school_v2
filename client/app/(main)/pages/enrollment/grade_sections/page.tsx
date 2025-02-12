@@ -18,7 +18,8 @@ const GradeSectionPage = () => {
 
     let emptyGradeSection: GradeSection = {
         classification_grade: '',
-        section_number: 0,
+        section_number: 1,
+        number_of_seat: 60,
         status: 'OPEN'
     };
     const { selectedClassificationGrade } = useClassificationGrade();
@@ -48,7 +49,8 @@ const GradeSectionPage = () => {
 
 
     const validateGradeSection = (section: GradeSection) => {
-        if (!section.classification_grade || isNaN(section.section_number) || section.section_number <= 0) {
+        if (!section.classification_grade || isNaN(section.section_number) || section.section_number <= 0
+            || isNaN(section.number_of_seat) || section.number_of_seat <= 0) {
             return false;
         }
         return true;
@@ -212,7 +214,7 @@ const GradeSectionPage = () => {
                         selection={selectedGradeSection}
                         onSelectionChange={(e) => setSelectedGradeSection(e.value)}
                         dataKey="_id"
-                        emptyMessage={`No section for ${selectedClassificationGrade?.curriculum_grade} grade found.`}
+                        emptyMessage={'No sections data for the grade found.'}
                         paginator
                         rows={5}
                         rowsPerPageOptions={[5, 10, 25]}
@@ -231,6 +233,7 @@ const GradeSectionPage = () => {
                         <Column expander style={{ width: '4em' }} />
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="section_number" header="Section" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="number_of_seat" header="Capacity" sortable headerStyle={{ minWidth: '10rem' }}></Column>                        
                         <Column field="status" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
@@ -244,10 +247,10 @@ const GradeSectionPage = () => {
                         onHide={hideAddDialog}                    >
                         {selectedGradeSection ? <>
                             <div className="field">
-                                <label htmlFor="section">Section Number</label>
-                                <div id="section">
+                                <label htmlFor="section_number">Section Number</label>
+                                <div id="section_number">
                                     <InputNumber
-                                        id="section"
+                                        id="section_number"
                                         value={selectedGradeSection.section_number}
                                         onChange={(e) => setSelectedGradeSection({ ...selectedGradeSection, section_number: e.value || 1 })}
                                         mode="decimal" // Basic number mode
@@ -260,6 +263,24 @@ const GradeSectionPage = () => {
                                     />
                                 </div>
                                 {submitted && !selectedGradeSection.section_number && <small className="p-invalid">Section Number is required.</small>}
+                                <label htmlFor="number_of_seat">Capacity</label>
+                                <div id="number_of_seat">
+                                    <InputNumber
+                                        id="number_of_seat"
+                                        value={selectedGradeSection.number_of_seat}
+                                        onChange={(e) => setSelectedGradeSection({ ...selectedGradeSection, number_of_seat: e.value || 60 })}
+                                        mode="decimal"
+                                        min={5}
+                                        useGrouping={false}
+                                        required
+                                        autoFocus
+                                        className={classNames({
+                                            'p-invalid': submitted && !selectedGradeSection.number_of_seat,
+                                        })}
+                                    />
+                                </div>
+                                {submitted && !selectedGradeSection.number_of_seat && <small className="p-invalid">Number of Seat is required.</small>}
+
                             </div>
                         </> : <></>}
                     </Dialog>

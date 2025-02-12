@@ -1,4 +1,4 @@
-import { ExternalStudentInfo, Student, StudentGrade } from "@/types/model";
+import { ClassificationGrade, ExternalStudentInfo, Student, StudentGrade } from "@/types/model";
 import { MyService } from "./MyService";
 
 
@@ -8,6 +8,7 @@ const create_endpoint = '/api/students/create';
 const update_endpoint = '/api/students/update';
 const delete_endpoint = '/api/students/delete';
 const upload_endpoint = '/api/students/upload-photo';
+const register_first_level_students_endpoint = '/api/students/register_first_level_students';
 
 interface ExternalStudent {
     student: Student;
@@ -39,17 +40,15 @@ export const StudentService = {
         throw Error("ID Required!");
     },
 
-    async updateStudent2(student: Student, external_info: ExternalStudentInfo | null): Promise<Student> {
-        if (student._id) {
-            const external_student: ExternalStudent = { student: student, external_info: external_info }
-            const updatedStudent = await MyService.update(student._id, external_student, update_endpoint);
-            return updatedStudent;
-        }
-        throw Error("ID Required!");
+    async registerFirstLevelStudents(classification_grade: ClassificationGrade, new_students: Student[]): Promise<any[]> {
+        const selected_new_students = new_students.map(new_candidate => new_candidate?._id);
+        const registeredData = await MyService.create(selected_new_students, `${register_first_level_students_endpoint}/${classification_grade._id}`);
+        return registeredData;
     },
 
+
     async uploadStudentPhoto(student: Student, photo: File): Promise<Student> {
-        if(!student._id){
+        if (!student._id) {
             throw Error("ID Required!");
         }
         const formData = new FormData();
@@ -62,5 +61,5 @@ export const StudentService = {
         const response = await MyService.delete(id, delete_endpoint);
         return response;
     },
-    
+
 };

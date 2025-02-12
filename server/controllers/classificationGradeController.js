@@ -94,20 +94,16 @@ const ClassificationGradeController = {
             if (!admissionClassification) {
                 return res.status(404).json({ message: 'Admission Classification not found' });
             }
-            // Fetch CurriculumGrades associated with the curriculum of the AdmissionClassification
+            if (admissionClassification.status === 'CLOSED') return res.status(400).json({ message: 'Admission is closed' });
             const curriculumGrades = await CurriculumGrade.find({ curriculum: admissionClassification.curriculum });
-            // Fetch existing ClassificationGrade records for this AdmissionClassification        
             const existingClassificationGrades = await ClassificationGrade.find({ admission_classification }).select('curriculum_grade');
             const existingGradeIds = existingClassificationGrades.map(record => record.curriculum_grade.toString());
-            // Filter out already linked CurriculumGrades
             const missingCurriculumGrades = curriculumGrades.filter(grade => !existingGradeIds.includes(grade._id.toString()));
-            // Insert missing CurriculumGrades
             const classificationGradesToInsert = missingCurriculumGrades.map(grade => ({
                 admission_classification,
                 curriculum_grade: grade._id
             }));
             const insertedGrades = await ClassificationGrade.insertMany(classificationGradesToInsert);
-            // Fetch and populate the inserted grades
             const savedClassificationGrades = await ClassificationGrade.find({
                 _id: { $in: insertedGrades.map(grade => grade._id) }
             }).populate({

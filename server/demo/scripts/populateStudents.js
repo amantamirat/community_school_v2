@@ -16,7 +16,7 @@ function getRandomEnumValue(enumArray) {
 
 async function populateData() {
     await connectDB();
-    //await Student.deleteMany();
+    await Student.deleteMany();
     const sexes = ['Male', 'Female'];
     const students = [];
     for (let i = 0; i < 30; i++) {

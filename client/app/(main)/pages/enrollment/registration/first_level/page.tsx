@@ -1,8 +1,7 @@
 'use client';
 import { useClassificationGrade } from '@/app/(main)/contexts/classificationGradeContext';
-import { StudentGradeService } from '@/services/StudentGradeService';
 import { StudentService } from '@/services/StudentService';
-import { ClassificationGrade, CurriculumGrade, Grade, Student, StudentGrade } from '@/types/model';
+import { CurriculumGrade, Grade, Student } from '@/types/model';
 import { FilterMatchMode, PrimeIcons } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -67,13 +66,11 @@ const NewStudentsComponent = () => {
                 if (((selectedClassificationGrade.curriculum_grade as CurriculumGrade).grade as Grade).level !== 1) {
                     throw new Error("Please select fisrt level grade");
                 }
-                const registered_students: StudentGrade[] = await StudentGradeService.registerFirstLevelStudents(selectedClassificationGrade, selectedElligibleStudents);
-                const registered_student_ids = registered_students.map(registered =>
-                    typeof registered.student === 'string' ? registered.student : registered.student._id
-                );
-                setElligibleStudents((prevElligibleStudents) =>
-                    prevElligibleStudents.filter(student => !registered_student_ids.includes(student._id)));
-
+                const registered_student_ids = await StudentService.registerFirstLevelStudents(selectedClassificationGrade, selectedElligibleStudents);
+                if (registered_student_ids.length > 0) {
+                    setElligibleStudents((prevElligibleStudents) =>
+                        prevElligibleStudents.filter(student => !registered_student_ids.includes(student._id)));
+                }
                 toast.current?.show({
                     severity: 'success',
                     summary: 'Successful',

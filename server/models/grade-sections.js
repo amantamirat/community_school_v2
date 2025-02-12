@@ -5,12 +5,19 @@ const GradeSectionSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ClassificationGrade',
         required: true,
-        immutable:true,
+        immutable: true,
     },
     section_number: {
         type: Number,
         required: true,
         immutable: true
+    },
+    number_of_seat: {
+        type: Number,
+        required: true,
+        default:60,
+        min: 1,
+        max: 200
     },
     status: {
         type: String,

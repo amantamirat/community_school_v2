@@ -93,7 +93,7 @@ const ExternalInfoComponent = (props: ExternalInfoProps) => {
         }
         let _extrnalInfos = [...externalInfos];
         try {
-            if (selectedExternalInfo._id) {                
+            if (selectedExternalInfo._id) {
                 const updatedInfo = await ExternalStudentInfoService.updateExternalStudentInfo(selectedExternalInfo);
                 if (updatedInfo) {
                     const index = externalInfos.findIndex((info) => info._id === updatedInfo._id);
@@ -372,6 +372,9 @@ const ExternalInfoComponent = (props: ExternalInfoProps) => {
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="school_name" header="School" sortable headerStyle={{ minWidth: '10rem' }} />
                         <Column field="academic_year" header="Academic Year" sortable headerStyle={{ minWidth: '10rem' }} />
+                        <Column field="grade.level" header="Grade"
+                            body={(rowData) => `${rowData.grade.stage}-${rowData.grade.level} ${rowData.grade.specialization ? `(${rowData.grade.specialization})` : ''}`}
+                            sortable headerStyle={{ minWidth: '10rem' }}/>
                         <Column field="classification" header="Classification" sortable headerStyle={{ minWidth: '10rem' }} />
                         <Column field="average_result" header="Average" sortable headerStyle={{ minWidth: '10rem' }} />
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }} />

@@ -50,6 +50,9 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
         if (props.addmission_classification) {
             setLoading(true);
             try {
+                if (props.addmission_classification.status === 'CLOSED') {
+                    throw new Error("Admission is Closed");
+                }
                 const sync_grades: ClassificationGrade[] = await ClassificationGradeService.syncCurriculumGrades(props.addmission_classification);
                 if (sync_grades.length > 0) {
                     setClassificationGrades(prevGrades => [...prevGrades, ...sync_grades]);

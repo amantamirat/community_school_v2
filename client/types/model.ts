@@ -10,7 +10,7 @@ export type Teacher = {
     middle_name?: string;
     last_name: string;
     sex: "Male" | "Female";
-    photo?:string;
+    photo?: string;
 };
 
 export type Grade = {
@@ -78,6 +78,7 @@ export type AdmissionClassification = {
     academic_session: AcademicSession | string;
     classification: 'REGULAR' | 'EVENING' | 'DISTANCE';
     curriculum: Curriculum | string;
+    status?: 'ACTIVE' | 'CLOSED';
 };
 
 export type ClassificationGrade = {
@@ -91,6 +92,7 @@ export type GradeSection = {
     _id?: string;
     classification_grade: ClassificationGrade | string;
     section_number: number;
+    number_of_seat:number;
     status: 'OPEN' | 'CLOSED';
 };
 
@@ -117,8 +119,8 @@ export type Student = {
     sex: "Male" | "Female";
     birth_date: Date | null;
     has_perior_school_info: boolean;
-    photo?:string;
-    registered?:boolean;
+    photo?: string;
+    registered?: boolean;
 };
 
 export type ExternalStudentInfo = {
@@ -131,7 +133,7 @@ export type ExternalStudentInfo = {
     average_result: number;
     status: 'PASSED' | 'FAILED';
     transfer_reason?: string;
-    registered?:boolean
+    registered?: boolean
 };
 export type StudentGrade = {
     _id?: string;
@@ -139,13 +141,16 @@ export type StudentGrade = {
     student: Student | string;
     status: 'ACTIVE' | 'PASSED' | 'FAILED' | 'INCOMPLETE';
     grade_section?: GradeSection | string;
+    external_student_prior_info?: ExternalStudentInfo | string;
+    previous_student_grade?: StudentGrade | string;
+    student_type?: "New" | "External" | "Returned"
 };
 
 export type StudentClass = {
     _id?: string;
     student_grade: StudentGrade | string;
     term_class: TermClass | string;
-    status: 'ACTIVE'| 'COMPLETED'|'INCOMPLETE';
+    status: 'ACTIVE' | 'COMPLETED' | 'INCOMPLETE';
 };
 
 export type StudentResult = {

@@ -88,7 +88,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
                         value={studentClasss}
                         selection={selectedStudentClass}
                         onSelectionChange={(e) => setSelectedStudentClass(e.value)}
-                        emptyMessage={`No class for ${props.student_grade} found.`}
+                        emptyMessage={'No class found.'}
                         expandedRows={expandedClassRows}
                         onRowToggle={(e) => setExpandedClassRows(e.data)}
                         rowExpansionTemplate={(data) => (

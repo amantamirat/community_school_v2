@@ -10,6 +10,8 @@ router.get("/new_students", studentController.getNewStudents);
 router.put("/update/:id", studentController.updateStudent);
 router.delete("/delete/:id", studentController.deleteStudent);
 router.put('/upload-photo/:type/:id', upload.single('photo'), studentController.updateStudentPhoto);
+router.post("/register_first_level_students/:classification_grade", studentController.registerFirstLevelStudents);
+
 
 
 module.exports = router;

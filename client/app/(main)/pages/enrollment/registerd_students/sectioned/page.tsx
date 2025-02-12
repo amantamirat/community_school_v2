@@ -231,12 +231,11 @@ const SectionedStudentsPage = () => {
                         <Column selectionMode="multiple" headerStyle={{ width: '4rem' }} />
                         <Column header="#" body={(rowData, options) => options.rowIndex + 1} style={{ width: '50px' }} />
                         <Column field="student.first_name" header="Student" body={(rowData) => `${rowData.student.first_name} ${rowData.student.last_name}`} sortable headerStyle={{ minWidth: '15rem' }} />
-                        <Column field="student.sex" header="Gender" sortable headerStyle={{ minWidth: '10rem' }} />
-                        <Column field="grade_section.section" header="Section" body={(rowData) => rowData.grade_section ? rowData.grade_section.section_number : "N/A"} sortable headerStyle={{ minWidth: '10rem' }} />
+                        <Column field="student.sex" header="Gender" sortable headerStyle={{ minWidth: '5rem' }} />
                         <Column field="student.birth_date" header="Birth Date" sortable headerStyle={{ minWidth: '10rem' }}
                             body={(rowData) => new Date(rowData.student.birth_date).toLocaleDateString('en-GB')} />
-                        {selectedClassificationGrade?.status === 'CLOSED' && <Column field="average_result" header="Average" sortable headerStyle={{ minWidth: '10rem' }}></Column>}
-                        <Column field="status" header="Status" sortable headerStyle={{ minWidth: '10rem' }} />
+                        {selectedClassificationGrade?.status === 'CLOSED' && <Column field="average_result" header="Average" sortable headerStyle={{ minWidth: '5rem' }}></Column>}
+                        <Column field="status" header="Status" sortable headerStyle={{ minWidth: '5rem' }} />
                     </DataTable>
                     <Dialog
                         visible={showDetachSectionDialog}
