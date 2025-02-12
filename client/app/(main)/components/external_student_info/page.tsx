@@ -25,8 +25,8 @@ const ExternalInfoComponent = (props: ExternalInfoProps) => {
         academic_year: 2000,
         classification: "REGULAR",
         grade: '',
-        average_result: 0,
-        status: 'INCOMPLETE',
+        average_result: 50,
+        status: 'PASSED',
         transfer_reason: ''
     };
 

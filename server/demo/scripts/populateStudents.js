@@ -26,7 +26,6 @@ async function populateData() {
             last_name: faker.name.lastName(),
             sex: getRandomEnumValue(sexes),
             birth_date: faker.date.past(10, new Date()), // Students born before 10 years ago
-            has_perior_school_info: false
         });
         students.push(student);
     }

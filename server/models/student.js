@@ -24,7 +24,7 @@ const StudentSchema = new mongoose.Schema(
         },
         has_perior_school_info: {
             type: Boolean,
-            default: true,
+            default: false,
             required: true,
         },
         registered: {

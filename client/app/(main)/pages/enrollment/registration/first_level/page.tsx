@@ -43,44 +43,29 @@ const NewStudentsComponent = () => {
 
     useEffect(() => {
         if (selectedClassificationGrade) {
-            if (((selectedClassificationGrade.curriculum_grade as CurriculumGrade).grade as Grade).level !== 1) {
-                /*
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed Load Elligible Students',
-                    detail: "please select fisrt level grade",
-                    life: 3000
-                });*/
-                return;
-            }
-            setLoading(true);
-            StudentService.getNewStudents().then((data) => {
-                setElligibleStudents(data);
-                setLoading(false);
-            }).catch((err) => {
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Failed Load Elligible Students',
-                    detail: '' + err,
-                    life: 3000
+            if (((selectedClassificationGrade.curriculum_grade as CurriculumGrade).grade as Grade).level === 1) {
+                StudentService.getNewStudents().then((data) => {
+                    setElligibleStudents(data);
+                }).catch((err) => {
+                    toast.current?.show({
+                        severity: 'error',
+                        summary: 'Failed Load Elligible Students',
+                        detail: '' + err,
+                        life: 3000
+                    });
+                }).finally(() => {
+                    // setLoading(false);
                 });
-            }).finally(() => {
-                setLoading(false);
-            });
+            }
         }
     }, [selectedClassificationGrade]);
 
     const enrollNewElligibleStudents = async () => {
         try {
+            setLoading(true);
             if (selectedClassificationGrade) {
                 if (((selectedClassificationGrade.curriculum_grade as CurriculumGrade).grade as Grade).level !== 1) {
-                    toast.current?.show({
-                        severity: 'error',
-                        summary: 'Failed to Enrol Students',
-                        detail: "please select fisrt level grade",
-                        life: 3000
-                    });
-                    return;
+                    throw new Error("Please select fisrt level grade");
                 }
                 const registered_students: StudentGrade[] = await StudentGradeService.registerFirstLevelStudents(selectedClassificationGrade, selectedElligibleStudents);
                 const registered_student_ids = registered_students.map(registered =>
@@ -96,7 +81,6 @@ const NewStudentsComponent = () => {
                     life: 3000
                 });
             }
-            //console.log(data);
         } catch (error) {
             toast.current?.show({
                 severity: 'error',
@@ -104,6 +88,8 @@ const NewStudentsComponent = () => {
                 detail: '' + error,
                 life: 3000
             });
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -111,7 +97,7 @@ const NewStudentsComponent = () => {
         return (
             <>
                 <div className="my-2">
-                    <Button label="Enrol Selected Students" icon={PrimeIcons.CHECK_CIRCLE} severity="success" className="mr-2" disabled={selectedElligibleStudents.length == 0} onClick={enrollNewElligibleStudents} />
+                    <Button label="Enrol Selected Students" icon={PrimeIcons.CHECK_CIRCLE} severity="success" className="mr-2" disabled={selectedElligibleStudents.length == 0} onClick={enrollNewElligibleStudents} loading={loading} />
                 </div>
             </>
         );

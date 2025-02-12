@@ -19,6 +19,7 @@ const AppMenu = () => {
         {
             label: 'Manage',
             items: [
+                { label: 'Academic Session', icon: PrimeIcons.CALENDAR, to: '/pages/academic_session' },
                 {
                     label: 'Enrollment',
                     icon: PrimeIcons.SYNC,
@@ -37,10 +38,9 @@ const AppMenu = () => {
                         { label: 'Result Entry', icon: PrimeIcons.STEP_FORWARD, to: '/pages/enrollment/result_entry' }
                     ]
                 },
-                { label: 'Academic Session', icon: PrimeIcons.CALENDAR, to: '/pages/academic_session' },
                 { label: 'Curricula', icon: PrimeIcons.BOOK, to: '/pages/curricula_pages' },
                 { label: 'Teachers', icon: PrimeIcons.USER_PLUS, to: '/pages/teachers_pages' },
-                { label: 'Students', icon:"pi pi-fw pi-graduation-cap", to: '/pages/students' }
+                { label: 'Students', icon: "pi pi-fw pi-graduation-cap", to: '/pages/students' }
             ]
         },
         {

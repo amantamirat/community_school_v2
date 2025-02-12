@@ -129,7 +129,7 @@ export type ExternalStudentInfo = {
     classification: 'REGULAR' | 'EVENING' | 'DISTANCE';
     grade: Grade | string;
     average_result: number;
-    status: 'PASSED' | 'FAILED' | 'INCOMPLETE';
+    status: 'PASSED' | 'FAILED';
     transfer_reason?: string;
     registered?:boolean
 };

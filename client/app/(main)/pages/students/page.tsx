@@ -39,8 +39,8 @@ const StudentPage = () => {
         academic_year: 1990,
         classification: "REGULAR",
         grade: '',
-        average_result: 0,
-        status: 'INCOMPLETE',
+        average_result: 50,
+        status: 'PASSED',
         transfer_reason: ''
     };
     const [students, setStudents] = useState<Student[]>([]);

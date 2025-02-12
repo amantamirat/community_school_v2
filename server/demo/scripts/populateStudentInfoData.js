@@ -24,7 +24,7 @@ async function populateData() {
     const classifications = ['REGULAR', 'EVENING', 'DISTANCE'];
     const statuses = ['PASSED', 'FAILED'];
     const students = [];
-    let size = 200;
+    let size = 300;
     for (let i = 0; i < size; i++) {
         const student = new Student({
             first_name: faker.name.firstName(),

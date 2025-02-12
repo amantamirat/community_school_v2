@@ -277,8 +277,7 @@ const SubjectPage = () => {
                                     id="load"
                                     value={selectedSubject.load}
                                     onChange={(e) => setSelectedSubject({ ...selectedSubject, load: e.value || 0 })}
-                                    min={1}
-                                    max={8}
+                                    min={1}                                    
                                     required
                                     className={classNames({
                                         'p-invalid': submitted && !selectedSubject.load,

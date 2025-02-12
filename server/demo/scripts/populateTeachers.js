@@ -45,4 +45,4 @@ const populateTeachers = async (count = 10) => {
 };
 
 // Call the function to populate data
-populateTeachers(10); // Change the number to generate more or fewer teachers
+populateTeachers(20); // Change the number to generate more or fewer teachers
