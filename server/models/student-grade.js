@@ -23,7 +23,7 @@ const StudentGradeSchema = new mongoose.Schema({
         type: String,
         required: true,
         default: 'ACTIVE',
-        enum: ['ACTIVE', 'PASSED', 'FAILED', 'INCOMPLETE', 'PENDING']
+        enum: ['ACTIVE', 'PASSED', 'FAILED', 'INCOMPLETE']
     },
     external_student_prior_info: {
         type: mongoose.Schema.Types.ObjectId,
@@ -36,8 +36,12 @@ const StudentGradeSchema = new mongoose.Schema({
         ref: 'StudentGrade',
         unique: true,
         sparse: true
+    },
+    registered: {
+        type: Boolean,
+        default: false,
+        required: true,
     }
-
 });
 
 StudentGradeSchema.index({ classification_grade: 1, student: 1 }, { unique: true });

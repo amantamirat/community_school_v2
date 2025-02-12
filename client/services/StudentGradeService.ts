@@ -1,4 +1,4 @@
-import { ClassificationGrade, ExternalStudentInfo, GradeSection, Student, StudentGrade } from "@/types/model";
+import { ClassificationGrade, GradeSection, StudentGrade } from "@/types/model";
 import { MyService } from "./MyService";
 
 const get_nan_section_registered_students_endpoint = "/api/student-grades/nan_section_registered_students";
@@ -8,6 +8,8 @@ const allocate_section_endpoint = '/api/student-grades/allocate_section';
 const detach_section_endpoint = '/api/student-grades/detach_section';
 const update_endpoint = '/api/student-grades/update';
 const delete_endpoint = '/api/student-grades/delete';
+const get_elligible_students_endpoint = "/api/student-grades/get_elligible_students";
+const register_students_endpoint = '/api/student-grades/register_students';
 
 export const StudentGradeService = {
 
@@ -22,6 +24,18 @@ export const StudentGradeService = {
             return data as StudentGrade[];
         }
         return this.getRegisteredStudents(grade_section.classification_grade as ClassificationGrade);
+    },
+
+    async getElligibleStudents(classification_grade: ClassificationGrade): Promise<StudentGrade[]> {
+        const endpoint = `${get_elligible_students_endpoint}/${classification_grade._id}`;
+        const data = await MyService.get(endpoint);
+        return data;
+    },
+
+    async registerStudents(classification_grade: ClassificationGrade, returning_students: StudentGrade[]): Promise<any[]> {
+        const selected_students = returning_students.map(external_candidate => external_candidate?._id);
+        const registeredData = await MyService.create(selected_students, `${register_students_endpoint}/${classification_grade._id}`);
+        return registeredData;
     },
 
     async deRegisterStudents(classification_grade: Partial<ClassificationGrade>, registred_students: Partial<StudentGrade[]>): Promise<any> {
@@ -48,6 +62,6 @@ export const StudentGradeService = {
         throw new Error('I told you, grade section is required');
     },
 
-    
+
 
 };

@@ -29,8 +29,16 @@ const AppMenu = () => {
                             label: 'Registration',
                             icon: PrimeIcons.SIGN_IN,
                             items: [
-                                { label: 'External', icon: PrimeIcons.PRIME, to: '/pages/enrollment/registration/external' },
-                                { label: 'First Level', icon: PrimeIcons.SUN, to: '/pages/enrollment/registration/first_level' }
+                                { label: 'Returning', icon: PrimeIcons.SPINNER, to: '/pages/enrollment/registration/returning' },
+                                {
+                                    label: 'New', 
+                                    icon: PrimeIcons.PLUS,
+                                    items: [
+                                        { label: 'External', icon: PrimeIcons.PRIME, to: '/pages/enrollment/registration/external' },
+                                        { label: 'First Level', icon: PrimeIcons.SUN, to: '/pages/enrollment/registration/first_level' }
+
+                                    ]
+                                }
                             ]
                         },
                         { label: 'Section Classes', icon: PrimeIcons.TH_LARGE, to: '/pages/enrollment/grade_sections' },

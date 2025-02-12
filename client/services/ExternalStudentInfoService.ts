@@ -18,7 +18,7 @@ export const ExternalStudentInfoService = {
     },
 
     async getExternalElligibleStudentsByGrade(classification_grade: ClassificationGrade): Promise<ExternalStudentInfo[]> {
-        const endpoint = `${get_by_classification_grade_endpoint}/${classification_grade._id}`;        
+        const endpoint = `${get_by_classification_grade_endpoint}/${classification_grade._id}`;
         const data = await MyService.get(endpoint);
         //console.log(data);
         return data;
@@ -30,10 +30,10 @@ export const ExternalStudentInfoService = {
     },
 
     async registerExternalStudents(classification_grade: ClassificationGrade, external_students: ExternalStudentInfo[]): Promise<any[]> {
-            const selected_external_students = external_students.map(external_candidate => external_candidate?._id);
-            const registeredData = await MyService.create(selected_external_students, `${register_external_students_endpoint}/${classification_grade._id}`);
-            return registeredData;
-        },
+        const selected_external_students = external_students.map(external_candidate => external_candidate?._id);
+        const registeredData = await MyService.create(selected_external_students, `${register_external_students_endpoint}/${classification_grade._id}`);
+        return registeredData;
+    },
 
     async updateExternalStudentInfo(externalInfo: ExternalStudentInfo): Promise<ExternalStudentInfo> {
         if (externalInfo._id) {
