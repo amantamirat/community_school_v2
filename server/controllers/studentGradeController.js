@@ -39,32 +39,81 @@ const studentGradeController = {
     getElligibleStudentsByGrade: async (req, res) => {
         try {
             const { classification_grade } = req.params;
-            const classificationGrade = await ClassificationGrade.findById(classification_grade).populate({
-                path: 'admission_classification', populate: { path: 'academic_session', },
-            }).populate({
-                path: 'curriculum_grade', populate: { path: 'grade', },
-            });
+            const classificationGrade = await ClassificationGrade.findById(classification_grade)
+                .populate({
+                    path: 'admission_classification',
+                    populate: { path: 'academic_session', select: 'academic_year' }
+                })
+                .populate({
+                    path: 'curriculum_grade',
+                    populate: { path: 'grade', }
+                })
+                .select('admission_classification curriculum_grade status');
+
             if (!classificationGrade) {
                 return res.status(404).json({ message: "Class Grade not found" });
             }
-            if (classificationGrade.status === 'CLOSED') return res.status(404).json({ message: 'Can not find students, Grade is CLOSED' });
-            const grade = classificationGrade.curriculum_grade.grade;
-            const academic_year = classificationGrade.admission_classification.academic_session.academic_year;
-            const previousGrade = await getPreviousGrade(grade);
-            if (previousGrade === null) return res.status(404).json({ message: 'KG-1 Grade Found.' });
 
-            const curriculumGradeIds = await CurriculumGrade.find({ grade: previousGrade._id }).distinct('_id');
-            const classificationGradeIds = await ClassificationGrade.find({ curriculum_grade: { $in: curriculumGradeIds }, status: 'CLOSED' }).distinct('_id')
-            const passedStudents = await StudentGrade.find({
+            if (classificationGrade.status === 'CLOSED') {
+                return res.status(404).json({ message: 'Can not find students, Grade is CLOSED' });
+            }
+
+            const cuurentGrade = classificationGrade.curriculum_grade.grade;
+            const previousGrade = await getPreviousGrade(cuurentGrade);
+            const academic_year = classificationGrade.admission_classification.academic_session.academic_year;
+            let elligibleStudents = [];
+            if (previousGrade) {
+                const curriculumGradeIds = await CurriculumGrade.find({ grade: previousGrade._id }).distinct('_id');
+                const classificationGradeIds = await ClassificationGrade.find({
+                    curriculum_grade: { $in: curriculumGradeIds },
+                    status: 'CLOSED',
+                })
+                    .populate({
+                        path: 'admission_classification',
+                        populate: { path: 'academic_session', select: 'academic_year' },
+                    })
+                    .select('_id admission_classification')
+                    .then(results =>
+                        results
+                            .filter(cg => cg.admission_classification.academic_session.academic_year < academic_year)
+                            .map(cg => cg._id)
+                    );
+                const passedStudents = await StudentGrade.find({
+                    classification_grade: { $in: classificationGradeIds },
+                    status: "PASSED",
+                    registered: false,
+                }).populate('student');
+
+                elligibleStudents = [...elligibleStudents, ...passedStudents];
+            }
+            const curriculumGradeIds = await CurriculumGrade.find({ grade: cuurentGrade._id }).distinct('_id');
+            const classificationGradeIds = await ClassificationGrade.find({
+                curriculum_grade: { $in: curriculumGradeIds },
+                status: 'CLOSED',
+            })
+                .populate({
+                    path: 'admission_classification',
+                    populate: { path: 'academic_session', select: 'academic_year' },
+                })
+                .select('_id admission_classification')
+                .then(results =>
+                    results
+                        .filter(cg => cg.admission_classification.academic_session.academic_year < academic_year)
+                        .map(cg => cg._id)
+                );
+            const failedStudents = await StudentGrade.find({
                 classification_grade: { $in: classificationGradeIds },
-                status: "PASSED", registered: false,
+                status: "FAILED",
+                registered: false,
             }).populate('student');
-            res.status(200).json(passedStudents);
+            elligibleStudents = [...elligibleStudents, ...failedStudents];
+            return res.status(200).json(elligibleStudents);
         } catch (error) {
-            console.log(error.message);
-            res.status(500).json({ message: error.message });
+            console.error(error.message);
+            return res.status(500).json({ message: error.message });
         }
     },
+
 
     registerStudents: async (req, res) => {
         try {

@@ -1,4 +1,5 @@
 import { ClassificationGradeService } from "@/services/ClassificationGradeService";
+import { AdmissionClassificationService } from '@/services/AdmissionClassificationService';
 import { AdmissionClassification, ClassificationGrade } from "@/types/model";
 import { classificationGradeTemplate } from "@/types/templates";
 import { Button } from "primereact/button";
@@ -6,19 +7,19 @@ import { Column } from "primereact/column";
 import { DataTable, DataTableExpandedRows } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
 import { Toast } from "primereact/toast";
-import { Toolbar } from "primereact/toolbar";
 import { useEffect, useRef, useState } from "react";
 import GradeSectionComponent from "../grade_section/page";
 import { Tag } from "primereact/tag";
 
 interface ClassificationGradeProps {
-    addmission_classification: AdmissionClassification;
+    addmissionClassification: AdmissionClassification;
+    onUpdate: (updatedAdmission: AdmissionClassification) => void;
 }
 
 const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
 
     let emptyClassificationGrade: ClassificationGrade = {
-        admission_classification: props.addmission_classification,
+        admission_classification: props.addmissionClassification,
         curriculum_grade: '',
         status: 'OPEN'
     };
@@ -33,7 +34,7 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
     }, []);
 
     const loadClassificationGrades = async () => {
-        ClassificationGradeService.getClassificationGradesByClassification(props.addmission_classification).then((data) => {
+        ClassificationGradeService.getClassificationGradesByClassification(props.addmissionClassification).then((data) => {
             setClassificationGrades(data);
         }).catch((err) => {
             toast.current?.show({
@@ -47,13 +48,13 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
     };
 
     const syncCurriculumGrades = async () => {
-        if (props.addmission_classification) {
+        if (props.addmissionClassification) {
             setLoading(true);
             try {
-                if (props.addmission_classification.status === 'CLOSED') {
+                if (props.addmissionClassification.status === 'CLOSED') {
                     throw new Error("Admission is Closed");
                 }
-                const sync_grades: ClassificationGrade[] = await ClassificationGradeService.syncCurriculumGrades(props.addmission_classification);
+                const sync_grades: ClassificationGrade[] = await ClassificationGradeService.syncCurriculumGrades(props.addmissionClassification);
                 if (sync_grades.length > 0) {
                     setClassificationGrades(prevGrades => [...prevGrades, ...sync_grades]);
                     toast.current?.show({
@@ -113,6 +114,74 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
         setSelectedClassificationGrade(emptyClassificationGrade);
     }
 
+    const closeAdmission = async () => {
+        try {
+
+            if (props.addmissionClassification.status === 'CLOSED') {
+                throw new Error('Admission Already Closed');
+            }
+            setLoading(true);
+            if (classificationGrades.length === 0) {
+                throw new Error('Cannot close, No Grades Found.');
+            }
+            const hasOpenGrade = classificationGrades.some(grd => grd.status === 'OPEN');
+            if (hasOpenGrade) {
+                throw new Error('Cannot close grade, open sections exist.');
+            }
+            const closedAdmission = await AdmissionClassificationService.closeAdmission(props.addmissionClassification);
+            if (closedAdmission.status === 'CLOSED') {
+                props.onUpdate({ ...props.addmissionClassification, status: 'CLOSED' });
+                toast.current?.show({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: 'Admission Closed',
+                    life: 1500
+                });
+            }
+
+        } catch (error) {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to close admission',
+                detail: '' + error,
+                life: 1500
+            });
+        } finally {
+            setLoading(false);
+        }
+    }
+
+
+    const openAdmission = async () => {
+        try {
+            if (props.addmissionClassification) {
+                if (props.addmissionClassification.status === 'OPEN') {
+                    throw new Error('Admission Already Opened');
+                }
+                setLoading(true);
+                const openedAdmission = await AdmissionClassificationService.openAdmission(props.addmissionClassification);
+                if (openedAdmission.status === 'OPEN') {
+                    props.onUpdate({ ...props.addmissionClassification, status: 'OPEN' });
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Backed to Opened!',
+                        life: 1500
+                    });
+                }
+            }
+        } catch (error) {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to open admission',
+                detail: '' + error,
+                life: 1500
+            });
+        } finally {
+            setLoading(false);
+        }
+    }
+
 
     const confirmRemoveClassificationGrade = (classificationGrade: ClassificationGrade) => {
         setSelectedClassificationGrade(classificationGrade);
@@ -152,6 +221,10 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
             <h5 className="m-0">Classfication Grades</h5>
             <span className="block mt-2 md:mt-0 p-input-icon-left">
                 <div className="my-2">
+                    {props.addmissionClassification.status === 'OPEN' ?
+                        <Button label='Close Admission' severity='info' icon="pi pi-lock" onClick={closeAdmission} loading={loading} style={{ marginRight: '10px' }}/>
+                        : <Button label='Open Admission' severity='success' icon="pi pi-lock-open" onClick={openAdmission} loading={loading} style={{ marginRight: '10px' }} />
+                    }
                     <Button tooltip="Sync Grades" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncCurriculumGrades} />
                 </div>
             </span>
@@ -184,7 +257,7 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
                         selection={selectedClassificationGrade}
                         onSelectionChange={(e) => setSelectedClassificationGrade(e.value)}
                         dataKey="_id"
-                        emptyMessage={`No grade for ${props.addmission_classification.classification} classification found.`}
+                        emptyMessage={`No grade for ${props.addmissionClassification.classification} classification found.`}
                         paginator
                         rows={5}
                         rowsPerPageOptions={[5, 10, 25]}

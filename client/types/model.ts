@@ -78,7 +78,7 @@ export type AdmissionClassification = {
     academic_session: AcademicSession | string;
     classification: 'REGULAR' | 'EVENING' | 'DISTANCE';
     curriculum: Curriculum | string;
-    status?: 'ACTIVE' | 'CLOSED';
+    status?: 'OPEN' | 'CLOSED';
 };
 
 export type ClassificationGrade = {

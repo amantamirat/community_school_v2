@@ -209,6 +209,13 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
         );
     };
 
+    const handleUpdate = (updated: AdmissionClassification) => {
+        let _admissionClassifications = [...admissionClassifications]
+        const index = admissionClassifications.findIndex((adm) => adm._id === updated._id);
+        _admissionClassifications[index] = { ...updated };
+        setAdmissionClassifications(_admissionClassifications);
+    };
+
     return (
         <div className="grid">
             <div className="col-12">
@@ -230,7 +237,8 @@ const ClassificationComponent = (props: AdmissionClassificationProps) => {
                         onRowToggle={(e) => setExpandedGradeRows(e.data)}
                         rowExpansionTemplate={(data) => (
                             <ClassificationGradeComponent
-                                addmission_classification={data as AdmissionClassification}
+                                addmissionClassification={data as AdmissionClassification}
+                                onUpdate={handleUpdate}
                             />
                         )}
                     >

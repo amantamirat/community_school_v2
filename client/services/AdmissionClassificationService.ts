@@ -7,6 +7,8 @@ const cacheTimeStampName = 'classificationsCacheTimestamp'
 const get_endpoint = '/api/admission-classifications/academic_session';
 const create_endpoint = '/api/admission-classifications/create';
 const delete_endpoint = '/api/admission-classifications/delete';
+const open_endpoint = "/api/admission-classifications/open";
+const close_endpoint = "/api/admission-classifications/close";
 
 function sanitize(admission: Partial<AdmissionClassification>) {
     return {
@@ -45,6 +47,30 @@ export const AdmissionClassificationService = {
             localStorage.setItem(storageName, JSON.stringify(localData));
         }
         return createdData;
+    },
+
+    async openAdmission(admission: AdmissionClassification): Promise<AdmissionClassification> {
+        const data: AdmissionClassification = await MyService.put(`${open_endpoint}/${admission._id}`, {});
+        const cachedData = localStorage.getItem(storageName);
+        if (cachedData) {
+            let gradeData = JSON.parse(cachedData) as AdmissionClassification[];
+            const index = gradeData.findIndex((grade) => grade._id === data._id);
+            gradeData[index] = { ...gradeData[index], status: 'OPEN' }
+            localStorage.setItem(storageName, JSON.stringify(gradeData));
+        }
+        return data;
+    },
+
+    async closeAdmission(admission: AdmissionClassification): Promise<AdmissionClassification> {
+        const data: AdmissionClassification = await MyService.put(`${close_endpoint}/${admission._id}`, {});
+        const cachedData = localStorage.getItem(storageName);
+        if (cachedData) {
+            let gradeData = JSON.parse(cachedData) as AdmissionClassification[];
+            const index = gradeData.findIndex((grade) => grade._id === data._id);
+            gradeData[index] = { ...gradeData[index], status: 'CLOSED' }
+            localStorage.setItem(storageName, JSON.stringify(gradeData));
+        }
+        return data;
     },
 
     async deleteAdmissionClassification(admissionClassification: AdmissionClassification): Promise<boolean> {
