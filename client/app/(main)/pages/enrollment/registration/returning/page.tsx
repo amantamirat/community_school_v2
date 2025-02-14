@@ -110,7 +110,7 @@ const ReturningStudentsPage = () => {
 
     const getSeverity = (value: ExternalStudentInfo) => {
         switch (value.status) {
-            case 'PASSED':
+            case 'PROMOTED':
                 return 'success';
             case 'FAILED':
                 return 'danger';

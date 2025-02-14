@@ -43,7 +43,7 @@ const externalStudentPriorInfoController = {
             } else {
                 query = {
                     $or: [
-                        { grade: prevGrade, status: "PASSED", registered: false, academic_year: { $lt: academic_year } },
+                        { grade: prevGrade, status: "PROMOTED", registered: false, academic_year: { $lt: academic_year } },
                         { grade: grade, status: "FAILED", registered: false, academic_year: { $lt: academic_year } }
                     ]
                 };
@@ -127,7 +127,7 @@ const externalStudentPriorInfoController = {
                     externalInfo.academic_year < academic_year &&
                     !externalInfo.registered &&
                     (
-                        (externalInfo.status === 'PASSED' && externalInfo.grade.equals(previousGrade._id)) ||
+                        (externalInfo.status === 'PROMOTED' && externalInfo.grade.equals(previousGrade._id)) ||
                         (externalInfo.status === 'FAILED' && externalInfo.grade.equals(currentGrade._id))
                     );
 

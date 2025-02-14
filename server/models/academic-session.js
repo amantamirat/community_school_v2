@@ -18,7 +18,7 @@ const AcademicSessionSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['ACTIVE', 'CLOSED', 'PLANNED'],
+        enum: ['OPEN', 'CLOSED', 'PLANNED'],
         default: 'PLANNED',
         required: true
     }

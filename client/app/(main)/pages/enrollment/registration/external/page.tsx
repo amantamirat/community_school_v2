@@ -1,8 +1,7 @@
 'use client';
 import { useClassificationGrade } from '@/app/(main)/contexts/classificationGradeContext';
 import { ExternalStudentInfoService } from '@/services/ExternalStudentInfoService';
-import { StudentGradeService } from '@/services/StudentGradeService';
-import { ExternalStudentInfo, StudentGrade } from '@/types/model';
+import { ExternalStudentInfo} from '@/types/model';
 import { FilterMatchMode, PrimeIcons } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -111,7 +110,7 @@ const NewExternalStudentsComponent = () => {
 
     const getSeverity = (value: ExternalStudentInfo) => {
         switch (value.status) {
-            case 'PASSED':
+            case 'PROMOTED':
                 return 'success';
             case 'FAILED':
                 return 'danger';

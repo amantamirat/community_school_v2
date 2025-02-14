@@ -80,7 +80,7 @@ const studentGradeController = {
                     );
                 const passedStudents = await StudentGrade.find({
                     classification_grade: { $in: classificationGradeIds },
-                    status: "PASSED",
+                    status: "PROMOTED",
                     registered: false,
                 }).populate('student');
 
