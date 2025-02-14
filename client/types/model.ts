@@ -12,6 +12,15 @@ export type Teacher = {
     sex: "Male" | "Female";
     photo?: string;
 };
+export type Role = 'Administrator' | 'Principal' | 'Teacher' | 'Student';
+export type User = {
+    _id?: string;
+    username: string;
+    password: string;
+    email?: string;
+    roles?: Role[];
+    photo?: string;
+};
 
 export type Grade = {
     _id?: string;
@@ -64,7 +73,6 @@ export type SubjectTerm = {
     term: number;
 }
 
-
 export type AcademicSession = {
     _id?: string;
     academic_year: number; // Year of the session, e.g., 2023
@@ -92,7 +100,7 @@ export type GradeSection = {
     _id?: string;
     classification_grade: ClassificationGrade | string;
     section_number: number;
-    number_of_seat:number;
+    number_of_seat: number;
     status: 'OPEN' | 'CLOSED';
 };
 

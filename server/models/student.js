@@ -32,7 +32,11 @@ const StudentSchema = new mongoose.Schema(
             default: false,
             required: true,
         },
-        photo: { type: String }
+        photo: { type: String },
+        user_account: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
     }
 );
 

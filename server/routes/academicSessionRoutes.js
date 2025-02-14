@@ -7,7 +7,7 @@ router.post("/create", academicSessionController.createAcademicSession);
 router.get("/", academicSessionController.getAllAcademicSessions);
 router.put("/update/:id", academicSessionController.updateAcademicSession);
 router.delete("/delete/:id", academicSessionController.deleteAcademicSession);
-router.put("/open/:id", admissionClassificationController.openAdmission);
-router.put("/close/:id", admissionClassificationController.closeAdmission);
+router.put("/open/:id", academicSessionController.openSession);
+router.put("/close/:id", academicSessionController.closeSession);
 
 module.exports = router;

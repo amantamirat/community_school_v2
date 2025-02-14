@@ -23,7 +23,11 @@ const TeacherSchema = new mongoose.Schema(
             default: 'Male',
             enum: ['Male', 'Female']
         },
-        photo: { type: String }
+        photo: { type: String },
+        user_account: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
     }
 );
 

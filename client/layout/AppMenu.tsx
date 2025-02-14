@@ -48,7 +48,8 @@ const AppMenu = () => {
                 },
                 { label: 'Curricula', icon: PrimeIcons.BOOK, to: '/pages/curricula_pages' },
                 { label: 'Teachers', icon: PrimeIcons.USER_PLUS, to: '/pages/teachers_pages' },
-                { label: 'Students', icon: "pi pi-fw pi-graduation-cap", to: '/pages/students' }
+                { label: 'Students', icon: "pi pi-fw pi-graduation-cap", to: '/pages/students' },
+                { label: 'User Accounts', icon: "pi pi-fw pi-users", to: '/pages/users' }
             ]
         },
         {

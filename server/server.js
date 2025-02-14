@@ -12,6 +12,8 @@ const departmentRoutes = require("./routes/departmentRoutes");
 app.use("/api/departments", departmentRoutes);
 const teacherRoutes = require("./routes/teacherRoutes");
 app.use("/api/teachers", teacherRoutes);
+const userRoutes = require("./routes/userRoutes");
+app.use("/api/users", userRoutes);
 const subjectRoutes = require("./routes/subjectRoutes");
 app.use("/api/subjects", subjectRoutes);
 const studentRoutes = require("./routes/studentRoutes");
@@ -65,7 +67,7 @@ const fs = require('fs');
 const path = require('path');
 
 const baseUploadDir = path.join(__dirname, 'uploads');
-const directories = ['students', 'teachers'];
+const directories = ['students', 'teachers', 'users'];
 directories.forEach(dir => {
     const dirPath = path.join(baseUploadDir, dir);
     if (!fs.existsSync(dirPath)) {
