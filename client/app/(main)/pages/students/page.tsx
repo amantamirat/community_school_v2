@@ -40,7 +40,7 @@ const StudentPage = () => {
         classification: "REGULAR",
         grade: '',
         average_result: 50,
-        status: 'PASSED',
+        status: 'PROMOTED',
         transfer_reason: ''
     };
     const [students, setStudents] = useState<Student[]>([]);
@@ -520,7 +520,7 @@ const StudentPage = () => {
                             <Dropdown
                                 id="status"
                                 value={selectedExternalInfo.status}
-                                options={[{ label: 'Passed', value: 'PASSED' }, { label: 'Failed', value: 'FAILED' }]}
+                                options={[{ label: 'Promoted', value: 'PROMOTED' }, { label: 'Failed', value: 'FAILED' }]}
                                 onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, status: e.value })}
                                 required
                                 placeholder="Select Status"

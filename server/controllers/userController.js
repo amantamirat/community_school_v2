@@ -1,4 +1,5 @@
 const User = require("../models/user");
+const Teacher = require("../models/teacher");
 const { removePhoto } = require('../services/photoService');
 
 const userController = {
@@ -11,52 +12,18 @@ const userController = {
             res.status(500).json({ message: "Error fetching users", error });
         }
     },
-    
+
     createUser: async (req, res) => {
         try {
             const { username, password, email, roles } = req.body;
             const newUser = new User({ username, password, email, roles });
-            await newUser.save();
+            await newUser.save();            
             res.status(201).json(newUser);
         } catch (error) {
-            res.status(500).json({ message: "Error creating user", error });
-        }
-    },
-
-
-    addRole: async (req, res) => {
-        try {
-            const { id } = req.params;
-            const { role } = req.body;
-            const user = await User.findById(id);
-            if (!user) {
-                return res.status(404).json({ message: "User not found" });
-            }
-            if (!user.roles.includes(role)) {
-                user.roles.push(role);
-                await user.save();
-            }
-            res.status(200).json(user);
-        } catch (error) {
+            console.log(error);
             res.status(500).json({ message: error.message });
         }
-    },
-
-    removeRole: async (req, res) => {
-        try {
-            const { id } = req.params;
-            const { role } = req.body;
-            const user = await User.findById(id);
-            if (!user) {
-                return res.status(404).json({ message: "User not found" });
-            }
-            user.roles = user.roles.filter(r => r !== role);
-            await user.save();
-            res.status(200).json(user);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    },
+    },   
 
     updateUser: async (req, res) => {
         try {
@@ -66,13 +33,14 @@ const userController = {
                 id,
                 { username, password, email, roles },
                 { new: true }
-            );
-            
+            );          
+
             if (!updatedUser) {
                 return res.status(404).json({ message: "User not found" });
             }
             res.status(200).json(updatedUser);
         } catch (error) {
+            console.log(error);
             res.status(500).json({ message: error.message });
         }
     },
@@ -105,6 +73,12 @@ const userController = {
             const user = await User.findById(id);
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
+            }
+            const teacherExists = await Teacher.exists({ uid: id });
+            if (teacherExists) {
+                return res.status(400).json({
+                    message: "Cannot delete the useraccount. Teacher Attached.",
+                });
             }
             if (user.photo) {
                 await removePhoto(user.photo);

@@ -6,6 +6,7 @@ const upload = require('../middleware/uploadPhoto');
 
 // Routes
 router.post("/create", teacherController.createTeacher);
+router.post("/create-account/:id", teacherController.createAccount);
 router.get("/", teacherController.getTeachers);
 router.put("/update/:id", teacherController.updateTeacher);
 router.delete("/delete/:id", teacherController.deleteTeacher);

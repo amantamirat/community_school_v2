@@ -35,6 +35,7 @@ const ClassificationGradeComponent = (props: ClassificationGradeProps) => {
 
     const loadClassificationGrades = async () => {
         ClassificationGradeService.getClassificationGradesByClassification(props.addmissionClassification).then((data) => {
+            console.log(data);
             setClassificationGrades(data);
         }).catch((err) => {
             toast.current?.show({

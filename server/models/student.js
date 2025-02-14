@@ -33,7 +33,7 @@ const StudentSchema = new mongoose.Schema(
             required: true,
         },
         photo: { type: String },
-        user_account: {
+        uid: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User'
         },

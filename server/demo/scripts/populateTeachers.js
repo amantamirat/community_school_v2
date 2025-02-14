@@ -20,7 +20,7 @@ const populateTeachers = async (count = 10) => {
         }
 
         // Clear existing teacher data
-        // await Teacher.deleteMany();
+        await Teacher.deleteMany();
 
         // Generate teachers
         const teachers = [];

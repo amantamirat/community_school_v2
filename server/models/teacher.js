@@ -24,7 +24,7 @@ const TeacherSchema = new mongoose.Schema(
             enum: ['Male', 'Female']
         },
         photo: { type: String },
-        user_account: {
+        uid: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User'
         },

@@ -2,7 +2,8 @@
 import { DepartmentService } from '@/services/DepartmentService';
 import { MyService } from '@/services/MyService';
 import { TeacherService } from '@/services/TeacherService';
-import { Department, Teacher } from '@/types/model';
+import { Department, Teacher, User } from '@/types/model';
+import { uid } from 'chart.js/dist/helpers/helpers.core';
 import { FilterMatchMode } from 'primereact/api';
 import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
@@ -25,6 +26,11 @@ const TeacherPage = () => {
         sex: 'Male',
         department: '', // Reference to department
     };
+    let emptyUser: User = {
+        username: '',
+        password: '',
+        email: '',
+    };
     const [departments, setDepartments] = useState<Department[]>([]);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher>(emptyTeacher);
@@ -36,6 +42,8 @@ const TeacherPage = () => {
     const dt = useRef<DataTable<any>>(null);
     const [globalFilter, setGlobalFilter] = useState('');
     const [filters, setFilters] = useState<DataTableFilterMeta>({});
+    const [selectedUser, setSelectedUser] = useState<User>(emptyUser);
+    const [showUserDialog, setShowUserDialog] = useState(false);
 
     useEffect(() => {
         initFilters();
@@ -142,6 +150,57 @@ const TeacherPage = () => {
         }
     };
 
+    const validateUser = (user: User) => {
+        if (user.username.trim() === '' || user.password?.trim() === '') {
+            return false;
+        }
+        return true;
+    };
+
+
+    const createAccount = async () => {
+        setSubmitted(true);
+        if (!validateUser(selectedUser)) {
+            return;
+        }
+        let _teachers = [...teachers];
+        try {
+            if (selectedTeacher._id) {
+                const updatedTeacher = await TeacherService.createAccount(selectedTeacher, selectedUser);
+                if (updatedTeacher.uid) {
+                    const teacher: Teacher = {
+                        ...updatedTeacher,
+                        uid: typeof updatedTeacher.uid === 'string'
+                            ? { ...selectedUser, _id: updatedTeacher.uid }
+                            : updatedTeacher.uid
+                    };
+                    const index = teachers.findIndex((teacher) => teacher._id === selectedTeacher._id);
+                    _teachers[index] = teacher;
+                    setTeachers(_teachers);
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: `Teacher ${selectedTeacher._id ? "updated" : 'created'}`,
+                        life: 3000
+                    });
+                }
+            }
+        } catch (error) {
+            //console.error(error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Faild to create account!',
+                detail: '' + error,
+                life: 3000
+            });
+        }
+        finally {
+            setShowUserDialog(false);
+            setSelectedTeacher(emptyTeacher);
+            setSelectedUser(emptyUser);
+        }
+    };
+
     const deleteTeacher = async () => {
         try {
             if (selectedTeacher._id) {
@@ -185,12 +244,20 @@ const TeacherPage = () => {
     const hideSaveDialog = () => {
         setSubmitted(false);
         setShowSaveDialog(false);
+        setShowUserDialog(false);
     };
 
     const saveDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideSaveDialog} />
             <Button label="Save" icon="pi pi-check" text onClick={saveTeacher} />
+        </>
+    );
+
+    const saveAccountDialogFooter = (
+        <>
+            <Button label="Cancel" icon="pi pi-times" text onClick={hideSaveDialog} />
+            <Button label="Create" icon="pi pi-check" text onClick={createAccount} />
         </>
     );
 
@@ -324,11 +391,19 @@ const TeacherPage = () => {
                             }}
                             style={{ width: '6rem' }}
                         />
-                        <Column field="first_name" header="First Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="last_name" header="Last Name" sortable headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="sex" header="Sex" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="first_name" header="First Name" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="last_name" header="Last Name" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="sex" header="Sex" sortable headerStyle={{ minWidth: '5rem' }}></Column>
                         <Column field="department.name" header="Department" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="uid.username" header="User" body={(rowData) => (rowData.uid ? rowData.uid.username :
+                            <Button icon="pi pi-user-plus" tooltip='Create Account' rounded severity="success" className="mr-2"
+                                onClick={() => {
+                                    setSelectedTeacher(rowData);
+                                    setSelectedUser(emptyUser);
+                                    setShowUserDialog(true);
+                                }} />
+                        )} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
                     <Dialog
@@ -427,6 +502,46 @@ const TeacherPage = () => {
                                 <FileUpload name="photo" uploadHandler={onUpload} customUpload accept="image/*" maxFileSize={1000000} emptyTemplate={<p className="m-0">Drag and drop files to here to upload.</p>} />
                             )}
                         </div>
+                    </Dialog>
+
+                    <Dialog
+                        visible={showUserDialog}
+                        style={{ width: '450px' }}
+                        header={`Create Account for ${selectedTeacher.first_name}`}
+                        modal
+                        className="p-fluid"
+                        footer={saveAccountDialogFooter}
+                        onHide={hideSaveDialog}
+                    >
+                        {selectedUser && selectedTeacher ? (<>
+                            <div className="field">
+                                <label htmlFor="username">Username</label>
+                                <InputText
+                                    id="username"
+                                    value={selectedUser.username}
+                                    onChange={(e) => setSelectedUser({ ...selectedUser, username: e.target.value })}
+                                    required
+                                    autoFocus
+                                    className={classNames({
+                                        'p-invalid': submitted && !selectedUser.username,
+                                    })}
+                                />
+                                {submitted && !selectedUser.username && <small className="p-invalid">User Name is required.</small>}
+                            </div>
+                            <div className="field">
+                                <label htmlFor="password">Password</label>
+                                <InputText
+                                    id="password"
+                                    value={selectedUser.password}
+                                    onChange={(e) => setSelectedUser({ ...selectedUser, password: e.target.value })}
+                                    required
+                                    className={classNames({
+                                        'p-invalid': submitted && !selectedUser.password,
+                                    })}
+                                />
+                                {submitted && !selectedUser.password && <small className="p-invalid">Password is required.</small>}
+                            </div>
+                        </>) : <></>}
                     </Dialog>
 
                     <Dialog

@@ -11,12 +11,13 @@ export type Teacher = {
     last_name: string;
     sex: "Male" | "Female";
     photo?: string;
+    uid?: User | string;
 };
 export type Role = 'Administrator' | 'Principal' | 'Teacher' | 'Student';
 export type User = {
     _id?: string;
     username: string;
-    password: string;
+    password?: string;
     email?: string;
     roles?: Role[];
     photo?: string;

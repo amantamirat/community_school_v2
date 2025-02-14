@@ -1,13 +1,14 @@
-import { Teacher } from "@/types/model";
+import { Teacher, User } from "@/types/model";
 import { MyService } from "./MyService";
 
 const get_endpoint = '/api/teachers/';
 const create_endpoint = '/api/teachers/create';
+const create_account_endpoint = '/api/teachers/create-account';
 const update_endpoint = '/api/teachers/update';
 const delete_endpoint = '/api/teachers/delete';
 const upload_endpoint = '/api/teachers/upload-photo';
 
-export const TeacherService = {    
+export const TeacherService = {
     async getTeachers(): Promise<Teacher[]> {
         const data = await MyService.get(get_endpoint);
         return data as Teacher[];
@@ -16,7 +17,10 @@ export const TeacherService = {
     async createTeacher(teacher: Partial<Teacher>): Promise<Teacher> {
         const createdData = await MyService.create(teacher, create_endpoint);
         return createdData;
-
+    },
+    async createAccount(teacher: Teacher, userAccount: User): Promise<Teacher> {
+        const createdData = await MyService.create(userAccount, `${create_account_endpoint}/${teacher._id}`);
+        return createdData;
     },
     async updateTeacher(teacher: Partial<Teacher>): Promise<Teacher> {
         if (teacher._id) {
@@ -27,14 +31,14 @@ export const TeacherService = {
     },
 
     async uploadTeacherPhoto(teacher: Teacher, photo: File): Promise<Teacher> {
-            if(!teacher._id){
-                throw Error("ID Required!");
-            }
-            const formData = new FormData();
-            formData.append('photo', photo);
-            const data = await MyService.uploadByPUT(`${upload_endpoint}/teacher/${teacher._id}`, formData);
-            return data;
-        },
+        if (!teacher._id) {
+            throw Error("ID Required!");
+        }
+        const formData = new FormData();
+        formData.append('photo', photo);
+        const data = await MyService.uploadByPUT(`${upload_endpoint}/teacher/${teacher._id}`, formData);
+        return data;
+    },
 
     async deleteTeacher(teacher: Teacher): Promise<boolean> {
         if (teacher._id) {

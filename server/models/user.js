@@ -12,9 +12,16 @@ const UserSchema = new mongoose.Schema(
         },
         email: {
             type: String,
-            unique: true
+            unique: true,
+            sparse: true
         },
-        photo: { type: String },
+        photo: {
+            type: String
+        },
+        roles: [{
+            type: String,
+            enum: ['Administrator', 'Principal', 'Teacher', 'Student']
+        }]
     }
 );
 const User = mongoose.model('User', UserSchema);

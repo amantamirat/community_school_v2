@@ -26,7 +26,7 @@ const ExternalInfoComponent = (props: ExternalInfoProps) => {
         classification: "REGULAR",
         grade: '',
         average_result: 50,
-        status: 'PASSED',
+        status: 'PROMOTED',
         transfer_reason: ''
     };
 
@@ -308,7 +308,7 @@ const ExternalInfoComponent = (props: ExternalInfoProps) => {
                         <Dropdown
                             id="status"
                             value={selectedExternalInfo.status}
-                            options={[{ label: 'Passed', value: 'PASSED' }, { label: 'Failed', value: 'FAILED' }]}
+                            options={[{ label: 'Promoted', value: 'PROMOTED' }, { label: 'Failed', value: 'FAILED' }]}
                             onChange={(e) => setSelectedExternalInfo({ ...selectedExternalInfo, status: e.value })}
                             required
                             placeholder="Select Status"
@@ -337,7 +337,7 @@ const ExternalInfoComponent = (props: ExternalInfoProps) => {
 
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-            <h5 className="m-0">Perior School Info of {`${props.student.first_name} ${props.student.last_name}`}</h5>
+            <h6 className="m-0">Perior School Info of {`${props.student.first_name} ${props.student.last_name}`}</h6>
             {externalInfos.length == 0 &&
                 <span className="block mt-2 md:mt-0 p-input-icon-left">
                     <div className="my-2">
@@ -367,7 +367,7 @@ const ExternalInfoComponent = (props: ExternalInfoProps) => {
                         value={externalInfos}
                         selection={selectedExternalInfo}
                         onSelectionChange={(e) => setSelectedExternalInfo(e.value)}
-                        emptyMessage={`No rInfo found for ${props.student.first_name}.`}
+                        emptyMessage={`No Info found for ${props.student.first_name} ${props.student.last_name}.`}
                     >
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="school_name" header="School" sortable headerStyle={{ minWidth: '10rem' }} />

@@ -1,7 +1,7 @@
 'use client';
 import { MyService } from '@/services/MyService';
 import { UserService } from '@/services/UserService';
-import { User } from '@/types/model';
+import { Role, User } from '@/types/model';
 import { FilterMatchMode } from 'primereact/api';
 import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
@@ -10,10 +10,18 @@ import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { FileUpload } from 'primereact/fileupload';
 import { InputText } from 'primereact/inputtext';
+import { MultiSelect } from 'primereact/multiselect';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
+
+
+const roles: { label: string, value: Role }[] = [
+    { label: 'Administrator', value: 'Administrator' },
+    { label: 'Principal', value: 'Principal' },
+    { label: 'Teacher', value: 'Teacher' }
+];
 
 const UserPage = () => {
     let emptyUser: User = {
@@ -24,7 +32,7 @@ const UserPage = () => {
 
     const [users, setUsers] = useState<User[]>([]);
     const [selectedUser, setSelectedUser] = useState<User>(emptyUser);
-    const [showSaveDialog, setShowSaveDialog] = useState(false);
+    const [showSaveDialog, setShowSaveDialog] = useState(false);    
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [showUploadDialog, setShowUploadDialog] = useState(false);
@@ -64,7 +72,7 @@ const UserPage = () => {
     };
 
     const validateUser = (user: User) => {
-        if (user.username.trim() === '' || user.password.trim() === '') {
+        if (user.username.trim() === '' || user.password?.trim() === '') {
             return false;
         }
         return true;
@@ -78,6 +86,7 @@ const UserPage = () => {
         let _users = [...(users as any)];
         try {
             if (selectedUser._id) {
+                console.log(selectedUser);
                 const updatedUser = await UserService.updateUser(selectedUser);
                 if (updatedUser) {
                     const index = users.findIndex((user) => user._id === updatedUser._id);
@@ -283,7 +292,7 @@ const UserPage = () => {
                         />
                         <Column
                             body={(rowData) => {
-                                const imgSrc = rowData.photo ? MyService.photoURL(rowData.photo) : '/images/default_male_user.jpg';
+                                const imgSrc = rowData.photo ? MyService.photoURL(rowData.photo) : '/images/default_male_teacher.jpg';
                                 return (
                                     <Avatar
                                         image={imgSrc}
@@ -297,6 +306,7 @@ const UserPage = () => {
                         <Column field="username" header="User Name" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="password" header="Password" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="email" header="Email" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column field="roles" header="Role" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
@@ -345,7 +355,25 @@ const UserPage = () => {
                                 />
                                 {submitted && !selectedUser.password && <small className="p-invalid">Password is required.</small>}
                             </div>
-
+                            <div>
+                                {selectedUser?._id &&
+                                    <div className="field">
+                                        <label htmlFor="roles">Roles</label>
+                                        <MultiSelect
+                                            value={selectedUser.roles}
+                                            onChange={(e) => setSelectedUser({ ...selectedUser, roles: e.value })}
+                                            options={roles}
+                                            optionLabel="label"
+                                            display="chip"
+                                            placeholder="Select Roles"
+                                            maxSelectedLabels={3}
+                                            className="w-full"
+                                            style={{ width: '100%', minWidth: '300px', maxWidth: '500px' }}
+                                        />
+                                        {submitted && !selectedUser.roles && <small className="p-invalid">Roles required.</small>}
+                                    </div>
+                                }
+                            </div>
                         </>) : <></>}
                     </Dialog>
 
@@ -362,6 +390,8 @@ const UserPage = () => {
                             )}
                         </div>
                     </Dialog>
+
+                    
 
                     <Dialog
                         visible={showDeleteDialog}

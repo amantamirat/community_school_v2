@@ -1,8 +1,19 @@
 const Teacher = require("../models/teacher");
 const SectionClass = require("../models/section-class");
+const User = require("../models/user");
 const { removePhoto } = require('../services/photoService');
 
 const teacherController = {
+
+
+    getTeachers: async (req, res) => {
+        try {
+            const teachers = await Teacher.find().populate('uid', 'username');
+            res.status(200).json(teachers);
+        } catch (error) {
+            res.status(500).json({ message: "Error fetching teachers", error });
+        }
+    },
 
     createTeacher: async (req, res) => {
         try {
@@ -15,12 +26,21 @@ const teacherController = {
         }
     },
 
-    getTeachers: async (req, res) => {
+    createAccount: async (req, res) => {
         try {
-            const teachers = await Teacher.find();
-            res.status(200).json(teachers);
+            const { id } = req.params;
+            const teacher = await Teacher.findById(id);
+            if (!teacher) {
+                return res.status(404).json({ message: "Teacher not found" });
+            }
+            const { username, password, email, roles } = req.body;
+            const newUser = new User({ username, password, roles: ["Teacher"] });
+            await newUser.save();
+            teacher.uid = newUser._id;
+            const updatedTeacher = await teacher.save();
+            res.status(200).json(updatedTeacher);
         } catch (error) {
-            res.status(500).json({ message: "Error fetching teachers", error });
+            res.status(500).json({ message: "Error creating teacher", error });
         }
     },
 
@@ -54,7 +74,7 @@ const teacherController = {
             const teacher = await Teacher.findById(id);
             if (!teacher) {
                 return res.status(404).json({ message: "Teacher not found" });
-            }           
+            }
             if (teacher.photo) {  //remove old photo
                 await removePhoto(teacher.photo);
             }
