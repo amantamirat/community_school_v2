@@ -3,11 +3,12 @@ import { MyService } from "./MyService";
 
 const get_endpoint = '/api/users/';
 const create_endpoint = '/api/users/create';
+const login_endpoint = '/api/users/login';
 const update_endpoint = '/api/users/update';
 const delete_endpoint = '/api/users/delete';
 const upload_endpoint = '/api/users/upload-photo';
 
-export const UserService = {    
+export const UserService = {
     async getUsers(): Promise<User[]> {
         const data = await MyService.get(get_endpoint);
         return data as User[];
@@ -16,6 +17,11 @@ export const UserService = {
     async createUser(user: Partial<User>): Promise<User> {
         const createdData = await MyService.create(user, create_endpoint);
         return createdData;
+    },
+
+    async loginUser(email: string, password: string): Promise<any> {
+        const loggedinUser = await MyService.create({ email: email, username: email, password: password }, login_endpoint);
+        return loggedinUser;
 
     },
     async updateUser(user: Partial<User>): Promise<User> {
@@ -27,14 +33,14 @@ export const UserService = {
     },
 
     async uploadUserPhoto(user: User, photo: File): Promise<User> {
-            if(!user._id){
-                throw Error("ID Required!");
-            }
-            const formData = new FormData();
-            formData.append('photo', photo);
-            const data = await MyService.uploadByPUT(`${upload_endpoint}/user/${user._id}`, formData);
-            return data;
-        },
+        if (!user._id) {
+            throw Error("ID Required!");
+        }
+        const formData = new FormData();
+        formData.append('photo', photo);
+        const data = await MyService.uploadByPUT(`${upload_endpoint}/user/${user._id}`, formData);
+        return data;
+    },
 
     async deleteUser(user: User): Promise<boolean> {
         if (user._id) {

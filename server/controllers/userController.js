@@ -1,6 +1,8 @@
 const User = require("../models/user");
 const Teacher = require("../models/teacher");
 const { removePhoto } = require('../services/photoService');
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 const userController = {
 
@@ -17,13 +19,30 @@ const userController = {
         try {
             const { username, password, email, roles } = req.body;
             const newUser = new User({ username, password, email, roles });
-            await newUser.save();            
+            await newUser.save();
             res.status(201).json(newUser);
         } catch (error) {
             console.log(error);
             res.status(500).json({ message: error.message });
         }
-    },   
+    },
+
+    loginUser: async (req, res) => {
+        const { email, password } = req.body;
+
+        // Find user in database
+        const user = await User.findOne({ email });
+        if (!user) return res.status(401).json({ error: "User not found" });
+
+        // Check password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
+
+        // Generate JWT token
+        const token = jwt.sign({ id: user._id, email: user.email }, "your_secret_key", { expiresIn: "1h" });
+
+        res.json({ token });
+    },
 
     updateUser: async (req, res) => {
         try {
@@ -33,7 +52,7 @@ const userController = {
                 id,
                 { username, password, email, roles },
                 { new: true }
-            );          
+            );
 
             if (!updatedUser) {
                 return res.status(404).json({ message: "User not found" });

@@ -15,6 +15,7 @@ export type Teacher = {
 };
 export type Role = 'Administrator' | 'Principal' | 'Teacher' | 'Student';
 export type User = {
+    id?: string;
     _id?: string;
     username: string;
     password?: string;

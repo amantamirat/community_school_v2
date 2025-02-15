@@ -23,6 +23,11 @@ const TeacherSchema = new mongoose.Schema(
             default: 'Male',
             enum: ['Male', 'Female']
         },
+        email: {
+            type: String,
+            unique: true,
+            sparse: true
+        },
         photo: { type: String },
         uid: {
             type: mongoose.Schema.Types.ObjectId,
