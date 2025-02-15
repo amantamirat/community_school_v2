@@ -3,6 +3,7 @@ const Teacher = require("../models/teacher");
 const { removePhoto } = require('../services/photoService');
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const { createUserAccount } = require("../services/userService");
 
 const userController = {
 
@@ -17,8 +18,7 @@ const userController = {
 
     createUser: async (req, res) => {
         try {
-            const { username, password, email, roles } = req.body;
-            const newUser = new User({ username, password, email, roles });
+            const newUser = await createUserAccount(req.body);
             await newUser.save();
             res.status(201).json(newUser);
         } catch (error) {
@@ -47,7 +47,7 @@ const userController = {
     updateUser: async (req, res) => {
         try {
             const { id } = req.params;
-            const { username, password, email, roles } = req.body;
+            const { username, password, email, roles } = req.body;           
             const updatedUser = await User.findByIdAndUpdate(
                 id,
                 { username, password, email, roles },

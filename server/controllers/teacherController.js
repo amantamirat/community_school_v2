@@ -2,9 +2,9 @@ const Teacher = require("../models/teacher");
 const SectionClass = require("../models/section-class");
 const User = require("../models/user");
 const { removePhoto } = require('../services/photoService');
+const { createUserAccount } = require("../services/userService");
 
 const teacherController = {
-
 
     getTeachers: async (req, res) => {
         try {
@@ -33,13 +33,12 @@ const teacherController = {
             if (!teacher) {
                 return res.status(404).json({ message: "Teacher not found" });
             }
-            const { username, password, email, roles } = req.body;
-            const newUser = new User({ username, password, roles: ["Teacher"] });
-            await newUser.save();
+            const newUser = await createUserAccount(req.body);
             teacher.uid = newUser._id;
             const updatedTeacher = await teacher.save();
             res.status(200).json(updatedTeacher);
         } catch (error) {
+            console.log(error);
             res.status(500).json({ message: "Error creating teacher", error });
         }
     },
@@ -80,7 +79,6 @@ const teacherController = {
             }
             teacher.photo = `/uploads/teachers/${req.file.filename}`;
             const updatedTeacher = await teacher.save();
-
             res.status(200).json(updatedTeacher);
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -104,6 +102,9 @@ const teacherController = {
             }
             if (teacher.photo) {
                 await removePhoto(teacher.photo);
+            }
+            if (teacher.uid) {
+                await User.findByIdAndDelete(teacher.uid);
             }
             await Teacher.findByIdAndDelete(id);
             res.status(200).json({ message: "Teacher deleted successfully" });
