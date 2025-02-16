@@ -9,12 +9,11 @@ export const metadata: Metadata = {
     title: 'WKU CS',
     description: 'Wolkite University Community School Management System.',
     robots: { index: false, follow: false },
-    viewport: { initialScale: 1, width: 'device-width' },
     openGraph: {
         type: 'website',
         title: 'WKU-CS',
         url: 'https://www.wku.edu.et/',
-        description: 'The ultimate collection of design-agnostic, flexible and accessible React UI Components.',
+        description: 'Wolkite University Community School Management System.',
         images: ['https://www.primefaces.org/static/social/sakai-react.png'],
         ttl: 604800
     },
@@ -22,6 +21,11 @@ export const metadata: Metadata = {
         icon: '/favicon.ico'
     }
 };
+
+export const viewport = {
+    width: "device-width",
+    initialScale: 1,
+  };
 
 export default function AppLayout({ children }: AppLayoutProps) {
     return <Layout>{children}</Layout>;

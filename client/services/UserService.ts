@@ -20,7 +20,7 @@ export const UserService = {
     },
 
     async loginUser(email: string, password: string): Promise<any> {
-        const loggedinUser = await MyService.create({ email: email, username: email, password: password }, login_endpoint);
+        const loggedinUser = await MyService.create({ email: email, password: password }, login_endpoint);
         return loggedinUser;
 
     },

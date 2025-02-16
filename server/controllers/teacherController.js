@@ -33,7 +33,8 @@ const teacherController = {
             if (!teacher) {
                 return res.status(404).json({ message: "Teacher not found" });
             }
-            const newUser = await createUserAccount(req.body);
+            const { username, password, email } = req.body;
+            const newUser = await createUserAccount({ username, password, email, roles:["Teacher"] });
             teacher.uid = newUser._id;
             const updatedTeacher = await teacher.save();
             res.status(200).json(updatedTeacher);
@@ -74,7 +75,7 @@ const teacherController = {
             if (!teacher) {
                 return res.status(404).json({ message: "Teacher not found" });
             }
-            if (teacher.photo) {  //remove old photo
+            if (teacher.photo) { 
                 await removePhoto(teacher.photo);
             }
             teacher.photo = `/uploads/teachers/${req.file.filename}`;

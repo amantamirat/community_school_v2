@@ -3,6 +3,7 @@ import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 export const authOptions: NextAuthOptions = {
+    secret: process.env.NEXTAUTH_SECRET, // Use the secret from .env.local
     providers: [
         CredentialsProvider({
             name: "Credentials",
@@ -10,7 +11,7 @@ export const authOptions: NextAuthOptions = {
                 email: { label: "Email", type: "text", placeholder: "user@example.com" },
                 password: { label: "Password", type: "password" }
             },
-            async authorize(credentials) {
+            async authorize(credentials) {            
                 if (!credentials?.email || !credentials?.password) {
                     throw new Error("Email and password are required");
                 }
@@ -19,9 +20,8 @@ export const authOptions: NextAuthOptions = {
                     if (!user) {
                         throw new Error("User not found");
                     }
-                    // Ensure the user object contains an `id` field
                     return {
-                        id: user.id, // Make sure this matches the API response
+                        id: user._id, // Make sure this matches the API response
                         email: user.email,
                         name: user.username
                     };

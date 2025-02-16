@@ -35,7 +35,8 @@ export const MyService = {
         //console.log(JSON.stringify(payload));
         if (!response.ok) {
             return response.json().then(data => {
-                throw new Error(data.message || "Failed to create data");
+                console.log(data);
+                throw new Error(data.message || "Error created");
             });
         }
         const createdData = await response.json();

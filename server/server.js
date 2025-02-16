@@ -78,7 +78,6 @@ directories.forEach(dir => {
 
 app.use('/uploads', express.static(baseUploadDir));
 
-
 app.listen(process.env.SERVER_PORT, () => {
   console.log(`Server is running at http://127.0.0.1:${process.env.SERVER_PORT}`);
 });

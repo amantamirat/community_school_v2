@@ -26,8 +26,9 @@ const roles: { label: string, value: Role }[] = [
 const UserPage = () => {
     let emptyUser: User = {
         username: '',
-        password: '',
+        password:'',
         email: '',
+        roles:[]
     };
 
     const [users, setUsers] = useState<User[]>([]);
@@ -86,7 +87,7 @@ const UserPage = () => {
         let _users = [...(users as any)];
         try {
             if (selectedUser._id) {
-                console.log(selectedUser);
+                //console.log(selectedUser);
                 const updatedUser = await UserService.updateUser(selectedUser);
                 if (updatedUser) {
                     const index = users.findIndex((user) => user._id === updatedUser._id);
@@ -304,7 +305,6 @@ const UserPage = () => {
                             style={{ width: '6rem' }}
                         />
                         <Column field="username" header="User Name" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="password" header="Password" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="email" header="Email" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="roles" header="Role" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
@@ -338,7 +338,7 @@ const UserPage = () => {
                                 <label htmlFor="email">Email</label>
                                 <InputText
                                     id="email"
-                                    value={selectedUser.email}
+                                    value={selectedUser?.email}
                                     onChange={(e) => setSelectedUser({ ...selectedUser, email: e.target.value })}
                                 />
                             </div>
@@ -346,7 +346,7 @@ const UserPage = () => {
                                 <label htmlFor="password">Password</label>
                                 <InputText
                                     id="password"
-                                    value={selectedUser.password}
+                                    value={selectedUser?.password}
                                     onChange={(e) => setSelectedUser({ ...selectedUser, password: e.target.value })}
                                     required
                                     className={classNames({

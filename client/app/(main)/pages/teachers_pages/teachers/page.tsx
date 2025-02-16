@@ -399,6 +399,7 @@ const TeacherPage = () => {
                         <Column field="uid.username" header="User" body={(rowData) => (rowData.uid ? rowData.uid.username :
                             <Button icon="pi pi-user-plus" tooltip='Create Account' rounded severity="success" className="mr-2"
                                 onClick={() => {
+                                    setSubmitted(false);
                                     setSelectedTeacher(rowData);
                                     setSelectedUser(emptyUser);
                                     setShowUserDialog(true);

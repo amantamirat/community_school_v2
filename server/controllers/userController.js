@@ -3,13 +3,14 @@ const Teacher = require("../models/teacher");
 const { removePhoto } = require('../services/photoService');
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const { createUserAccount } = require("../services/userService");
+require('dotenv').config();
+const { createUserAccount, prepareHash } = require("../services/userService");
 
 const userController = {
 
     getUsers: async (req, res) => {
         try {
-            const users = await User.find();
+            const users = await User.find().select('-password');
             res.status(200).json(users);
         } catch (error) {
             res.status(500).json({ message: "Error fetching users", error });
@@ -28,32 +29,36 @@ const userController = {
     },
 
     loginUser: async (req, res) => {
-        const { email, password } = req.body;
+        try {
+            const { email, password } = req.body;
+            const user = await User.findOne({ email });
+            if (!user) return res.status(401).json({ message: "User not found" });            
+            
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+            
+            const token = jwt.sign({ id: user._id, email: user.email }, process.env.KEY, { expiresIn: "1h" });
 
-        // Find user in database
-        const user = await User.findOne({ email });
-        if (!user) return res.status(401).json({ error: "User not found" });
+            res.status(200).json({
+                token, _id: user._id, email: user.email, username: user.username
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ message: error.message });
+        }
 
-        // Check password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
-
-        // Generate JWT token
-        const token = jwt.sign({ id: user._id, email: user.email }, "your_secret_key", { expiresIn: "1h" });
-
-        res.json({ token });
     },
 
     updateUser: async (req, res) => {
         try {
             const { id } = req.params;
-            const { username, password, email, roles } = req.body;           
+            const { username, password, email, roles } = req.body;
+            const hashedPassword = await prepareHash(password);
             const updatedUser = await User.findByIdAndUpdate(
                 id,
-                { username, password, email, roles },
+                { username, password: hashedPassword, email, roles },
                 { new: true }
             );
-
             if (!updatedUser) {
                 return res.status(404).json({ message: "User not found" });
             }

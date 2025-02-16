@@ -10,12 +10,12 @@ export type Teacher = {
     middle_name?: string;
     last_name: string;
     sex: "Male" | "Female";
+    email?: string;
     photo?: string;
     uid?: User | string;
 };
 export type Role = 'Administrator' | 'Principal' | 'Teacher' | 'Student';
 export type User = {
-    id?: string;
     _id?: string;
     username: string;
     password?: string;
