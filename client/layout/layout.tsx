@@ -13,7 +13,7 @@ import { LayoutContext } from './context/layoutcontext';
 import { PrimeReactContext } from 'primereact/api';
 import { ChildContainerProps, LayoutState, AppTopbarRef } from '@/types';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { SessionProvider } from "next-auth/react";
+import { useSession } from 'next-auth/react';
 
 const Layout = ({ children }: ChildContainerProps) => {
     const { layoutConfig, layoutState, setLayoutState } = useContext(LayoutContext);
@@ -35,6 +35,18 @@ const Layout = ({ children }: ChildContainerProps) => {
             }
         }
     });
+    
+    const { data: session, status } = useSession();
+    const router = useRouter();    
+    useEffect(() => {
+        if (status !== "loading" && !session) {
+            router.push("/landing");
+        }
+    }, [session, status]);    
+    // While loading, show nothing to prevent UI flickering
+    if (status === "loading" || (!session && typeof window !== "undefined")) {
+        return null;
+    }
 
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -125,20 +137,18 @@ const Layout = ({ children }: ChildContainerProps) => {
 
     return (
         <React.Fragment>
-            <SessionProvider>
-                <div className={containerClass}>
-                    <AppTopbar ref={topbarRef} />
-                    <div ref={sidebarRef} className="layout-sidebar">
-                        <AppSidebar />
-                    </div>
-                    <div className="layout-main-container">
-                        <div className="layout-main">{children}</div>
-                        <AppFooter />
-                    </div>
-                    <AppConfig />
-                    <div className="layout-mask"></div>
+            <div className={containerClass}>
+                <AppTopbar ref={topbarRef} />
+                <div ref={sidebarRef} className="layout-sidebar">
+                    <AppSidebar />
                 </div>
-            </SessionProvider>
+                <div className="layout-main-container">
+                    <div className="layout-main">{children}</div>
+                    <AppFooter />
+                </div>
+                <AppConfig />
+                <div className="layout-mask"></div>
+            </div>
         </React.Fragment>
     );
 };

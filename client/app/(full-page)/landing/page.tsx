@@ -10,12 +10,14 @@ import { Divider } from 'primereact/divider';
 import { LayoutContext } from '../../../layout/context/layoutcontext';
 import { NodeRef } from '@/types';
 import { classNames } from 'primereact/utils';
+import { useSession } from "next-auth/react";
+
 
 const LandingPage = () => {
     const [isHidden, setIsHidden] = useState(false);
     const { layoutConfig } = useContext(LayoutContext);
     const menuRef = useRef<HTMLElement | null>(null);
-
+    const { data: session, status } = useSession();
     const toggleMenuItemClick = () => {
         setIsHidden((prevState) => !prevState);
     };
@@ -52,12 +54,16 @@ const LandingPage = () => {
                                 </a>
                             </li>
                         </ul>
-                        <div className="flex justify-content-between lg:block border-top-1 lg:border-top-none surface-border py-3 lg:py-0 mt-3 lg:mt-0">
-                            <Link href="/auth/login" passHref>
-                                <Button label="Login" text rounded className="border-none font-light line-height-2 text-blue-500"></Button>
-                            </Link>
-                            <Button label="Register" rounded className="border-none ml-5 font-light line-height-2 bg-blue-500 text-white"></Button>
-                        </div>
+                        {
+                            !session &&
+                            <div className="flex justify-content-between lg:block border-top-1 lg:border-top-none surface-border py-3 lg:py-0 mt-3 lg:mt-0">
+                                <Link href="/auth/login" passHref>
+                                    <Button label="Login" text rounded className="border-none font-light line-height-2 text-blue-500"></Button>
+                                </Link>
+                                <Button label="Register" rounded className="border-none ml-5 font-light line-height-2 bg-blue-500 text-white"></Button>
+                            </div>
+                        }
+
                     </div>
                 </div>
 

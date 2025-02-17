@@ -1,14 +1,13 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from 'next/navigation';
 import { Button } from 'primereact/button';
 import { Checkbox } from 'primereact/checkbox';
 import { InputText } from 'primereact/inputtext';
-import { Message } from "primereact/message";
 import { Password } from 'primereact/password';
 import { classNames } from 'primereact/utils';
-import { useContext, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { LayoutContext } from '../../../../layout/context/layoutcontext';
 import { Messages } from "primereact/messages";
 
@@ -18,8 +17,15 @@ const LoginPage = () => {
     const [checked, setChecked] = useState(false);
     const { layoutConfig } = useContext(LayoutContext);
     const msgs = useRef<Messages>(null);
+    const { data: session, status } = useSession();
     const router = useRouter();
     const containerClassName = classNames('surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden', { 'p-input-filled': layoutConfig.inputStyle === 'filled' });
+
+    useEffect(() => {
+        if (session) {
+            router.push("/auth/error");
+        }
+    }, []);
 
     const handleSignIn = async () => {
         const result = await signIn("credentials", {
@@ -35,6 +41,9 @@ const LoginPage = () => {
             router.push("/");
         }
     };
+    if (session) {
+        return null;
+    }
     return (
         <div className={containerClassName}>
             <div className="flex flex-column align-items-center justify-content-center">

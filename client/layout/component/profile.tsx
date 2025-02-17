@@ -1,4 +1,5 @@
 import { useSession, signOut } from "next-auth/react";
+import { Button } from "primereact/button";
 
 
 export default function Profile() {
@@ -10,10 +11,18 @@ export default function Profile() {
     if (status === "loading") {
         return <p>Loading...</p>;
     }
-
     if (!session) {
         return <p>Access Denied</p>;
     }
 
-    return <div>Welcome, {session.user?.name} <button onClick={handleLogout}>Logout</button></div>;
+    return (<div>
+        <div className="card">
+            <h5> Welcome, {session.user?.name} </h5>
+            <div className="flex flex-wrap gap-2">
+                <Button label="Change Password"></Button>
+                <Button label="Logout" severity="warning" onClick={handleLogout}></Button>
+
+            </div>
+        </div>
+    </div>);
 }

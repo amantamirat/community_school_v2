@@ -6,6 +6,7 @@ import 'primeflex/primeflex.css';
 import 'primeicons/primeicons.css';
 import '../styles/layout/layout.scss';
 import '../styles/demo/Demos.scss';
+import { SessionProvider } from "next-auth/react";
 
 interface RootLayoutProps {
     children: React.ReactNode;
@@ -19,7 +20,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
             </head>
             <body>
                 <PrimeReactProvider>
-                    <LayoutProvider>{children}</LayoutProvider>
+                    <SessionProvider>
+                        <LayoutProvider>{children}</LayoutProvider>
+                    </SessionProvider>
                 </PrimeReactProvider>
             </body>
         </html>
