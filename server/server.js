@@ -6,6 +6,7 @@ app.use(cors());
 app.use(express.json());
 
 const { initializeGrades } = require('./services/gradeService');
+const { createAdminUser } = require('./services/userService');
 const gradeRoutes = require('./routes/gradeRoutes');
 app.use('/api/grades', gradeRoutes);
 const departmentRoutes = require("./routes/departmentRoutes");
@@ -57,6 +58,7 @@ mongoose.connect(process.env.MONGO_URL)
   .then(async () => {
     console.log('databased connection established');
     await initializeGrades();
+    await createAdminUser();
   })
   .catch(err => {
     console.error('database connection error:', err);

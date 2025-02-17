@@ -32,15 +32,15 @@ const userController = {
         try {
             const { email, password } = req.body;
             const user = await User.findOne({ email });
-            if (!user) return res.status(401).json({ message: "User not found" });            
-            
+            if (!user) return res.status(401).json({ message: "User not found" });
+
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
-            
+
             const token = jwt.sign({ id: user._id, email: user.email }, process.env.KEY, { expiresIn: "1h" });
 
             res.status(200).json({
-                token, _id: user._id, email: user.email, username: user.username
+                token, _id: user._id, email: user.email, username: user.username, roles: user.roles
             });
         } catch (error) {
             console.log(error);

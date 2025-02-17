@@ -1,5 +1,5 @@
 import { useSession, signOut } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { Password } from "primereact/password";
@@ -13,6 +13,13 @@ export default function Profile() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
 
+    useEffect(() => {
+        if (session) {
+            //console.log(session);
+        }
+    }, [session]);
+
+
     const handleLogout = () => {
         signOut({ callbackUrl: "/landing" });
     };
@@ -22,10 +29,8 @@ export default function Profile() {
             setError("New passwords do not match.");
             return;
         }
-
         // TODO: Send request to change password (e.g., API call)
         console.log("Changing password...", { currentPassword, newPassword });
-
         // Reset form & close dialog
         setCurrentPassword("");
         setNewPassword("");
@@ -33,6 +38,27 @@ export default function Profile() {
         setError("");
         setShowPasswordDialog(false);
     };
+
+    const displayRole = (roles: string[]) => {
+        if (!roles || roles.length === 0) {
+            return "N/A";
+        }
+        if (roles.includes("Administrator")) {
+            return "Administrator";
+        }
+        else if (roles.includes("Principal")) {
+            return "Prinicipal";
+        } else if (roles.includes("Home-Teacher")) {
+            return "Home-Teacher";
+        }
+        else if (roles.includes("Teacher")) {
+            return "Teacher";
+        }
+        else if (roles.includes("Student")) {
+            return "Student";
+        }
+        return "NULL";
+    }
 
     if (status === "loading") {
         return <p>Loading...</p>;
@@ -45,10 +71,10 @@ export default function Profile() {
     return (
         <div>
             <div className="card">
-                <h5>Welcome, {session.user?.name}</h5>
+                <h5>Welcome, {session.user?.name} {`( ${displayRole(session.user?.roles)})`}</h5>
                 <div className="flex flex-wrap gap-2">
                     <Button label="Change Password" onClick={() => {
-                        setShowPasswordDialog(true); 
+                        setShowPasswordDialog(true);
                         setCurrentPassword("");
                         setNewPassword("");
                         setConfirmPassword("");

@@ -1,15 +1,15 @@
-// userRoutes.js
 const express = require("express");
-const userController = require("../controllers/userController"); // Adjust path as needed
+const userController = require("../controllers/userController");
 const router = express.Router();
 const upload = require('../middleware/uploadPhoto');
+const { authenticateToken, verifyAdmin } = require("../middleware/auth"); // Import both middlewares
 
 // Routes
-router.post("/create", userController.createUser);
+router.post("/create", authenticateToken, verifyAdmin, userController.createUser);
 router.post("/login", userController.loginUser);
-router.get("/", userController.getUsers);
-router.put("/update/:id", userController.updateUser);
-router.delete("/delete/:id", userController.deleteUser);
-router.put('/upload-photo/:type/:id', upload.single('photo'), userController.updateUserPhoto);
+router.get("/", authenticateToken, userController.getUsers);
+router.put("/update/:id", authenticateToken, verifyAdmin, userController.updateUser);
+router.delete("/delete/:id", authenticateToken, verifyAdmin, userController.deleteUser);
+router.put('/upload-photo/:type/:id', authenticateToken, upload.single('photo'), userController.updateUserPhoto);
 
 module.exports = router;

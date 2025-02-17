@@ -11,5 +11,18 @@ const createUserAccount = async (user) => {
     const hashedPassword = await prepareHash(password);
     const newUser = new User({ username, password: hashedPassword, email, roles });
     return await newUser.save();
-}
-module.exports = { createUserAccount, prepareHash };
+};
+const createAdminUser = async () => {
+    try {
+        const existingAdmin = await User.findOne({ username: 'root' });
+        if (!existingAdmin) {
+            await createUserAccount({ username: 'root', email: 'root', password: 'rootpassword', roles: ["Administrator"] });
+            console.log('Admin user created successfully.');
+        } else {
+            console.log('Admin user already exists.');
+        }
+    } catch (error) {
+        console.error('Error creating admin user:', error);
+    }
+};
+module.exports = { createUserAccount, prepareHash, createAdminUser};

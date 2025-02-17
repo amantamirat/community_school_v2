@@ -23,7 +23,8 @@ export const authOptions: NextAuthOptions = {
                     return {
                         id: user._id, // Make sure this matches the API response
                         email: user.email,
-                        name: user.username
+                        name: user.username,
+                        roles:user.roles || [] 
                     };
                 } catch (error) {
                     console.error("Authentication error:", error);
@@ -37,16 +38,16 @@ export const authOptions: NextAuthOptions = {
     },
     callbacks: {
         async session({ session, token }) {
-            // Add the user ID to the session object
             if (session.user) {
                 session.user.id = token.sub as string;
+                session.user.roles = token.roles as string[] || [];
             }
             return session;
         },
         async jwt({ token, user }) {
-            // Add the user ID to the token
             if (user) {
                 token.sub = user.id;
+                token.roles = user.roles || [];
             }
             return token;
         }
