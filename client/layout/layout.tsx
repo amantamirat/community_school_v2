@@ -42,11 +42,7 @@ const Layout = ({ children }: ChildContainerProps) => {
         if (status !== "loading" && !session) {
             router.push("/landing");
         }
-    }, [session, status]);    
-    // While loading, show nothing to prevent UI flickering
-    if (status === "loading" || (!session && typeof window !== "undefined")) {
-        return null;
-    }
+    }, [session, status]);        
 
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -134,6 +130,11 @@ const Layout = ({ children }: ChildContainerProps) => {
         'p-input-filled': layoutConfig.inputStyle === 'filled',
         'p-ripple-disabled': !layoutConfig.ripple
     });
+
+    // While loading, show nothing to prevent UI flickering
+    if (status === "loading" || (!session && typeof window !== "undefined")) {
+        return null;
+    }
 
     return (
         <React.Fragment>
