@@ -22,4 +22,11 @@ const verifyAdmin = (req, res, next) => {
     next(); // If admin, continue to the next handler
 };
 
-module.exports = { authenticateToken, verifyAdmin };
+const verifyPrinicipal = (req, res, next) => {
+    if (!req.user || !req.user.roles || !req.user.roles.includes("Principal")) {
+        return res.status(403).json({ message: "Access denied. You are not a Principal." });
+    }
+    next(); // If prinicipal, continue to the next handler
+};
+
+module.exports = { authenticateToken, verifyAdmin, verifyPrinicipal };

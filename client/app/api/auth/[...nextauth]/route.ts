@@ -24,6 +24,7 @@ export const authOptions: NextAuthOptions = {
                         id: user._id, // Make sure this matches the API response
                         email: user.email,
                         name: user.username,
+                        accessToken:user.token,
                         roles:user.roles || [] 
                     };
                 } catch (error) {
@@ -41,6 +42,7 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 session.user.id = token.sub as string;
                 session.user.roles = token.roles as string[] || [];
+                session.user.accessToken = token.accessToken as string | undefined; 
             }
             return session;
         },
@@ -48,6 +50,7 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.sub = user.id;
                 token.roles = user.roles || [];
+                token.accessToken = user.accessToken;
             }
             return token;
         }
