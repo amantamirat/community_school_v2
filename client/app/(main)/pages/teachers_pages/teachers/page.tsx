@@ -7,6 +7,7 @@ import { uid } from 'chart.js/dist/helpers/helpers.core';
 import { FilterMatchMode } from 'primereact/api';
 import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
+import { Checkbox } from 'primereact/checkbox';
 import { Column } from 'primereact/column';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
@@ -485,8 +486,17 @@ const TeacherPage = () => {
                                         'p-invalid': submitted && !selectedTeacher.department,
                                     })}
                                 />
-
                                 {submitted && !selectedTeacher.department && <small className="p-invalid">Department is required.</small>}
+                            </div>
+                            <div className="field grid">
+                                <label htmlFor="is_director" className="col-6 mb-0">Is Director</label>
+                                <div className="col-6">
+                                    <Checkbox
+                                        inputId="is_director"
+                                        checked={selectedTeacher.is_director || false}
+                                        onChange={(e) => setSelectedTeacher({ ...selectedTeacher, is_director: e.checked! })}
+                                    />
+                                </div>
                             </div>
                         </>) : <></>}
                     </Dialog>
