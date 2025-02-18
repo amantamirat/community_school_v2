@@ -20,6 +20,7 @@ import React, { useEffect, useRef, useState } from 'react';
 const roles: { label: string, value: Role }[] = [
     { label: 'Administrator', value: 'Administrator' },
     { label: 'Principal', value: 'Principal' },
+    { label: 'Home-Teacher', value: 'Home-Teacher' },
     { label: 'Teacher', value: 'Teacher' }
 ];
 
@@ -350,17 +351,17 @@ const UserPage = () => {
                                     onChange={(e) => setSelectedUser({ ...selectedUser, password: e.target.value })}
                                     required
                                     className={classNames({
-                                        'p-invalid': submitted && !selectedUser.password,
+                                        'p-invalid': submitted && !selectedUser?.password,
                                     })}
                                 />
-                                {submitted && !selectedUser.password && <small className="p-invalid">Password is required.</small>}
+                                {submitted && !selectedUser?.password && <small className="p-invalid">Password is required.</small>}
                             </div>
                             <div>
                                 {selectedUser?._id &&
                                     <div className="field">
                                         <label htmlFor="roles">Roles</label>
                                         <MultiSelect
-                                            value={selectedUser.roles}
+                                            value={selectedUser?.roles}
                                             onChange={(e) => setSelectedUser({ ...selectedUser, roles: e.value })}
                                             options={roles}
                                             optionLabel="label"
@@ -370,7 +371,7 @@ const UserPage = () => {
                                             className="w-full"
                                             style={{ width: '100%', minWidth: '300px', maxWidth: '500px' }}
                                         />
-                                        {submitted && !selectedUser.roles && <small className="p-invalid">Roles required.</small>}
+                                        {submitted && !selectedUser?.roles && <small className="p-invalid">Roles required.</small>}
                                     </div>
                                 }
                             </div>
