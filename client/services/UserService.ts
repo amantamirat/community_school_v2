@@ -5,8 +5,11 @@ const get_endpoint = '/api/users/';
 const create_endpoint = '/api/users/create';
 const login_endpoint = '/api/users/login';
 const update_endpoint = '/api/users/update';
+const change_password_endpoint = '/api/users/change-password';
+const change_user_password_endpoint = '/api/users/change-user-password';
 const delete_endpoint = '/api/users/delete';
 const upload_endpoint = '/api/users/upload-photo';
+
 
 export const UserService = {
     async getUsers(): Promise<User[]> {
@@ -23,6 +26,19 @@ export const UserService = {
         const loggedinUser = await MyService.create({ email: email, password: password }, login_endpoint);
         return loggedinUser;
 
+    },
+
+    async changePassword(id: string, passwords: any): Promise<User> {
+        const updatedUser = await MyService.update(id, passwords, change_password_endpoint);
+        return updatedUser;
+    },
+
+    async changeUserPassword(user: Partial<User>): Promise<User> {
+        if (user._id) {
+            const updatedUser = await MyService.update(user._id, user, change_user_password_endpoint);
+            return updatedUser;
+        }
+        throw new Error("_id is required.");
     },
     async updateUser(user: Partial<User>): Promise<User> {
         if (user._id) {

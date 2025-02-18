@@ -22,7 +22,7 @@ const userController = {
             const newUser = await createUserAccount(req.body);
             await newUser.save();
             const userResponse = newUser.toObject();
-            delete userResponse.password;    
+            delete userResponse.password;
             res.status(201).json(userResponse)
         } catch (error) {
             console.log(error);
@@ -51,25 +51,75 @@ const userController = {
 
     },
 
-    updateUser: async (req, res) => {
+    changePassword: async (req, res) => {
         try {
             const { id } = req.params;
-            const { username, password, email, roles } = req.body;
-            const hashedPassword = await prepareHash(password);
-            const updatedUser = await User.findByIdAndUpdate(
-                id,
-                { username, password: hashedPassword, email, roles },
-                { new: true }
-            );
-            if (!updatedUser) {
+            if (req.user._id !== id) {
                 return res.status(404).json({ message: "User not found" });
             }
-            res.status(200).json(updatedUser);
+            const user = await User.findById(id);
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            const { current_password, new_password } = req.body;
+            const isMatch = await bcrypt.compare(current_password, user.password);
+            if (!isMatch) return res.status(401).json({ message: "Invalid Current Password" });
+
+            const hashedPassword = await prepareHash(new_password);
+            user.password = hashedPassword;
+            const updatedUser = await user.save();
+            const userResponse = updatedUser.toObject();
+            delete userResponse.password;
+            res.status(200).json(userResponse);
         } catch (error) {
             console.log(error);
             res.status(500).json({ message: error.message });
         }
     },
+
+    changeUserPassword: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const user = await User.findById(id);
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            const { password } = req.body;
+            const hashedPassword = await prepareHash(password);
+            user.password = hashedPassword;
+            const updatedUser = await user.save();
+            const userResponse = updatedUser.toObject();
+            delete userResponse.password;
+            res.status(200).json(userResponse);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ message: error.message });
+        }
+    },
+    updateUser: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { username, email, roles } = req.body;
+            //const hashedPassword = await prepareHash(password);
+            const updatedUser = await User.findByIdAndUpdate(
+                id,
+                { username, email, roles },
+                { new: true }
+            );
+            if (!updatedUser) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            const userResponse = updatedUser.toObject();
+            delete userResponse.password;
+            res.status(200).json(userResponse);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+
+
 
     updateUserPhoto: async (req, res) => {
         try {

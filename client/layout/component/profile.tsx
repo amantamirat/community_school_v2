@@ -1,9 +1,11 @@
 import { useSession, signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { Password } from "primereact/password";
 import { InputText } from "primereact/inputtext";
+import { UserService } from "@/services/UserService";
+import { Toast } from "primereact/toast";
 
 export default function Profile() {
     const { data: session, status } = useSession();
@@ -12,6 +14,7 @@ export default function Profile() {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
+    const toast = useRef<Toast>(null);
 
     useEffect(() => {
         if (session) {
@@ -29,14 +32,34 @@ export default function Profile() {
             setError("New passwords do not match.");
             return;
         }
-        // TODO: Send request to change password (e.g., API call)
-        console.log("Changing password...", { currentPassword, newPassword });
-        // Reset form & close dialog
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-        setError("");
-        setShowPasswordDialog(false);
+        if (session?.user.id) {
+            try {
+                const user = await UserService.changePassword(session?.user?.id, { current_password: currentPassword, new_password: newPassword });
+                if (user) {
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Your password has been changed sucessfully!',
+                        life: 3000
+                    });
+                }
+            } catch (error) {
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Failed to Change Password!',
+                    detail: '' + error,
+                    life: 3000
+                });
+            } finally {
+                // Reset form & close dialog
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+                setError("");
+                setShowPasswordDialog(false);
+            }
+
+        }
     };
 
     const displayRole = (roles: string[]) => {
@@ -68,6 +91,7 @@ export default function Profile() {
     return (
         <div>
             <div className="card">
+                <Toast ref={toast} />
                 <h5>Welcome, {session.user?.name} {`( ${displayRole(session.user?.roles)})`}</h5>
                 <div className="flex flex-wrap gap-2">
                     <Button label="Change Password" onClick={() => {

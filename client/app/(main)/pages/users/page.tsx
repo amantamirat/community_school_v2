@@ -27,14 +27,15 @@ const roles: { label: string, value: Role }[] = [
 const UserPage = () => {
     let emptyUser: User = {
         username: '',
-        password:'',
+        password: '',
         email: '',
-        roles:[]
+        roles: []
     };
 
     const [users, setUsers] = useState<User[]>([]);
     const [selectedUser, setSelectedUser] = useState<User>(emptyUser);
-    const [showSaveDialog, setShowSaveDialog] = useState(false);    
+    const [showSaveDialog, setShowSaveDialog] = useState(false);
+    const [showPassDialog, setShowPassDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [showUploadDialog, setShowUploadDialog] = useState(false);
@@ -88,12 +89,17 @@ const UserPage = () => {
         let _users = [...(users as any)];
         try {
             if (selectedUser._id) {
-                //console.log(selectedUser);
-                const updatedUser = await UserService.updateUser(selectedUser);
-                if (updatedUser) {
-                    const index = users.findIndex((user) => user._id === updatedUser._id);
-                    _users[index] = updatedUser;
+                if (showPassDialog) {
+                    await UserService.changeUserPassword(selectedUser);
+                } else {
+                    const updatedUser = await UserService.updateUser(selectedUser);
+                    if (updatedUser) {
+                        const index = users.findIndex((user) => user._id === updatedUser._id);
+                        _users[index] = updatedUser;
+                    }
                 }
+                //console.log(selectedUser);
+
             } else {
                 const newUser = await UserService.createUser(selectedUser);
                 if (newUser._id) {
@@ -163,9 +169,16 @@ const UserPage = () => {
         setShowSaveDialog(true);
     };
 
+    const openPassDialog = (user: User) => {
+        setSelectedUser(user);
+        setSubmitted(false);
+        setShowPassDialog(true);
+    };
+
     const hideSaveDialog = () => {
         setSubmitted(false);
         setShowSaveDialog(false);
+        setShowPassDialog(false);
     };
 
     const saveDialogFooter = (
@@ -256,7 +269,8 @@ const UserPage = () => {
     const actionBodyTemplate = (rowData: User) => {
         return (
             <>
-                <Button icon="pi pi-pencil" rounded severity="success" className="mr-2" onClick={() => openEditDialog(rowData)} />
+                <Button icon="pi pi-pencil" rounded severity="success" className="mr-2" onClick={() => openPassDialog(rowData)} />
+                <Button icon="pi pi-user-edit" rounded severity="success" className="mr-2" onClick={() => openEditDialog(rowData)} />
                 <Button icon="pi pi-trash" rounded severity="warning" onClick={() => confirmDeleteItem(rowData)} />
             </>
         );
@@ -357,24 +371,50 @@ const UserPage = () => {
                                 {submitted && !selectedUser?.password && <small className="p-invalid">Password is required.</small>}
                             </div>
                             <div>
-                                {selectedUser?._id &&
-                                    <div className="field">
-                                        <label htmlFor="roles">Roles</label>
-                                        <MultiSelect
-                                            value={selectedUser?.roles}
-                                            onChange={(e) => setSelectedUser({ ...selectedUser, roles: e.value })}
-                                            options={roles}
-                                            optionLabel="label"
-                                            display="chip"
-                                            placeholder="Select Roles"
-                                            maxSelectedLabels={3}
-                                            className="w-full"
-                                            style={{ width: '100%', minWidth: '300px', maxWidth: '500px' }}
-                                        />
-                                        {submitted && !selectedUser?.roles && <small className="p-invalid">Roles required.</small>}
-                                    </div>
-                                }
+                                <div className="field">
+                                    <label htmlFor="roles">Roles</label>
+                                    <MultiSelect
+                                        value={selectedUser?.roles}
+                                        onChange={(e) => setSelectedUser({ ...selectedUser, roles: e.value })}
+                                        options={roles}
+                                        optionLabel="label"
+                                        display="chip"
+                                        placeholder="Select Roles"
+                                        maxSelectedLabels={3}
+                                        className="w-full"
+                                        style={{ width: '100%', minWidth: '300px', maxWidth: '500px' }}
+                                    />
+                                    {submitted && !selectedUser?.roles && <small className="p-invalid">Roles required.</small>}
+                                </div>
+
                             </div>
+                        </>) : <></>}
+                    </Dialog>
+
+                    <Dialog
+                        visible={showPassDialog}
+                        style={{ width: '450px' }}
+                        header={'Change User Password'}
+                        modal
+                        className="p-fluid"
+                        footer={saveDialogFooter}
+                        onHide={hideSaveDialog}
+                    >
+                        {selectedUser ? (<>
+                            <div className="field">
+                                <label htmlFor="password">New Password</label>
+                                <InputText
+                                    id="password"
+                                    value={selectedUser?.password}
+                                    onChange={(e) => setSelectedUser({ ...selectedUser, password: e.target.value })}
+                                    required
+                                    className={classNames({
+                                        'p-invalid': submitted && !selectedUser?.password,
+                                    })}
+                                />
+                                {submitted && !selectedUser?.password && <small className="p-invalid">Password is required.</small>}
+                            </div>
+
                         </>) : <></>}
                     </Dialog>
 
@@ -392,7 +432,7 @@ const UserPage = () => {
                         </div>
                     </Dialog>
 
-                    
+
 
                     <Dialog
                         visible={showDeleteDialog}
