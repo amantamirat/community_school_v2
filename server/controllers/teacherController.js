@@ -3,6 +3,7 @@ const SectionClass = require("../models/section-class");
 const User = require("../models/user");
 const { removePhoto } = require('../services/photoService');
 const { createUserAccount } = require("../services/userService");
+const GradeSection = require("../models/grade-sections");
 
 const teacherController = {
 
@@ -34,7 +35,7 @@ const teacherController = {
                 return res.status(404).json({ message: "Teacher not found" });
             }
             const { username, password, email } = req.body;
-            const newUser = await createUserAccount({ username, password, email, roles:["Teacher"] });
+            const newUser = await createUserAccount({ username, password, email, roles: ["Teacher"] });
             teacher.uid = newUser._id;
             const updatedTeacher = await teacher.save();
             res.status(200).json(updatedTeacher);
@@ -75,7 +76,7 @@ const teacherController = {
             if (!teacher) {
                 return res.status(404).json({ message: "Teacher not found" });
             }
-            if (teacher.photo) { 
+            if (teacher.photo) {
                 await removePhoto(teacher.photo);
             }
             teacher.photo = `/uploads/teachers/${req.file.filename}`;
@@ -99,6 +100,12 @@ const teacherController = {
             if (teacherExists) {
                 return res.status(400).json({
                     message: "Cannot delete the teacher. It is associated with one or more class.",
+                });
+            }
+            const homeTeacherExists = await GradeSection.exists({ home_teacher: id });
+            if (homeTeacherExists) {
+                return res.status(400).json({
+                    message: "Cannot delete the teacher. It is assigned as home teacher.",
                 });
             }
             if (teacher.photo) {

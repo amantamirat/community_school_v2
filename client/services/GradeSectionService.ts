@@ -3,6 +3,7 @@ import { MyService } from "./MyService";
 
 const get_endpoint = "/api/grade-sections/classification_grade";
 const open_endpoint = "/api/grade-sections/open";
+const update_endpoint = "/api/grade-sections/update";
 const close_endpoint = "/api/grade-sections/close";
 const create_endpoint = '/api/grade-sections/create';
 const delete_endpoint = '/api/grade-sections/delete';
@@ -17,6 +18,14 @@ export const GradeSectionService = {
     async createGradeSection(gradeSection: Partial<GradeSection>): Promise<GradeSection> {
         const createdData = await MyService.create(gradeSection, create_endpoint);
         return createdData;
+    },
+
+    async updateGradeSection(gradeSection: Partial<GradeSection>): Promise<GradeSection> {
+        if (gradeSection._id) {
+            const updatedUser = await MyService.update(gradeSection._id, gradeSection, update_endpoint);
+            return updatedUser;
+        }
+        throw new Error("_id is required.");
     },
 
     async openGradeSection(gradeSection: GradeSection): Promise<GradeSection> {

@@ -2,11 +2,14 @@
 import SectionClassComponent from "@/app/(main)/components/section_classes/page";
 import { useClassificationGrade } from "@/app/(main)/contexts/classificationGradeContext";
 import { GradeSectionService } from "@/services/GradeSectionService";
-import { GradeSection } from "@/types/model";
+import { TeacherService } from "@/services/TeacherService";
+import { GradeSection, Teacher } from "@/types/model";
+import { teacherTemplate } from "@/types/templates";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable, DataTableExpandedRows } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
+import { Dropdown } from "primereact/dropdown";
 import { InputNumber } from "primereact/inputnumber";
 import { Tag } from "primereact/tag";
 import { Toast } from "primereact/toast";
@@ -30,6 +33,20 @@ const GradeSectionPage = () => {
     const [submitted, setSubmitted] = useState(false);
     const toast = useRef<Toast>(null);
     const [expandedClassRows, setExpandedClassRows] = useState<any[] | DataTableExpandedRows>([]);
+    const [teachers, setTeachers] = useState<Teacher[]>([]);
+
+    useEffect(() => {
+        TeacherService.getTeachers().then((data) => {
+            setTeachers(data);
+        }).catch((err) => {
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Failed to Load Teachers',
+                detail: '' + err,
+                life: 3000
+            });
+        });
+    }, []);
 
     useEffect(() => {
         if (selectedClassificationGrade) {
@@ -63,18 +80,35 @@ const GradeSectionPage = () => {
         }
         let _gradeSections = [...(gradeSections as any)];
         try {
-            const newGradeSection = await GradeSectionService.createGradeSection(selectedGradeSection);
-            _gradeSections.push(newGradeSection);
-            toast.current?.show({
-                severity: 'success',
-                summary: 'Successful',
-                detail: 'Section Created',
-                life: 1500
-            });
+            if (selectedGradeSection._id) {
+                const updatedSection = await GradeSectionService.updateGradeSection(selectedGradeSection);
+                if (updatedSection) {
+                    const index = gradeSections.findIndex((sec) => sec._id === updatedSection._id);
+                    _gradeSections[index] = selectedGradeSection;
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Section Updated',
+                        life: 1500
+                    });
+                }
+            } else {
+                const newGradeSection = await GradeSectionService.createGradeSection(selectedGradeSection);
+                if (newGradeSection._id) {
+                    _gradeSections.push({ ...selectedGradeSection, _id: newGradeSection._id });
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Successful',
+                        detail: 'Section Created',
+                        life: 1500
+                    });
+                }
+            }
+
         } catch (error) {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Failed to create section',
+                summary: 'Failed to manipulat section',
                 detail: '' + error,
                 life: 1500
             });
@@ -125,6 +159,12 @@ const GradeSectionPage = () => {
         }
     };
 
+    const openEditDialog = (gradeSection: GradeSection) => {
+        setSelectedGradeSection({ ...gradeSection });
+        setSubmitted(false);
+        setShowAddDialog(true);
+    };
+
     const hideAddDialog = () => {
         setSubmitted(false);
         setShowAddDialog(false);
@@ -132,7 +172,7 @@ const GradeSectionPage = () => {
     const addDialogFooter = (
         <>
             <Button label="Cancel" icon="pi pi-times" text onClick={hideAddDialog} />
-            <Button label="Add" icon="pi pi-check" text onClick={saveGradeSection} />
+            <Button label="Save" icon="pi pi-check" text onClick={saveGradeSection} />
         </>
     );
 
@@ -189,6 +229,7 @@ const GradeSectionPage = () => {
     const actionBodyTemplate = (rowData: GradeSection) => {
         return (
             <>
+                <Button icon="pi pi-pencil" rounded severity="success" className="mr-2" onClick={() => openEditDialog(rowData)} />
                 <Button icon="pi pi-trash" rounded severity="warning" onClick={() => confirmRemoveGradeSection(rowData)} />
             </>
         );
@@ -233,7 +274,12 @@ const GradeSectionPage = () => {
                         <Column expander style={{ width: '4em' }} />
                         <Column selectionMode="single" headerStyle={{ width: '3em' }}></Column>
                         <Column field="section_number" header="Section" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        <Column field="number_of_seat" header="Capacity" sortable headerStyle={{ minWidth: '10rem' }}></Column>                        
+                        <Column field="number_of_seat" header="Capacity" sortable headerStyle={{ minWidth: '10rem' }}></Column>
+                        <Column header="Home Teacher" field="home_teacher.first_name" body={(rowData) =>
+                            rowData.home_teacher
+                                ? `${rowData.home_teacher.sex === 'Male' ? 'Mr.' : 'Miss'} ${rowData.home_teacher.first_name} ${rowData.home_teacher.last_name}`
+                                : 'N/A'
+                        } sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="status" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
@@ -263,6 +309,8 @@ const GradeSectionPage = () => {
                                     />
                                 </div>
                                 {submitted && !selectedGradeSection.section_number && <small className="p-invalid">Section Number is required.</small>}
+                            </div>
+                            <div className="field">
                                 <label htmlFor="number_of_seat">Capacity</label>
                                 <div id="number_of_seat">
                                     <InputNumber
@@ -280,8 +328,26 @@ const GradeSectionPage = () => {
                                     />
                                 </div>
                                 {submitted && !selectedGradeSection.number_of_seat && <small className="p-invalid">Number of Seat is required.</small>}
-
                             </div>
+
+                            <div className="field">
+                                <label htmlFor="home_teacher">Teacher</label>
+                                <div id="home_teacher">
+                                    <Dropdown
+                                        value={selectedGradeSection?.home_teacher}
+                                        options={teachers}
+                                        onChange={(e) => setSelectedGradeSection({ ...selectedGradeSection, home_teacher: e.value })}
+                                        placeholder="Select a Teacher"
+                                        optionLabel="_id"
+                                        itemTemplate={teacherTemplate}
+                                        valueTemplate={teacherTemplate}
+                                        filter
+                                        required
+                                        emptyMessage="No Teachers Found."
+                                    />
+                                </div>
+                            </div>
+
                         </> : <></>}
                     </Dialog>
 

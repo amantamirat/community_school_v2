@@ -10,7 +10,7 @@ const GradeSectionController = {
     getGradeSectionsByClassificationGrade: async (req, res) => {
         try {
             const { classification_grade } = req.params;
-            const gradeSections = await GradeSection.find({ classification_grade: classification_grade }).lean();
+            const gradeSections = await GradeSection.find({ classification_grade: classification_grade }).populate('home_teacher').lean();
             res.status(200).json(gradeSections);
         } catch (error) {
             res.status(500).json({ message: error.message });
@@ -55,14 +55,39 @@ const GradeSectionController = {
 
     createSection: async (req, res) => {
         try {
-            const { classification_grade, section_number, number_of_seat} = req.body;
+            const { classification_grade, section_number, number_of_seat, home_teacher } = req.body;
             const classificationGrade = await ClassificationGrade.findById(classification_grade);
             if (!classificationGrade) return res.status(404).json({ message: 'Classification grade not found' });
             if (classificationGrade.status === "CLOSED") return res.status(404).json({ message: 'Classification Grade is Closed.' });
-            const gradeSection = new GradeSection({ classification_grade, section_number, number_of_seat});
+            const gradeSection = new GradeSection({ classification_grade, section_number, number_of_seat, home_teacher });
             const savedGradeSection = await gradeSection.save();
             await createSectionSubjectsByGradeSection(savedGradeSection);
             res.status(201).json(savedGradeSection);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+
+    updateSection: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const gradeSection = await GradeSection.findById(id).lean();
+            if (!gradeSection) {
+                return res.status(404).json({ message: 'Grade section not found' });
+            }
+            if (gradeSection.status === "CLOSED") {
+                return res.status(404).json({ message: 'Grade section is closed, can not update' });
+            }
+            const { section_number, number_of_seat, home_teacher } = req.body;
+            const updatedGradeSection = await GradeSection.findByIdAndUpdate(
+                id,
+                { section_number, number_of_seat, home_teacher },
+                { new: true }
+            );
+
+
+            res.status(200).json(updatedGradeSection);
         } catch (error) {
             res.status(500).json({ message: error.message });
         }

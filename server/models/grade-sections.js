@@ -15,9 +15,13 @@ const GradeSectionSchema = new mongoose.Schema({
     number_of_seat: {
         type: Number,
         required: true,
-        default:60,
+        default: 60,
         min: 1,
         max: 200
+    },
+    home_teacher: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Teacher"
     },
     status: {
         type: String,

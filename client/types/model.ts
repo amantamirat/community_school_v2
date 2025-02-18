@@ -14,7 +14,7 @@ export type Teacher = {
     photo?: string;
     uid?: User | string;
 };
-export type Role = 'Administrator' |'Director'|'Home-Teacher' | 'Teacher' | 'Student';
+export type Role = 'Administrator' | 'Director' | 'Home-Teacher' | 'Teacher' | 'Student';
 export type User = {
     _id?: string;
     username: string;
@@ -103,6 +103,7 @@ export type GradeSection = {
     classification_grade: ClassificationGrade | string;
     section_number: number;
     number_of_seat: number;
+    home_teacher?: Teacher | string;
     status: 'OPEN' | 'CLOSED';
 };
 
