@@ -40,14 +40,11 @@ export default function Profile() {
     };
 
     const displayRole = (roles: string[]) => {
-        if (!roles || roles.length === 0) {
-            return "N/A";
-        }
         if (roles.includes("Administrator")) {
             return "Administrator";
         }
-        else if (roles.includes("Principal")) {
-            return "Prinicipal";
+        else if (roles.includes("Director")) {
+            return "Director";
         } else if (roles.includes("Home-Teacher")) {
             return "Home-Teacher";
         }
@@ -57,7 +54,7 @@ export default function Profile() {
         else if (roles.includes("Student")) {
             return "Student";
         }
-        return "NULL";
+        return "N/A";
     }
 
     if (status === "loading") {

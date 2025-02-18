@@ -23,8 +23,8 @@ const verifyAdmin = (req, res, next) => {
 };
 
 const verifyPrinicipal = (req, res, next) => {
-    if (!req.user || !req.user.roles || !req.user.roles.includes("Principal")) {
-        return res.status(403).json({ message: "Access denied. You are not a Principal." });
+    if (!req.user || !req.user.roles || !req.user.roles.includes("Director")) {
+        return res.status(403).json({ message: "Access denied. You are not a Director." });
     }
     next(); // If prinicipal, continue to the next handler
 };

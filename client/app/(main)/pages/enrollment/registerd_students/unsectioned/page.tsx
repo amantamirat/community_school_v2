@@ -3,6 +3,7 @@ import { useClassificationGrade } from '@/app/(main)/contexts/classificationGrad
 import { GradeSectionService } from '@/services/GradeSectionService';
 import { StudentGradeService } from '@/services/StudentGradeService';
 import { GradeSection, StudentGrade } from '@/types/model';
+import { useSession } from 'next-auth/react';
 import { FilterMatchMode, PrimeIcons } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -29,6 +30,7 @@ const UnsectionedStudentsPage = () => {
     const [showSectionDialog, setShowSectionDialog] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [showDeregisterDialog, setShowDeregisterDialog] = useState(false);
+    const { data: session } = useSession();
 
     useEffect(() => {
         initFilters();
@@ -191,28 +193,30 @@ const UnsectionedStudentsPage = () => {
     };
 
     const endToolbarTemplate = useMemo(() => {
-        return (
-            <div className="my-2">
-                <Button
-                    label="Allocate Section"
-                    icon={PrimeIcons.TAG}
-                    severity="info"
-                    className="mr-2"
-                    disabled={selectedRegisteredStudents.length === 0}
-                    onClick={openSectionDialog}
-                    loading={loading}
-                />
-                <Button
-                    label="Deregister"
-                    icon={PrimeIcons.TRASH}
-                    severity="danger"
-                    className="mr-2"
-                    disabled={selectedRegisteredStudents.length === 0}
-                    onClick={openDeregisterDialog}
-                />
-            </div>
-        );
-    }, [selectedRegisteredStudents]);
+        if (session?.user?.roles?.includes('Director')) {
+            return (
+                <div className="my-2">
+                    <Button
+                        label="Allocate Section"
+                        icon={PrimeIcons.TAG}
+                        severity="info"
+                        className="mr-2"
+                        disabled={selectedRegisteredStudents.length === 0}
+                        onClick={openSectionDialog}
+                        loading={loading}
+                    />
+                    <Button
+                        label="Deregister"
+                        icon={PrimeIcons.TRASH}
+                        severity="danger"
+                        className="mr-2"
+                        disabled={selectedRegisteredStudents.length === 0}
+                        onClick={openDeregisterDialog}
+                    />
+                </div>
+            );
+        }
+    }, [selectedRegisteredStudents, session]);
 
 
     const getSeverity = (value: StudentGrade) => {

@@ -19,7 +19,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 const roles: { label: string, value: Role }[] = [
     { label: 'Administrator', value: 'Administrator' },
-    { label: 'Principal', value: 'Principal' },
+    { label: 'Director', value: 'Director' },
     { label: 'Home-Teacher', value: 'Home-Teacher' },
     { label: 'Teacher', value: 'Teacher' }
 ];

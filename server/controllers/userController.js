@@ -21,7 +21,9 @@ const userController = {
         try {
             const newUser = await createUserAccount(req.body);
             await newUser.save();
-            res.status(201).json(newUser);
+            const userResponse = newUser.toObject();
+            delete userResponse.password;    
+            res.status(201).json(userResponse)
         } catch (error) {
             console.log(error);
             res.status(500).json({ message: error.message });

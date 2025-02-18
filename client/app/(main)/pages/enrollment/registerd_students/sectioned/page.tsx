@@ -5,6 +5,7 @@ import { GradeSectionService } from '@/services/GradeSectionService';
 import { StudentClassService } from '@/services/StudentClassService';
 import { StudentGradeService } from '@/services/StudentGradeService';
 import { GradeSection, StudentGrade } from '@/types/model';
+import { useSession } from 'next-auth/react';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable, DataTableExpandedRows } from 'primereact/datatable';
@@ -23,7 +24,7 @@ const SectionedStudentsPage = () => {
     const [loading, setLoading] = useState(false);
     const [showDetachSectionDialog, setShowDetachSectionDialog] = useState(false);
     const [expandedClassRows, setExpandedClassRows] = useState<any[] | DataTableExpandedRows>([]);
-
+    const { data: session } = useSession();
     useEffect(() => {
         if (selectedClassificationGrade) {
             setLoading(true);
@@ -106,7 +107,7 @@ const SectionedStudentsPage = () => {
             if (!selectedGradeSection) {
                 throw Error("Section Required");
             }
-            if(selectedGradeSection.status==="CLOSED"){
+            if (selectedGradeSection.status === "CLOSED") {
                 throw Error("Section CLOSED");
             }
             setLoading(true);
@@ -159,14 +160,16 @@ const SectionedStudentsPage = () => {
             <h5 className="m-0">Section Students</h5>
             <span className="block mt-2 md:mt-0">
                 <div className="my-2">
-                    <Button
-                        label="Detach Section"
-                        icon="pi pi-fw pi-times-circle"
-                        severity="danger"
-                        className="mr-2"
-                        disabled={selectedRegisteredStudents.length === 0}
-                        onClick={openDetachSectionDialog}
-                    />
+                    {(session?.user?.roles?.includes('Director')) && <>
+                        <Button
+                            label="Detach Section"
+                            icon="pi pi-fw pi-times-circle"
+                            severity="danger"
+                            className="mr-2"
+                            disabled={selectedRegisteredStudents.length === 0}
+                            onClick={openDetachSectionDialog}
+                        />
+                    </>}
                     <Button tooltip="Fix Classes" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncStudClasses} />
                 </div>
             </span>

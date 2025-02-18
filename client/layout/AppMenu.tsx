@@ -1,13 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 
-import React, { useContext } from 'react';
+import { AppMenuItem } from '@/types';
+import { useSession } from 'next-auth/react';
+import { PrimeIcons } from 'primereact/api';
+import { useContext } from 'react';
 import AppMenuitem from './AppMenuitem';
 import { LayoutContext } from './context/layoutcontext';
 import { MenuProvider } from './context/menucontext';
-import Link from 'next/link';
-import { AppMenuItem } from '@/types';
-import { PrimeIcons } from 'primereact/api';
-import { useSession } from 'next-auth/react';
 
 const AppMenu = () => {
     const { layoutConfig } = useContext(LayoutContext);
@@ -21,9 +20,9 @@ const AppMenu = () => {
     ];
     const enrollmentItems = [];
 
-    if (session?.user?.roles?.includes('Principal') || session?.user?.roles?.includes('Home-Teacher') || session?.user?.roles?.includes('Teacher')) {
-        if (session?.user?.roles?.includes('Principal') || session?.user?.roles?.includes('Home-Teacher')) {
-            if (session?.user?.roles?.includes('Principal')) {
+    if (session?.user?.roles?.includes('Director') || session?.user?.roles?.includes('Home-Teacher') || session?.user?.roles?.includes('Teacher')) {
+        if (session?.user?.roles?.includes('Director') || session?.user?.roles?.includes('Home-Teacher')) {
+            if (session?.user?.roles?.includes('Director')) {
                 enrollmentItems.push({
                     label: 'Registration',
                     icon: PrimeIcons.SIGN_IN,
@@ -39,12 +38,13 @@ const AppMenu = () => {
                             ]
                         }
                     ]
-                });
+                },
+                    { label: 'Section Classes', icon: PrimeIcons.TH_LARGE, to: '/pages/enrollment/grade_sections' },
+                );
             }
 
             enrollmentItems.push(
                 { label: 'Registered', icon: PrimeIcons.ID_CARD, to: '/pages/enrollment/registerd_students' },
-                { label: 'Section Classes', icon: PrimeIcons.TH_LARGE, to: '/pages/enrollment/grade_sections' },
                 { label: 'Teacher Allocation', icon: PrimeIcons.USER_EDIT, to: '/pages/enrollment/teacher_class' },
             );
         }
@@ -56,8 +56,8 @@ const AppMenu = () => {
     }
 
     const manageItems = [];
-    if (session?.user?.roles?.includes('Principal') || session?.user?.roles?.includes('Administrator')) {
-        if (session?.user?.roles?.includes('Principal')) {
+    if (session?.user?.roles?.includes('Director') || session?.user?.roles?.includes('Administrator')) {
+        if (session?.user?.roles?.includes('Director')) {
             manageItems.push(
                 { label: 'Academic Session', icon: PrimeIcons.CALENDAR, to: '/pages/academic_session' },
                 { label: 'Curricula', icon: PrimeIcons.BOOK, to: '/pages/curricula_pages' }
