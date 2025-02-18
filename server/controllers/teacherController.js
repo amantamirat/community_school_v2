@@ -35,7 +35,7 @@ const teacherController = {
                 return res.status(404).json({ message: "Teacher not found" });
             }
             const { username, password, email } = req.body;
-            const newUser = await createUserAccount({ username, password, email, roles: ["Teacher"] });
+            const newUser = await createUserAccount({username, password, email});
             teacher.uid = newUser._id;
             const updatedTeacher = await teacher.save();
             res.status(200).json(updatedTeacher);

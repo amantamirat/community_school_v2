@@ -28,10 +28,16 @@ const TeacherSchema = new mongoose.Schema(
             unique: true,
             sparse: true
         },
-        photo: { type: String },
+        photo: {
+            type: String
+        },
         uid: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User'
+        },
+        is_director: {
+            type: Boolean,
+            default: false,
         },
     }
 );

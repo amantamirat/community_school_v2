@@ -13,6 +13,7 @@ export type Teacher = {
     email?: string;
     photo?: string;
     uid?: User | string;
+    is_director?: boolean;
 };
 export type Role = 'Administrator' | 'Director' | 'Home-Teacher' | 'Teacher' | 'Student';
 export type User = {
