@@ -33,11 +33,14 @@ const TeacherSchema = new mongoose.Schema(
         },
         uid: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
+            ref: 'User',
+            unique:true,
+            sparse:true
         },
         is_director: {
             type: Boolean,
             default: false,
+            required:true
         },
     }
 );

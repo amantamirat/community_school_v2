@@ -18,8 +18,8 @@ const teacherController = {
 
     createTeacher: async (req, res) => {
         try {
-            const { department, first_name, middle_name, last_name, sex } = req.body;
-            const newTeacher = new Teacher({ department, first_name, middle_name, last_name, sex });
+            const { department, first_name, middle_name, last_name, sex, is_director } = req.body;
+            const newTeacher = new Teacher({ department, first_name, middle_name, last_name, sex, is_director});
             await newTeacher.save();
             res.status(201).json(newTeacher);
         } catch (error) {
@@ -49,10 +49,10 @@ const teacherController = {
     updateTeacher: async (req, res) => {
         try {
             const { id } = req.params;
-            const { department, first_name, middle_name, last_name, sex } = req.body;
+            const { department, first_name, middle_name, last_name, sex, is_director } = req.body;
             const updatedTeacher = await Teacher.findByIdAndUpdate(
                 id,
-                { department, first_name, middle_name, last_name, sex },
+                { department, first_name, middle_name, last_name, sex, is_director },
                 { new: true }
             );
 

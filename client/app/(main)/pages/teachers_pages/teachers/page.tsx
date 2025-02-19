@@ -25,7 +25,8 @@ const TeacherPage = () => {
         first_name: '',
         last_name: '',
         sex: 'Male',
-        department: '', // Reference to department
+        department: '',
+        is_director:false
     };
     let emptyUser: User = {
         username: '',
@@ -489,11 +490,11 @@ const TeacherPage = () => {
                                 {submitted && !selectedTeacher.department && <small className="p-invalid">Department is required.</small>}
                             </div>
                             <div className="field grid">
-                                <label htmlFor="is_director" className="col-6 mb-0">Is Director</label>
-                                <div className="col-6">
+                                <label htmlFor="is_director" className="col-4 mb-0">Is Director</label>
+                                <div className="col-8">
                                     <Checkbox
                                         inputId="is_director"
-                                        checked={selectedTeacher.is_director || false}
+                                        checked={selectedTeacher.is_director}
                                         onChange={(e) => setSelectedTeacher({ ...selectedTeacher, is_director: e.checked! })}
                                     />
                                 </div>

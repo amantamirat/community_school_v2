@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const Teacher = require("../models/teacher");
+const GradeSection = require('../models/grade-sections');
 const { removePhoto } = require('../services/photoService');
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -33,16 +34,28 @@ const userController = {
     loginUser: async (req, res) => {
         try {
             const { email, password } = req.body;
-            const user = await User.findOne({ email });
+            const user = await User.findOne({ 
+                $or: [{ email: email }, { username: email }] 
+            });
             if (!user) return res.status(401).json({ message: "User not found" });
 
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
-
-            const token = jwt.sign({ _id: user._id, email: user.email, username: user.username, roles: user.roles }, process.env.KEY, { expiresIn: "1h" });
-
+            let roles = [...user.roles];
+            const teacher = await Teacher.findOne({ uid: user._id }).lean();
+            if (teacher) {
+                roles.push("Teacher");
+                if (teacher.is_director) {
+                    roles.push("Director");
+                }
+                const home_teacher_exist = await GradeSection.exists({ home_teacher: teacher._id, status: 'OPEN' });
+                if (home_teacher_exist) {
+                    roles.push("Home-Teacher");
+                }
+            }
+            const token = jwt.sign({ _id: user._id, email: user.email, username: user.username, roles: roles }, process.env.KEY, { expiresIn: "1h" });
             res.status(200).json({
-                token: token, _id: user._id, email: user.email, username: user.username, roles: user.roles
+                token: token, _id: user._id, email: user.email, username: user.username, roles: roles
             });
         } catch (error) {
             console.log(error);

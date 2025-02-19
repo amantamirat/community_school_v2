@@ -18,11 +18,18 @@ import React, { useEffect, useRef, useState } from 'react';
 
 
 const roles: { label: string, value: Role }[] = [
+    { label: 'Administrator', value: 'Administrator' }
+];
+
+/**
+ * const roles: { label: string, value: Role }[] = [
     { label: 'Administrator', value: 'Administrator' },
     { label: 'Director', value: 'Director' },
     { label: 'Home-Teacher', value: 'Home-Teacher' },
     { label: 'Teacher', value: 'Teacher' }
 ];
+
+ */
 
 const UserPage = () => {
     let emptyUser: User = {
@@ -75,11 +82,12 @@ const UserPage = () => {
     };
 
     const validateUser = (user: User) => {
-        if (user.username.trim() === '' || user.password?.trim() === '') {
+        if (user.username.trim() === '' || (user.password !== undefined && user.password.trim() === '')) {
             return false;
         }
         return true;
     };
+    
 
     const saveUser = async () => {
         setSubmitted(true);
@@ -98,8 +106,6 @@ const UserPage = () => {
                         _users[index] = updatedUser;
                     }
                 }
-                //console.log(selectedUser);
-
             } else {
                 const newUser = await UserService.createUser(selectedUser);
                 if (newUser._id) {
@@ -124,6 +130,7 @@ const UserPage = () => {
         }
         finally {
             setShowSaveDialog(false);
+            setShowPassDialog(false);
             setSelectedUser(emptyUser);
             setUsers(_users);
         }
@@ -357,19 +364,22 @@ const UserPage = () => {
                                     onChange={(e) => setSelectedUser({ ...selectedUser, email: e.target.value })}
                                 />
                             </div>
-                            <div className="field">
-                                <label htmlFor="password">Password</label>
-                                <InputText
-                                    id="password"
-                                    value={selectedUser?.password}
-                                    onChange={(e) => setSelectedUser({ ...selectedUser, password: e.target.value })}
-                                    required
-                                    className={classNames({
-                                        'p-invalid': submitted && !selectedUser?.password,
-                                    })}
-                                />
-                                {submitted && !selectedUser?.password && <small className="p-invalid">Password is required.</small>}
-                            </div>
+                            {!selectedUser._id && (
+                                <div className="field">
+                                    <label htmlFor="password">Password</label>
+                                    <InputText
+                                        id="password"
+                                        value={selectedUser?.password}
+                                        onChange={(e) => setSelectedUser({ ...selectedUser, password: e.target.value })}
+                                        required
+                                        className={classNames({
+                                            'p-invalid': submitted && !selectedUser?.password,
+                                        })}
+                                    />
+                                    {submitted && !selectedUser?.password && <small className="p-invalid">Password is required.</small>}
+                                </div>
+                            )}
+
                             <div>
                                 <div className="field">
                                     <label htmlFor="roles">Roles</label>
@@ -400,12 +410,12 @@ const UserPage = () => {
                         footer={saveDialogFooter}
                         onHide={hideSaveDialog}
                     >
-                        {selectedUser ? (<>
+                        {selectedUser._id ? (<>
                             <div className="field">
                                 <label htmlFor="password">New Password</label>
                                 <InputText
                                     id="password"
-                                    value={selectedUser?.password}
+                                    value={selectedUser?.password||''}
                                     onChange={(e) => setSelectedUser({ ...selectedUser, password: e.target.value })}
                                     required
                                     className={classNames({
