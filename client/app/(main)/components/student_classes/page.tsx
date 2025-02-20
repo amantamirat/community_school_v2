@@ -7,6 +7,8 @@ import { Tag } from "primereact/tag";
 import { Toast } from "primereact/toast";
 import { useEffect, useRef, useState } from "react";
 import StudentResultComponent from "../student_results/page";
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 interface StudentClassProps {
     student_grade: StudentGrade;
@@ -46,6 +48,50 @@ const StudentClassComponent = (props: StudentClassProps) => {
     };
 
 
+    const studentData = {
+        name: "John Doe",
+        grade: "10th",
+        subjects: [
+            { subject: "Math", marks: 95 },
+            { subject: "Science", marks: 89 },
+            { subject: "English", marks: 92 },
+            { subject: "History", marks: 85 },
+        ],
+        totalMarks: 361,
+        maxMarks: 400,
+        percentage: 90.25,
+    };
+
+    // Function to generate the PDF
+    const generateReport = () => {
+        const doc = new jsPDF() as any; // Cast to 'any' to bypass type issues
+
+        // Title
+        doc.setFontSize(18);
+        doc.text("Student Report Card", 14, 20);
+
+        // Student details
+        doc.setFontSize(12);
+        doc.text(`Name: ${studentData.name}`, 14, 30);
+        doc.text(`Grade: ${studentData.grade}`, 14, 40);
+
+        // Add table with subjects and marks
+        doc.autoTable({
+            head: [['Subject', 'Marks']],
+            body: studentData.subjects.map(item => [item.subject, item.marks]),
+            startY: 50,
+            theme: 'striped',
+        });
+
+        // Total and percentage
+        doc.text(`Total Marks: ${studentData.totalMarks}/${studentData.maxMarks}`, 14, doc.lastAutoTable.finalY + 10);
+        doc.text(`Percentage: ${studentData.percentage}%`, 14, doc.lastAutoTable.finalY + 20);
+
+        // Generate PDF and open in browser
+        doc.save(`${studentData.name}_Report_Card.pdf`);
+    };
+
+
     const getSeverity = (value: string) => {
         switch (value) {
             case 'COMPLETED':
@@ -71,7 +117,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
             <h5 className="m-0">Registred Classes</h5>
             <span className="block mt-2 md:mt-0">
                 <div className="my-2">
-                    <Button label="Report" text />
+                    <Button label="Generate Report Card" onClick={generateReport} />
                 </div>
             </span>
         </div>

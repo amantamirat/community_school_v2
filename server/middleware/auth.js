@@ -29,4 +29,11 @@ const verifyPrinicipal = (req, res, next) => {
     next(); // If prinicipal, continue to the next handler
 };
 
-module.exports = { authenticateToken, verifyAdmin, verifyPrinicipal };
+const verifyTeacher = (req, res, next) => {
+    if (!req.user || !req.user.teacher || !req.user.roles || !req.user.roles.includes("Teacher")) {
+        return res.status(403).json({ message: "Access denied. You are not a Teacher." });
+    }
+    next(); // If prinicipal, continue to the next handler
+};
+
+module.exports = { authenticateToken, verifyAdmin, verifyPrinicipal, verifyTeacher };

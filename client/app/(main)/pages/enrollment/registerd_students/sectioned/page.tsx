@@ -160,17 +160,19 @@ const SectionedStudentsPage = () => {
             <h5 className="m-0">Section Students</h5>
             <span className="block mt-2 md:mt-0">
                 <div className="my-2">
-                    {(session?.user?.roles?.includes('Director')) && <>
-                        <Button
-                            label="Detach Section"
-                            icon="pi pi-fw pi-times-circle"
-                            severity="danger"
-                            className="mr-2"
-                            disabled={selectedRegisteredStudents.length === 0}
-                            onClick={openDetachSectionDialog}
-                        />
+                    {selectedGradeSection?.status !== 'CLOSED' && <>
+                        {(session?.user?.roles?.includes('Director')) && <>
+                            <Button
+                                label="Detach Section"
+                                icon="pi pi-fw pi-times-circle"
+                                severity="danger"
+                                className="mr-2"
+                                disabled={selectedRegisteredStudents.length === 0}
+                                onClick={openDetachSectionDialog}
+                            />
+                        </>}
+                        <Button tooltip="Fix Classes" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncStudClasses} />
                     </>}
-                    <Button tooltip="Fix Classes" icon="pi pi-sync" raised severity="secondary" loading={loading} rounded className="mr-2" onClick={syncStudClasses} />
                 </div>
             </span>
         </div>

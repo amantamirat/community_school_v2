@@ -286,7 +286,7 @@ const GradeSectionPage = () => {
                     <Dialog
                         visible={showAddDialog}
                         style={{ width: '450px' }}
-                        header="Add Section"
+                        header={selectedGradeSection?._id ? 'Edit Section' : 'Add Section'}
                         modal
                         className="p-fluid"
                         footer={addDialogFooter}
@@ -335,12 +335,10 @@ const GradeSectionPage = () => {
                                 <div id="home_teacher">
                                     <Dropdown
                                         value={selectedGradeSection?.home_teacher}
-                                        options={teachers}
+                                        options={teachers.map(t => ({ ...t, fullName: `${t.first_name} ${t.last_name}` }))}
                                         onChange={(e) => setSelectedGradeSection({ ...selectedGradeSection, home_teacher: e.value })}
                                         placeholder="Select a Teacher"
-                                        optionLabel="_id"
-                                        itemTemplate={teacherTemplate}
-                                        valueTemplate={teacherTemplate}
+                                        optionLabel="fullName" // Now it will show "FirstName LastName"
                                         filter
                                         required
                                         emptyMessage="No Teachers Found."

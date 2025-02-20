@@ -134,7 +134,9 @@ const SubjectWeightComponent = (props: SubjectWeightProps) => {
     );
 
     const addNewRow = () => {
-        setSubjectWeights([...subjectWeights, emptySubjectWeight]);
+        try{
+            setSubjectWeights([...subjectWeights, emptySubjectWeight]);
+        }catch(error){}        
     };
 
     const onRowEditComplete = (e: any) => {
@@ -197,6 +199,7 @@ const SubjectWeightComponent = (props: SubjectWeightProps) => {
                     <DataTable
                         value={subjectWeights}
                         dataKey="_id"
+                        key="_id"
                         editMode="row"
                         onRowEditComplete={onRowEditComplete}
                         emptyMessage={`No weights found.`}

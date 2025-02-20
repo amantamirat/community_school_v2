@@ -326,7 +326,7 @@ const ResultEntryPage = () => {
         try {
             if (selectedTermClass && selectedSectionSubject && selectedGradeSection) {
                 if (selectedGradeSection.status !== 'OPEN') {
-                   throw new Error("Closed Section Class Can not be Revoked");
+                    throw new Error("Closed Section Class Can not be Revoked");
                 }
                 if (selectedTermClass.status !== 'APPROVED') {
                     throw new Error("Non Approved Class Can not be Revoked");
@@ -454,11 +454,18 @@ const ResultEntryPage = () => {
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h5 className="m-0">Student Results</h5>
             <span className="block mt-2">
-                <Button label='Save All' text loading={loading} onClick={saveStudentResults} style={{ marginRight: '10px' }} />
-                <Button label='Submit' severity='secondary' onClick={submitStudentResults} loading={loading1} style={{ marginRight: '10px' }} />
-                <Button label='Approve' severity='success' onClick={approveStudentResults} loading={loading2} style={{ marginRight: '10px' }} />
-                <Button label='Activate' severity='warning' onClick={activateStudentResults} loading={loading3} style={{ marginRight: '10px' }} />
-                <Button label='Revoke' severity='danger' onClick={revokeStudentResults} loading={loading4} />
+                {selectedTermClass?.status === "ACTIVE" ?
+                    <>
+                        <Button label='Save All' text loading={loading} onClick={saveStudentResults} style={{ marginRight: '10px' }} />
+                        <Button label='Submit' severity='secondary' onClick={submitStudentResults} loading={loading1} style={{ marginRight: '10px' }} />
+                    </> : selectedTermClass?.status === "SUBMITTED" ?
+                        <>
+                            <Button label='Approve' severity='success' onClick={approveStudentResults} loading={loading2} style={{ marginRight: '10px' }} />
+                            <Button label='Activate' severity='warning' onClick={activateStudentResults} loading={loading3} style={{ marginRight: '10px' }} />
+                        </> : selectedTermClass?.status === "APPROVED" ?
+                            <>
+                                <Button label='Revoke' severity='danger' onClick={revokeStudentResults} loading={loading4} />
+                            </> : <></>}
             </span>
         </div>
     );
@@ -490,6 +497,7 @@ const ResultEntryPage = () => {
                                         }))}
                                         optionLabel="section_number"
                                         placeholder="Select Section"
+                                        emptyMessage="No Sections Found"
                                     />
                                 </div>
                             </div>
@@ -504,6 +512,7 @@ const ResultEntryPage = () => {
                                         options={sectionSubjects}
                                         optionLabel="grade_subject.subject.title"
                                         placeholder="Select Class"
+                                        emptyMessage="No Subjects Found"
                                     />
                                 </div>
                             </div>

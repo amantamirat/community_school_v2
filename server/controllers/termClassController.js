@@ -26,8 +26,11 @@ const TermClassController = {
     submitTermClass: async (req, res) => {
         try {
             const { term_class } = req.params;
-            const termClass = await TermClass.findById(term_class);
+            const termClass = await TermClass.findById(term_class).populate('section_subject');
             if (!termClass) return res.status(404).json({ message: 'Section class not found' });
+            if (req.user?.teacher._id.toString() !== termClass.section_subject?.teacher?.toString()) {
+                return res.status(400).json({ message: 'You are not assigned to this subject, Can Not Update Student Results' });
+            }
             if (termClass.status !== "ACTIVE") return res.status(400).json({ message: 'Section class is not ACTIVE' });
     
             const subjectTerm = await SubjectTerm.findById(termClass.subject_term);
@@ -78,6 +81,7 @@ const TermClassController = {
             if (bulkStudentResultUpdates.length > 0) await StudentResult.bulkWrite(bulkStudentResultUpdates);
     
             termClass.status = "SUBMITTED";
+            termClass.submitter=req.user?.teacher._id;
             const savedTermClass = await termClass.save();
             return res.status(200).json(savedTermClass);
         } catch (error) {

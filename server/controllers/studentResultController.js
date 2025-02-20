@@ -1,6 +1,7 @@
 const StudentResult = require("../models/student-result");
 const StudentClass = require('../models/student-class');
 const TermClass = require("../models/term-class");
+const SectionSubject = require("../models/section-subject");
 
 const StudentResultController = {
 
@@ -28,10 +29,12 @@ const StudentResultController = {
     updateStudentResults: async (req, res) => {
         try {
             const { term_class } = req.params;
-            const termClass = await TermClass.findById(term_class);
-            if (!termClass) return res.status(404).json({ message: 'Term class not found' });
+            const termClass = await TermClass.findById(term_class).populate('section_subject');
+            if (!termClass) return res.status(404).json({ message: 'Term class not found' });            
+            if (req.user?.teacher._id.toString() !== termClass.section_subject?.teacher?.toString()) {
+                return res.status(400).json({ message: 'You are not assigned to this subject, Can Not Update Student Results' });
+            }
             if (termClass.status !== "ACTIVE") return res.status(400).json({ message: 'Only ACTIVE section classes results can be updated' });
-
             const student_results = req.body;
             if (!Array.isArray(student_results) || student_results.length === 0) {
                 return res.status(400).json({ message: 'Invalid input data. subject_results must be a non-empty array.' });
@@ -58,7 +61,7 @@ const StudentResultController = {
         } catch (error) {
             return res.status(500).json({ message: error.message });
         }
-    },   
+    },
 
 
     deleteStudentResult: async (req, res) => {

@@ -18,6 +18,14 @@ const TermClassSchema = new mongoose.Schema({
         enum: ['ACTIVE', 'SUBMITTED', 'APPROVED', 'PENDING'],
         default: 'ACTIVE',
         required: true
+    },
+    submitter: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Teacher',
+    },
+    approver: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Teacher',
     }
 });
 TermClassSchema.index({ section_subject: 1, subject_term: 1 }, { unique: true });
