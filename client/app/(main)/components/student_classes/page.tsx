@@ -1,5 +1,5 @@
 import { StudentClassService } from "@/services/StudentClassService";
-import { StudentClass, StudentGrade } from "@/types/model";
+import { ClassificationGrade, CurriculumGrade, Grade, Student, StudentClass, StudentGrade } from "@/types/model";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable, DataTableExpandedRows } from "primereact/datatable";
@@ -11,13 +11,15 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
 interface StudentClassProps {
-    student_grade: StudentGrade;
+    studentGrade: StudentGrade;
+    classficiactionGrade?: ClassificationGrade
+
 }
 
 const StudentClassComponent = (props: StudentClassProps) => {
 
     let emptyStudentClass: StudentClass = {
-        student_grade: props.student_grade,
+        student_grade: props.studentGrade,
         term_class: '',
         status: 'ACTIVE'
     };
@@ -34,8 +36,9 @@ const StudentClassComponent = (props: StudentClassProps) => {
 
     const loadStudentClasss = async () => {
         try {
-            StudentClassService.getStudentClasss(props.student_grade).then((data) => {
+            StudentClassService.getStudentClasss(props.studentGrade).then((data) => {
                 setStudentClasss(data);
+                console.log(data);
             });
         } catch (err) {
             toast.current?.show({
@@ -72,8 +75,10 @@ const StudentClassComponent = (props: StudentClassProps) => {
 
         // Student details
         doc.setFontSize(12);
-        doc.text(`Name: ${studentData.name}`, 14, 30);
-        doc.text(`Grade: ${studentData.grade}`, 14, 40);
+        const student = (props.studentGrade.student as Student);
+        const grade = (props.classficiactionGrade?.curriculum_grade as CurriculumGrade).grade as Grade;
+        doc.text(`Name: ${student.first_name} ${student.last_name}`, 14, 30);
+        doc.text(`Grade: ${grade.stage}-${grade.level} ${grade.specialization ? `(${grade.specialization})` : ''}`, 14, 40);
 
         // Add table with subjects and marks
         doc.autoTable({
@@ -88,7 +93,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
         doc.text(`Percentage: ${studentData.percentage}%`, 14, doc.lastAutoTable.finalY + 20);
 
         // Generate PDF and open in browser
-        doc.save(`${studentData.name}_Report_Card.pdf`);
+        doc.save(`${student.first_name}_Report_Card.pdf`);
     };
 
 
@@ -115,11 +120,13 @@ const StudentClassComponent = (props: StudentClassProps) => {
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h5 className="m-0">Registred Classes</h5>
-            <span className="block mt-2 md:mt-0">
-                <div className="my-2">
-                    <Button label="Generate Report Card" onClick={generateReport} />
-                </div>
-            </span>
+            {props.studentGrade.status !== 'ACTIVE' &&
+                <span className="block mt-2 md:mt-0">
+                    <div className="my-2">
+                        <Button label="Generate Report Card" onClick={generateReport} />
+                    </div>
+                </span>
+            }
         </div>
     );
 
@@ -146,7 +153,7 @@ const StudentClassComponent = (props: StudentClassProps) => {
                         <Column expander style={{ width: '4em' }} />
                         <Column field="term_class.subject_term.grade_subject.subject.title" header="Class" sortable headerStyle={{ minWidth: '10rem' }}></Column>
                         <Column field="term_class.subject_term.term" header="Term" sortable headerStyle={{ minWidth: '10rem' }}></Column>
-                        {props.student_grade.status !== 'ACTIVE' && <Column field="total_result" header="Total" sortable headerStyle={{ minWidth: '10rem' }}></Column>}
+                        {props.studentGrade.status !== 'ACTIVE' && <Column field="total_result" header="Total" sortable headerStyle={{ minWidth: '10rem' }}></Column>}
                         <Column field="status" header="Status" sortable body={statusBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
 
                     </DataTable>

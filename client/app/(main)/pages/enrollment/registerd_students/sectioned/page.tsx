@@ -228,7 +228,8 @@ const SectionedStudentsPage = () => {
                         onRowToggle={(e) => setExpandedClassRows(e.data)}
                         rowExpansionTemplate={(data) => (
                             <StudentClassComponent
-                                student_grade={data as StudentGrade}
+                                studentGrade={data as StudentGrade}
+                                classficiactionGrade={selectedClassificationGrade}
                             />
                         )}
                     >
